@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "medication_schedule")
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MedicationSchedule {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long scheduleId;
@@ -27,9 +29,16 @@ public class MedicationSchedule {
     private Students student;
 
     private LocalDate scheduledDate;
-    private String scheduledTime;
+
+    private LocalTime scheduledTime;
+
     private String status;
-    private String administeredBy;
+
+    @ManyToOne
+    @JoinColumn(name = "administered_by")
+    private User administeredBy;
+
     private String notes;
-    private LocalDateTime createdAt;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

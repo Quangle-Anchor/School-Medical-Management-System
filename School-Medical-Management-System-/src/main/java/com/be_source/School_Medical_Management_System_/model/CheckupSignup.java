@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "checkup_signups")
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CheckupSignup {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long signupId;
@@ -25,6 +27,6 @@ public class CheckupSignup {
     @JoinColumn(name = "student_id")
     private Students student;
 
-    private LocalDate signupDate;
+    private LocalDateTime signupDate = LocalDateTime.now();
 }
 

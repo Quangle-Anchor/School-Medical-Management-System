@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PasswordRecovery {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long recoveryId;
@@ -22,6 +23,8 @@ public class PasswordRecovery {
     private User user;
 
     private String otpCode;
-    private LocalDateTime createdAt;
-    private Boolean isUsed;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    private Boolean isUsed = false;
 }

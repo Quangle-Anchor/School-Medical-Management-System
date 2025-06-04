@@ -13,14 +13,18 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Inventory {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long inventoryId;
 
     private String medicineName;
+
     private Integer totalQuantity;
+
     private String unit;
-    private LocalDateTime updatedAt;
+
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @ManyToOne
     @JoinColumn(name = "medicine_id")

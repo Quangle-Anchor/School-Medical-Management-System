@@ -14,17 +14,25 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Medicine {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long medicineId;
 
     private String medicineName;
+
     private String description;
+
     private String manufacturer;
+
     private LocalDate expiryDate;
+
     private String sideEffects;
+
     private String usageInstructions;
+
     private String storageInstructions;
-    private LocalDateTime createdAt;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
 
