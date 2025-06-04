@@ -13,11 +13,14 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Vaccination {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long vaccinationId;
 
     private String vaccineName;
+
     private String manufacturer;
+
     private LocalDate expiryDate;
 }

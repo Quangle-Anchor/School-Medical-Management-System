@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MedicationRequest {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long requestId;
@@ -22,14 +23,21 @@ public class MedicationRequest {
     private Students student;
 
     private String medicationName;
+
     private String dosage;
+
     private String frequency;
+
     private String prescriptionFile;
-    private String requestedBy;
-    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "requested_by")
+    private User requestedBy;
 
     @ManyToOne
     @JoinColumn(name = "inventory_id")
     private Inventory inventory;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
 

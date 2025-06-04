@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HealthIncident {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long incidentId;
@@ -23,7 +24,12 @@ public class HealthIncident {
     private Students student;
 
     private LocalDate incidentDate;
+
     private String description;
-    private String createdBy;
-    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

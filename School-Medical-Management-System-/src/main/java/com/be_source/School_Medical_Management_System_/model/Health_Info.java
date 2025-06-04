@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Health_Info {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long healthInfoId;
@@ -22,7 +23,10 @@ public class Health_Info {
     private Students student;
 
     private String medicalConditions;
+
     private String allergies;
+
     private String notes;
-    private LocalDateTime updatedAt;
+
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

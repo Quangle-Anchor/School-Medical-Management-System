@@ -13,23 +13,26 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Students {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "student_id")
     private Long studentId;
 
-    @Column(name = "full_name", nullable = false)
     private String fullName;
 
-    @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    @Column(name = "class_name")
     private String className;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id", referencedColumnName = "user_id")
+    private String gender;
+
+    private String bloodType;
+
+    private Integer heightCm;
+
+    private Integer weightKg;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
     private User parent;
-
-
 }

@@ -16,24 +16,21 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "username", nullable = false, unique = true)
+    @Column(unique = true)
     private String username;
 
-    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "email")
+    @Column(unique = true)
     private String email;
 
-    @Column(name = "phone")
     private String phone;
 
-    @Column(name = "role_id")
-    private Long roleId;
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

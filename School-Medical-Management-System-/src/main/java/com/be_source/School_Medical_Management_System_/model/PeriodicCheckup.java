@@ -13,12 +13,15 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PeriodicCheckup {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long checkupId;
 
     private String checkupName;
+
     private LocalDate scheduleDate;
+
     private String description;
 }
 
