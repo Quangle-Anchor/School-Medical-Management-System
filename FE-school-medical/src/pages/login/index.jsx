@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import authApi from '../../api/authApi';
 import { useNavigate } from 'react-router-dom';
 import { Input, Button, message } from 'antd';
-
+import logo from '../../assets/img/logo.png'; 
 const LoginPage = () => {
   const [email, setemail] = useState('');
   const [password, setPassword] = useState('');
