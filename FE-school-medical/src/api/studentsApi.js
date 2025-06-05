@@ -1,7 +1,9 @@
+import axiosInstance from "./axiosInstance";
+
 const studentsApi = {
     getStudents: async () => {
         try{
-            const response = await fetch('/api/students'); // chờ server trả về danh sách học sinh
+            const response = await axiosInstance.get('/api/students'); // chờ server trả về danh sách học sinh
               if(!response.ok) {
                 throw new Error('Network response was not ok');
               }
