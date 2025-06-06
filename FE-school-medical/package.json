@@ -10,7 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@headlessui/react": "^2.2.4",
+    "@heroicons/react": "^2.2.0",
     "antd": "^5.25.4",
+    "antd-style": "^3.7.1",
     "axios": "^0.30.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
