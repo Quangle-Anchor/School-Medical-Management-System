@@ -30,9 +30,10 @@ export default function Navbar() {
         return;
       }
       try {
-        await axios.post('/api/auth/validate-token', {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+       await axios.get(
+  '/api/auth/validate-token',
+  { headers: { Authorization: `Bearer ${token}` } }
+);
         setIsLoggedIn(true);
         setRole(storedRole);
       } catch (err) {
@@ -46,6 +47,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (role) {
+         console.log('Detected role:', role);
       switch (role) {
         case 'Manager':
           navigate('/managerDashboard');
