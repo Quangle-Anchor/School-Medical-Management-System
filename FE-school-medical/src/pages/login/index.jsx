@@ -57,7 +57,7 @@ const handleLogin = async () => {
           <img
             alt="Logo"
             src={logo}
-            className="mx-auto h-10 w-auto"
+            className="mx-auto h-50 w-50 rounded-full bg-gray-50 p-2 shadow-sm sm:h-44 sm:w-44 sm:p-3"
           />
           <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
             Sign in to your account
