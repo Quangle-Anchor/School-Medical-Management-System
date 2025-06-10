@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/img/logoxoanen.png";
-
+import avatar from "../assets/img/avatarDefault.png";
 const navigation = [
   { name: "Home", href: "/home" },
   { name: "About", href: "/about" },
@@ -27,6 +27,7 @@ function classNames(...classes) {
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState(null);
+  const [userAvatar, setUserAvatar] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function Navbar() {
       if (!token || !storedRole) {
         setIsLoggedIn(false);
         setRole(null);
+        setUserAvatar("");
         return;
       }
       try {
@@ -44,11 +46,17 @@ export default function Navbar() {
         });
         setIsLoggedIn(true);
         setRole(storedRole);
+        // Fetch user info (replace with your actual API endpoint)
+        const userRes = await axios.get('/api/user/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUserAvatar(userRes.data.avatarUrl || "");
       } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         setIsLoggedIn(false);
         setRole(null);
+        setUserAvatar("");
       }
     };
 
@@ -151,11 +159,13 @@ const getNavigation = () => {
               </button>
             ) : (
               <Menu as="div" className="relative ml-3">
-                <MenuButton className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none">
+                <MenuButton className="relative flex rounded-full text-sm ">
                   <img
-                    alt=""
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
-                    className="h-8 w-8 rounded-full"
+                    alt="avatar"
+                    src={userAvatar && userAvatar.trim() !== "" ? userAvatar : avatar}
+                    onError={e => { e.target.onerror = null; e.target.src = avatar; }}
+                    className="h-8 w-8 rounded-full border-5 border-white"
+                    style={{ boxShadow: 'none', outline: 'none', borderColor: 'white' }}
                   />
                 </MenuButton>
                 <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">
