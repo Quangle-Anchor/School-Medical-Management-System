@@ -1,4 +1,4 @@
-// import ManagerDashboard from './pages/managerDashboard';
+// import ManagerDashboard from './pages/managerDashboard/index.jsx';
 import AdminDashboard from './pages/adminDashboard';
 import NurseDashboard from './pages/nurseDashboard';
 import ParentDashboard from './pages/parentDashboard';
@@ -17,11 +17,11 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/login" element={<LoginPage />} />
-        {/* <Route path="/manager-dashboard" element={<ManagerDashboard />} /> */}
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/nurse-dashboard" element={<NurseDashboard />} />
-        <Route path="/parent-dashboard" element={<ParentDashboard />} />
-        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        {/* <Route path="/managerDashboard" element={<ManagerDashboard />} /> */}
+        <Route path="/adminDashboard" element={<AdminDashboard />} />
+        <Route path="/nurseDashboard" element={<NurseDashboard />} />
+        <Route path="/parentDashboard" element={<ParentDashboard />} />
+        <Route path="/studentDashboard" element={<StudentDashboard />} />
       </Routes>
     </BrowserRouter>
   );

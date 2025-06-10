@@ -14,7 +14,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/img/logoxoanen.png";
 
 const navigation = [
-  { name: "Dashboard", href: "/" },
+  { name: "Home", href: "/home" },
   { name: "About", href: "/about" },
   { name: "Projects", href: "/projects" },
   { name: "Calendar", href: "/calendar" },
@@ -35,50 +35,77 @@ export default function Navbar() {
       const storedRole = localStorage.getItem("role");
       if (!token || !storedRole) {
         setIsLoggedIn(false);
+        setRole(null);
         return;
       }
       try {
         await axios.get('/api/auth/validate-token', {
-    headers: { Authorization: `Bearer ${token}` },
-});
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setIsLoggedIn(true);
         setRole(storedRole);
       } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         setIsLoggedIn(false);
+        setRole(null);
       }
     };
-    checkLoginState();
-  }, []);
 
-  useEffect(() => {
-    if (!role) return;
-    switch (role) {
-       case "Manager": navigate("/manager-dashboard", { replace: true }); break;
-      case "Admin":
-        navigate("/AdminDashboard");
-        break;
-      case "Nurse":
-        navigate("/NurseDashboard");
-        break;
-      case "Parent":
-        navigate("/ParentDashboard");
-        break;
-      case "Student":
-        navigate("/StudentDashboard");
-        break;
-      default:
-        navigate("/");
-    }
-  }, [role, navigate]);
+    // Check login state on initial render
+    checkLoginState();
+
+    // Listen for changes in localStorage
+    const handleStorageChange = () => {
+      checkLoginState();
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Listen for login/logout events in the same tab
+    const origSetItem = localStorage.setItem;
+    localStorage.setItem = function(key, value) {
+      origSetItem.apply(this, arguments);
+      window.dispatchEvent(new Event('storage'));
+    };
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      localStorage.setItem = origSetItem;
+    };
+  }, []);
 
 const handleLogout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("role");
-setIsLoggedIn(false);
- setRole(null);
+  setIsLoggedIn(false);
+  setRole(null);
   navigate("/login");
+};
+
+const getNavigation = () => {
+  if (!isLoggedIn || !role) {
+    return [
+      { name: "Home", href: "/home" },
+      { name: "About", href: "/about" },
+      { name: "Projects", href: "/projects" },
+      { name: "Calendar", href: "/calendar" },
+    ];
+  }
+  const dashboardMap = {
+    Manager: { name: "Manager Dashboard", href: "/managerDashboard" },
+    Admin: { name: "Admin Dashboard", href: "/adminDashboard" },
+    Nurse: { name: "Nurse Dashboard", href: "/nurseDashboard" },
+    Parent: { name: "Parent Dashboard", href: "/parentDashboard" },
+    Student: { name: "Student Dashboard", href: "/studentDashboard" },
+  };
+  const dashboard = dashboardMap[role] || { name: "Dashboard", href: "/" };
+  return [
+    dashboard,
+    { name: "About", href: "/about" },
+    { name: "Projects", href: "/projects" },
+    { name: "Calendar", href: "/calendar" },
+  ];
 };
 
   return (
@@ -93,7 +120,7 @@ setIsLoggedIn(false);
           {/* Nav Links */}
           <div className="hidden sm:ml-6 sm:block">
             <div className="flex space-x-4">
-              {navigation.map((item) => (
+              {getNavigation().map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.href}
