@@ -1,16 +1,15 @@
-import {
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuItems,
-} from "@headlessui/react";
-import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  Navbar,
+  Nav,
+  NavDropdown,
+  Button,
+  Image,
+  Container,
+} from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
 import logo from "../assets/img/logoxoanen.png";
 
 const navigation = [
@@ -20,11 +19,7 @@ const navigation = [
   { name: "Calendar", href: "/calendar" },
 ];
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
-
-export default function Navbar() {
+export default function AppNavbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState(null);
   const navigate = useNavigate();
@@ -82,70 +77,53 @@ export default function Navbar() {
   };
 
   return (
-    <Disclosure as="nav" className="bg-blue-500">
-      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-        <div className="relative flex h-16 items-center justify-between">
-          {/* Logo */}
-          <div className="flex shrink-0 items-center">
-            <img alt="Logo" src={logo} className="h-12 w-auto" />
-          </div>
-
-          {/* Nav Links */}
-          <div className="hidden sm:ml-6 sm:block">
-            <div className="flex space-x-4">
-              {navigation.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  end
-                  className={({ isActive }) =>
-                    classNames(
-                      isActive
-                        ? "bg-white text-blue-500"
-                        : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                      "rounded-md px-3 py-2 text-sm font-medium"
-                    )
-                  }
-                >
-                  {item.name}
-                </NavLink>
-              ))}
-            </div>
-          </div>
-
-          {/* User / Login */}
-          <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-            {!isLoggedIn ? (
-              <button
-                onClick={() => navigate("/login")}
-                className="mr-4 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+    <Navbar expand="lg" bg="primary" variant="dark">
+      <Container>
+        <Navbar.Brand as={NavLink} to="/">
+          <Image src={logo} height={40} alt="Logo" />
+        </Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto">
+            {navigation.map((item) => (
+              <Nav.Link
+                key={item.name}
+                as={NavLink}
+                to={item.href}
+                end
+                className={({ isActive }) => (isActive ? "active" : undefined)}
               >
+                {item.name}
+              </Nav.Link>
+            ))}
+          </Nav>
+          <Nav className="ms-auto align-items-center">
+            {!isLoggedIn ? (
+              <Button variant="light" onClick={() => navigate("/login")}>
                 Login
-              </button>
+              </Button>
             ) : (
-              <Menu as="div" className="relative ml-3">
-                <MenuButton className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none">
-                  <img
-                    alt=""
+              <NavDropdown
+                title={
+                  <Image
                     src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
-                    className="h-8 w-8 rounded-full"
+                    roundedCircle
+                    height={30}
+                    width={30}
+                    alt="User"
                   />
-                </MenuButton>
-                <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">
-                  <MenuItem>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full px-4 py-2 text-sm text-left text-gray-700"
-                    >
-                      Sign out
-                    </button>
-                  </MenuItem>
-                </MenuItems>
-              </Menu>
+                }
+                id="user-nav-dropdown"
+                align="end"
+              >
+                <NavDropdown.Item onClick={handleLogout}>
+                  Sign out
+                </NavDropdown.Item>
+              </NavDropdown>
             )}
-          </div>
-        </div>
-      </div>
-    </Disclosure>
+          </Nav>
+        </Navbar.Collapse>
+      </Container>
+    </Navbar>
   );
 }
