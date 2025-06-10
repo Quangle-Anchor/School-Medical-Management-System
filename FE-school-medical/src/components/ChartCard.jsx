@@ -13,7 +13,17 @@ const data = [
 
 const ChartCard = () => {
   return (
-    <div className="bg-white rounded-lg border border-border p-6">
+    <div  className="rounded-lg border border-border p-6 hover:shadow-md transition-shadow"
+  style={{
+    background: `linear-gradient(
+      45deg,
+      rgba(142,197,252,1)   0%,
+      rgba(141,211,255,1)  25%,
+      rgba(161,216,255,1)  50%,
+      rgba(193,210,255,1)  75%,
+      rgba(224,195,255,1) 100%
+    )`
+  }}>
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-foreground">Patient Visits</h3>
         <p className="text-sm text-muted-foreground">Monthly patient visits for this year</p>
@@ -26,12 +36,12 @@ const ChartCard = () => {
               dataKey="name" 
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12, fill: '#ffffff' }}
             />
             <YAxis 
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12 , fill: '#ffffff'}}
             />
             <Tooltip 
               contentStyle={{
@@ -41,7 +51,7 @@ const ChartCard = () => {
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}
             />
-            <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="value" fill="#ffffff" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
