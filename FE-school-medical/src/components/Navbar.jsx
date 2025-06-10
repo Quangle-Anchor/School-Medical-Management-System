@@ -38,9 +38,9 @@ export default function Navbar() {
         return;
       }
       try {
-        await axios.get("/api/auth/validate-token", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.get('/api/auth/validate-token', {
+    headers: { Authorization: `Bearer ${token}` },
+});
         setIsLoggedIn(true);
         setRole(storedRole);
       } catch {
@@ -55,31 +55,31 @@ export default function Navbar() {
   useEffect(() => {
     if (!role) return;
     switch (role) {
-      case "Manager":
-        navigate("/managerDashboard");
-        break;
+       case "Manager": navigate("/manager-dashboard", { replace: true }); break;
       case "Admin":
-        navigate("/adminDashboard");
+        navigate("/AdminDashboard");
         break;
       case "Nurse":
-        navigate("/nurseDashboard");
+        navigate("/NurseDashboard");
         break;
       case "Parent":
-        navigate("/parentDashboard");
+        navigate("/ParentDashboard");
         break;
       case "Student":
-        navigate("/studentDashboard");
+        navigate("/StudentDashboard");
         break;
       default:
         navigate("/");
     }
   }, [role, navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/login");
-  };
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+setIsLoggedIn(false);
+ setRole(null);
+  navigate("/login");
+};
 
   return (
     <Disclosure as="nav" className="bg-blue-500">
