@@ -12,9 +12,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/img/logoxoanen.png";
-
+import avatar from "../assets/img/avatarDefault.png";
 const navigation = [
-  { name: "Dashboard", href: "/" },
+  { name: "Home", href: "/home" },
   { name: "About", href: "/about" },
   { name: "Projects", href: "/projects" },
   { name: "Calendar", href: "/calendar" },
@@ -27,6 +27,7 @@ function classNames(...classes) {
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState(null);
+  const [userAvatar, setUserAvatar] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,50 +36,84 @@ export default function Navbar() {
       const storedRole = localStorage.getItem("role");
       if (!token || !storedRole) {
         setIsLoggedIn(false);
+        setRole(null);
+        setUserAvatar("");
         return;
       }
       try {
         await axios.get('/api/auth/validate-token', {
-    headers: { Authorization: `Bearer ${token}` },
-});
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setIsLoggedIn(true);
         setRole(storedRole);
+        // Fetch user info (replace with your actual API endpoint)
+        const userRes = await axios.get('/api/user/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUserAvatar(userRes.data.avatarUrl || "");
       } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         setIsLoggedIn(false);
+        setRole(null);
+        setUserAvatar("");
       }
     };
-    checkLoginState();
-  }, []);
 
-  useEffect(() => {
-    if (!role) return;
-    switch (role) {
-       case "Manager": navigate("/manager-dashboard", { replace: true }); break;
-      case "Admin":
-        navigate("/AdminDashboard");
-        break;
-      case "Nurse":
-        navigate("/NurseDashboard");
-        break;
-      case "Parent":
-        navigate("/ParentDashboard");
-        break;
-      case "Student":
-        navigate("/StudentDashboard");
-        break;
-      default:
-        navigate("/");
-    }
-  }, [role, navigate]);
+    // Check login state on initial render
+    checkLoginState();
+
+    // Listen for changes in localStorage
+    const handleStorageChange = () => {
+      checkLoginState();
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Listen for login/logout events in the same tab
+    const origSetItem = localStorage.setItem;
+    localStorage.setItem = function(key, value) {
+      origSetItem.apply(this, arguments);
+      window.dispatchEvent(new Event('storage'));
+    };
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      localStorage.setItem = origSetItem;
+    };
+  }, []);
 
 const handleLogout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("role");
-setIsLoggedIn(false);
- setRole(null);
+  setIsLoggedIn(false);
+  setRole(null);
   navigate("/login");
+};
+
+const getNavigation = () => {
+  if (!isLoggedIn || !role) {
+    return [
+      { name: "Home", href: "/home" },
+      { name: "About", href: "/about" },
+      { name: "Projects", href: "/projects" },
+      { name: "Calendar", href: "/calendar" },
+    ];
+  }
+  const dashboardMap = {
+    Manager: { name: "Manager Dashboard", href: "/managerDashboard" },
+    Admin: { name: "Admin Dashboard", href: "/adminDashboard" },
+    Nurse: { name: "Nurse Dashboard", href: "/nurseDashboard" },
+    Parent: { name: "Parent Dashboard", href: "/parentDashboard" },
+    Student: { name: "Student Dashboard", href: "/studentDashboard" },
+  };
+  const dashboard = dashboardMap[role] || { name: "Dashboard", href: "/" };
+  return [
+    dashboard,
+    { name: "About", href: "/about" },
+    { name: "Projects", href: "/projects" },
+    { name: "Calendar", href: "/calendar" },
+  ];
 };
 
   return (
@@ -93,7 +128,7 @@ setIsLoggedIn(false);
           {/* Nav Links */}
           <div className="hidden sm:ml-6 sm:block">
             <div className="flex space-x-4">
-              {navigation.map((item) => (
+              {getNavigation().map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.href}
@@ -124,11 +159,13 @@ setIsLoggedIn(false);
               </button>
             ) : (
               <Menu as="div" className="relative ml-3">
-                <MenuButton className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none">
+                <MenuButton className="relative flex rounded-full text-sm ">
                   <img
-                    alt=""
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
-                    className="h-8 w-8 rounded-full"
+                    alt="avatar"
+                    src={userAvatar && userAvatar.trim() !== "" ? userAvatar : avatar}
+                    onError={e => { e.target.onerror = null; e.target.src = avatar; }}
+                    className="h-8 w-8 rounded-full border-5 border-white"
+                    style={{ boxShadow: 'none', outline: 'none', borderColor: 'white' }}
                   />
                 </MenuButton>
                 <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">

@@ -1,11 +1,10 @@
-import React from 'react';
+import Dashboard from '../../components/DashBoard';
 
-const NurseDashboard = () => {
-  return (
-    <div>
-      <h1>Nurse Dashboard</h1>
-    </div>
-  );
-};
+const nurseCardData = [
+  { title: 'Total Patients', value: '1,247', change: '+12%', changeType: 'positive'},
+  // ...other nurse-specific cards
+];
 
-export default NurseDashboard;
+export default function NurseDashboard() {
+  return <Dashboard cardData={nurseCardData} />;
+}

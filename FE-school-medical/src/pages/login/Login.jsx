@@ -18,25 +18,15 @@ const LoginPage = () => {
       message.success('Login successful!');
 
       // Redirect based on role
-      switch(data.role) {
-        case "Manager":
-          navigate('/manager-dashboard');
-          break;
-        case "Admin":
-          navigate('/admin-dashboard');
-          break;
-        case "Nurse":
-          navigate('/nurse-dashboard');
-          break;
-        case "Parent":
-          navigate('/parent-dashboard');
-          break;
-        case "Student":
-          navigate('/student-dashboard');
-          break;
-        default:
-          navigate('/');
-      }
+      const roleDashboardMap = {
+        Manager: '/managerDashboard',
+        Admin: '/adminDashboard',
+        Nurse: '/nurseDashboard',
+        Parent: '/parentDashboard',
+        Student: '/studentDashboard',
+      };
+      const dashboardPath = roleDashboardMap[data.role] || '/';
+      navigate(dashboardPath);
     } catch (err) {
       console.error('Login error:', err);
       setError(err.response?.data || 'Login failed. Check credentials.');
