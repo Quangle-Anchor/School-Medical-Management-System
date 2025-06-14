@@ -1,7 +1,7 @@
 // import ManagerDashboard from './pages/managerDashboard/index.jsx';
 import AdminDashboard from "./pages/adminDashboard";
 import NurseDashboard from "./pages/nurseDashboard/NurseDashboard";
-import ParentDashboard from "./pages/parentDashboard/ParentDashboard";
+import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
 import StudentDashboard from "./pages/studentDashboard/StudentDashboard";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
