@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, Phone, Calendar, MapPin, X } from 'lucide-react';
+import { User, Activity, Calendar, X } from 'lucide-react';
 import { studentAPI } from '../api/studentsApi';
 
 const AddStudentForm = ({ isOpen, onClose, onStudentAdded }) => {
@@ -7,14 +7,10 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded }) => {
     fullName: '',
     dateOfBirth: '',
     gender: '',
-    address: '',
-    phoneNumber: '',
-    email: '',
-    parentName: '',
-    parentPhone: '',
-    parentEmail: '',
     className: '',
-    schoolYear: '',
+    bloodType: '',
+    heightCm: '',
+    weightKg: '',
   });
   
   const [loading, setLoading] = useState(false);
@@ -27,14 +23,24 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded }) => {
       [name]: value
     }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const newStudent = await studentAPI.createStudent(formData);
+      // Convert string values to appropriate types for backend
+      const studentData = {
+        fullName: formData.fullName,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        className: formData.className,
+        bloodType: formData.bloodType,
+        heightCm: formData.heightCm ? parseInt(formData.heightCm) : null,
+        weightKg: formData.weightKg ? parseInt(formData.weightKg) : null,
+      };
+
+      const newStudent = await studentAPI.createStudent(studentData);
       console.log('Student created successfully:', newStudent);
       
       // Reset form
@@ -42,14 +48,10 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded }) => {
         fullName: '',
         dateOfBirth: '',
         gender: '',
-        address: '',
-        phoneNumber: '',
-        email: '',
-        parentName: '',
-        parentPhone: '',
-        parentEmail: '',
         className: '',
-        schoolYear: '',
+        bloodType: '',
+        heightCm: '',
+        weightKg: '',
       });
       
       // Notify parent component
@@ -86,9 +88,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded }) => {
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+        )}        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Student Information */}
           <div className="border rounded-lg p-4">
             <h3 className="font-semibold mb-3 flex items-center">
@@ -133,103 +133,69 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Address</label>
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Parent Information */}
-          <div className="border rounded-lg p-4">
-            <h3 className="font-semibold mb-3 flex items-center">
-              <User className="w-4 h-4 mr-2" />
-              Parent Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Parent Name</label>
-                <input
-                  type="text"
-                  name="parentName"
-                  value={formData.parentName}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Parent Phone</label>
-                <input
-                  type="tel"
-                  name="parentPhone"
-                  value={formData.parentPhone}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Parent Email</label>
-                <input
-                  type="email"
-                  name="parentEmail"
-                  value={formData.parentEmail}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* School Information */}
-          <div className="border rounded-lg p-4">
-            <h3 className="font-semibold mb-3 flex items-center">
-              <Calendar className="w-4 h-4 mr-2" />
-              School Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Class Name</label>
+                <label className="block text-sm font-medium mb-1">Class Name *</label>
                 <input
                   type="text"
                   name="className"
                   value={formData.className}
                   onChange={handleInputChange}
+                  required
+                  placeholder="e.g., Grade 1A, 10A1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Health Information */}
+          <div className="border rounded-lg p-4">
+            <h3 className="font-semibold mb-3 flex items-center">
+              <Activity className="w-4 h-4 mr-2" />
+              Health Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Blood Type</label>
+                <select
+                  name="bloodType"
+                  value={formData.bloodType}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">Select Blood Type</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Height (cm)</label>
+                <input
+                  type="number"
+                  name="heightCm"
+                  value={formData.heightCm}
+                  onChange={handleInputChange}
+                  min="50"
+                  max="250"
+                  placeholder="e.g., 120"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">School Year</label>
+                <label className="block text-sm font-medium mb-1">Weight (kg)</label>
                 <input
-                  type="text"
-                  name="schoolYear"
-                  value={formData.schoolYear}
+                  type="number"
+                  name="weightKg"
+                  value={formData.weightKg}
                   onChange={handleInputChange}
-                  placeholder="e.g., 2024-2025"
+                  min="10"
+                  max="200"
+                  placeholder="e.g., 35"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
