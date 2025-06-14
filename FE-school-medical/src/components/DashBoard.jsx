@@ -87,11 +87,9 @@ const Dashboard = ({ cardData, userRole = 'doctor', customActions, activeMenu = 
             {displayCardData.map((card, index) => (
               <DashboardCard key={index} {...card} />
             ))}
-          </div>
-
-          {/* Charts and Tables */}
+          </div>          {/* Charts and Tables */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ChartCard />
+            <ChartCard userRole={userRole} />
             
             {/* Recent Activity */}
             <div className="bg-white rounded-lg border border-border p-6">
