@@ -50,11 +50,26 @@ export const studentAPI = {
     method: 'PUT',
     body: JSON.stringify(studentData),
   }),
-  
-  // Delete student
+    // Delete student
   deleteStudent: (id) => apiRequest(`/students/${id}`, {
     method: 'DELETE',
+  }),  // Create health info
+  createHealthInfo: (healthInfoData) => apiRequest('/health-info', {
+    method: 'POST',
+    body: JSON.stringify(healthInfoData),
   }),
+
+  // Update health info
+  updateHealthInfo: (id, healthInfoData) => apiRequest(`/health-info/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(healthInfoData),
+  }),
+
+  // Get health info by student ID
+  getHealthInfoByStudentId: (studentId) => apiRequest(`/health-info/student/${studentId}`),
+
+  // Get all health info
+  getAllHealthInfo: () => apiRequest('/health-info'),
 };
 
 // Export default API object

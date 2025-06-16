@@ -92,7 +92,17 @@ const Dashboard = ({ cardData, userRole = 'doctor', customActions, activeMenu = 
             <ChartCard userRole={userRole} />
             
             {/* Recent Activity */}
-            <div className="bg-white rounded-lg border border-border p-6">
+            <div className="bg-white rounded-lg border border-border p-6"
+            style={{
+          background: `linear-gradient(
+            45deg,
+            rgba(142,197,252,1)   0%,
+            rgba(141,211,255,1)  25%,
+            rgba(161,216,255,1)  50%,
+            rgba(193,210,255,1)  75%,
+            rgba(224,195,255,1) 100%
+          )`
+        }}>
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-foreground">Recent Activity</h3>
                 <p className="text-sm text-muted-foreground">

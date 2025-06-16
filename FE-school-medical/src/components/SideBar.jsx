@@ -13,34 +13,42 @@ import {
   Heart,
   BookOpen,
   MessageSquare,
-  User
+  User,
+  LogOut
 } from 'lucide-react';
 
-const Sidebar = ({ isCollapsed, onToggle, userRole = 'doctor', activeMenu = 'Dashboard', onMenuClick }) => {
+const Sidebar = ({ isCollapsed, onToggle, userRole = 'doctor', onMenuClick, activeMenu }) => {
   // Different menu items based on user role
   const getMenuItems = () => {
     if (userRole === 'parent') {
       return [
-        { icon: Activity, label: 'Dashboard', id: 'dashboard' },
-        { icon: User, label: 'My Child', id: 'my-child' },
-        { icon: Calendar, label: 'Appointments', id: 'appointments' },
-        { icon: FileText, label: 'Medical Records', id: 'medical-records' },
-        { icon: Heart, label: 'Health Reports', id: 'health-reports' },
-        { icon: Bell, label: 'Notifications', id: 'notifications' },
-        { icon: MessageSquare, label: 'Messages', id: 'messages' },
-        { icon: BookOpen, label: 'Health Tips', id: 'health-tips' },
-        { icon: Settings, label: 'Settings', id: 'settings' },
+        { id: 'dashboard', icon: Activity, label: 'Dashboard' },
+        { id: 'my-child', icon: User, label: 'My Child' },
+        { id: 'appointments', icon: Calendar, label: 'Appointments' },
+        { id: 'medical-records', icon: FileText, label: 'Medical Records' },
+        { id: 'health-reports', icon: Heart, label: 'Health Reports' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+        { id: 'messages', icon: MessageSquare, label: 'Messages' },
+        { id: 'health-tips', icon: BookOpen, label: 'Health Tips' },
+        { id: 'settings', icon: Settings, label: 'Settings' },
       ];
     }
-      // Default menu items for doctors/medical staff
+    
+    // Default menu items for doctors/medical staff
     return [
-      { icon: Activity, label: 'Dashboard', id: 'dashboard' },
-      { icon: Users, label: 'Patients', id: 'patients' },
-      { icon: Calendar, label: 'Appointments', id: 'appointments' },
-      { icon: FileText, label: 'Medical Records', id: 'medical-records' },
-      { icon: Bell, label: 'Alerts', id: 'alerts' },
-      { icon: Settings, label: 'Settings', id: 'settings' },
+      { id: 'dashboard', icon: Activity, label: 'Dashboard' },
+      { id: 'patients', icon: Users, label: 'Patients' },
+      { id: 'appointments', icon: Calendar, label: 'Appointments' },
+      { id: 'medical-records', icon: FileText, label: 'Medical Records' },
+      { id: 'alerts', icon: Bell, label: 'Alerts' },
+      { id: 'settings', icon: Settings, label: 'Settings' },
     ];
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userRole');
+    window.location.replace('/login');
   };
 
   const getUserInfo = () => {
@@ -88,7 +96,9 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'doctor', activeMenu = 'Das
             <ChevronLeft className="w-4 h-4" />
           )}
         </button>
-      </div>      {/* Navigation */}
+      </div>
+
+      {/* Navigation */}
       <nav className="flex-1 p-2">
         <ul className="space-y-1">
           {menuItems.map((item, index) => (
@@ -96,7 +106,7 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'doctor', activeMenu = 'Das
               <button 
                 onClick={() => onMenuClick && onMenuClick(item.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
-                  activeMenu === item.id 
+                  activeMenu === item.id
                     ? 'bg-primary text-primary-foreground' 
                     : 'hover:bg-accent text-muted-foreground hover:text-foreground'
                 }`}
@@ -112,14 +122,23 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'doctor', activeMenu = 'Das
       {/* Footer */}
       <div className="p-4 border-t border-border">
         {!isCollapsed && (
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium">{userInfo.initials}</span>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium">{userInfo.initials}</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{userInfo.name}</p>
+                <p className="text-xs text-muted-foreground">{userInfo.email}</p>
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">{userInfo.name}</p>
-              <p className="text-xs text-muted-foreground">{userInfo.email}</p>
-            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-3 py-2 rounded-md transition-colors hover:bg-red-50 text-red-600 hover:text-red-700"
+            >
+              <LogOut className="w-4 h-4 flex-shrink-0" />
+              <span>Logout</span>
+            </button>
           </div>
         )}
       </div>
@@ -131,8 +150,8 @@ Sidebar.propTypes = {
   isCollapsed: PropTypes.bool.isRequired,
   onToggle: PropTypes.func.isRequired,
   userRole: PropTypes.string,
-  activeMenu: PropTypes.string,
   onMenuClick: PropTypes.func,
+  activeMenu: PropTypes.string,
 };
 
 export default Sidebar;

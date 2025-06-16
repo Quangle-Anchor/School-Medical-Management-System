@@ -16,10 +16,12 @@ public class HealthInfoService {
 
     public List<Health_Info> getAllHealthInfo() {
         return healthInfoRepository.findAll();
+    }    public Optional<Health_Info> getHealthInfoById(Long id) {
+        return healthInfoRepository.findById(id);
     }
 
-    public Optional<Health_Info> getHealthInfoById(Long id) {
-        return healthInfoRepository.findById(id);
+    public List<Health_Info> getHealthInfoByStudentId(Long studentId) {
+        return healthInfoRepository.findByStudentStudentId(studentId);
     }
 
     public Health_Info saveHealthInfo(Health_Info info) {

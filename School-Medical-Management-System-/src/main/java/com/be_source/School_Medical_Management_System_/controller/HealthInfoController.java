@@ -18,11 +18,14 @@ public class HealthInfoController {
     @GetMapping
     public List<Health_Info> getAllHealthInfo() {
         return healthInfoService.getAllHealthInfo();
-    }
-
-    @GetMapping("/{id}")
+    }    @GetMapping("/{id}")
     public Optional<Health_Info> getHealthInfoById(@PathVariable Long id) {
         return healthInfoService.getHealthInfoById(id);
+    }
+
+    @GetMapping("/student/{studentId}")
+    public List<Health_Info> getHealthInfoByStudentId(@PathVariable Long studentId) {
+        return healthInfoService.getHealthInfoByStudentId(studentId);
     }
 
     @PostMapping

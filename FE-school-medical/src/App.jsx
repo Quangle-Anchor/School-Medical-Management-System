@@ -10,6 +10,7 @@ import HomePage from "./pages/home/Homepage";
 import LoginPage from "./pages/login/Login";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -21,10 +22,38 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/login" element={<LoginPage />} />
         {/* <Route path="/managerDashboard" element={<ManagerDashboard />} /> */}
-        <Route path="/adminDashboard" element={<AdminDashboard />} />
-        <Route path="/nurseDashboard" element={<NurseDashboard />} />
-        <Route path="/parentDashboard" element={<ParentDashboard />} />
-        <Route path="/studentDashboard" element={<StudentDashboard />} />
+        <Route 
+          path="/adminDashboard" 
+          element={
+            <ProtectedRoute requiredRole="Admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/nurseDashboard" 
+          element={
+            <ProtectedRoute requiredRole="Nurse">
+              <NurseDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parentDashboard/*" 
+          element={
+            <ProtectedRoute requiredRole="Parent">
+              <ParentDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/studentDashboard" 
+          element={
+            <ProtectedRoute requiredRole="Student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
       <Footer />
     </BrowserRouter>

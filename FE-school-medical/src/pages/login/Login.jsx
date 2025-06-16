@@ -15,9 +15,7 @@ const LoginPage = () => {
       const data = await authApi.login(email, password);
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role);
-      message.success('Login successful!');
-
-      // Redirect based on role
+      message.success('Login successful!');      // Redirect based on role
       const roleDashboardMap = {
         Manager: '/managerDashboard',
         Admin: '/adminDashboard',
@@ -26,7 +24,7 @@ const LoginPage = () => {
         Student: '/studentDashboard',
       };
       const dashboardPath = roleDashboardMap[data.role] || '/';
-      navigate(dashboardPath);
+      navigate(dashboardPath, { replace: true }); // Use replace to avoid back button issue
     } catch (err) {
       console.error('Login error:', err);
       setError(err.response?.data || 'Login failed. Check credentials.');
