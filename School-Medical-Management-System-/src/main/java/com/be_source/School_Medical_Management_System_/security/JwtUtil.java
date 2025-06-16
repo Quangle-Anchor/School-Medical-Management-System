@@ -1,58 +1,72 @@
 package com.be_source.School_Medical_Management_System_.security;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.JWTVerifier;
-import org.springframework.beans.factory.annotation.Value;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 @Component
 public class JwtUtil {
-    @Value("${jwt.secret}")
-    private String secret;
 
-    @Value("${jwt.expiration-ms}")
-    private long expirationMs;
+    private static final String SECRET_KEY_STRING = "my_super_secret_key_1234567890123456";  // Phải dài >= 32 ký tự
 
-    // Generate a token
-    public String generateToken(String username) {
-        Algorithm algorithm = Algorithm.HMAC512(secret);
-        Date now = new Date();
-        Date expiresAt = new Date(now.getTime() + expirationMs);
-
-        return JWT.create()
-                .withSubject(username)
-                .withIssuedAt(now)
-                .withExpiresAt(expiresAt)
-                .sign(algorithm);
+    private Key getSigningKey() {
+        byte[] keyBytes = SECRET_KEY_STRING.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Extract username (subject) from token
-    public String getUsernameFromToken(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC512(secret);
-            JWTVerifier verifier = JWT.require(algorithm).build();
-            DecodedJWT jwt = verifier.verify(token);
-            return jwt.getSubject();
-        } catch (JWTVerificationException ex) {
-            // invalid signature or token expired
-            return null;
-        }
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
     }
 
-    // Validate token
-    public boolean validateToken(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC512(secret);
-            JWTVerifier verifier = JWT.require(algorithm).build();
-            verifier.verify(token);
-            return true;
-        } catch (JWTVerificationException ex) {
-            return false;
-        }
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    public String generateToken(UserDetails userDetails, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+        return createToken(claims, userDetails.getUsername());
+    }
+
+    private String createToken(Map<String, Object> claims, String username) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(username)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))  // 10 tiếng
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public Boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }

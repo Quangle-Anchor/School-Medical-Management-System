@@ -1,28 +1,37 @@
 package com.be_source.School_Medical_Management_System_.controller;
 
 import com.be_source.School_Medical_Management_System_.model.User;
+import com.be_source.School_Medical_Management_System_.repository.UserRepository;
 import com.be_source.School_Medical_Management_System_.request.LoginRequest;
-import com.be_source.School_Medical_Management_System_.response.AuthResponse;
 import com.be_source.School_Medical_Management_System_.security.JwtUtil;
 import com.be_source.School_Medical_Management_System_.service.AuthService;
 import com.be_source.School_Medical_Management_System_.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.web.webauthn.api.AuthenticatorResponse;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
-//
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
+public class AuthController  {
 
     private final JwtUtil jwtUtil;
     private final AuthService authService;
     private final UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     public AuthController(JwtUtil jwtUtil, AuthService authService, UserService userService) {
         this.jwtUtil = jwtUtil;
@@ -30,39 +39,47 @@ public class AuthController {
         this.userService = userService;
     }
 
-    // Existing login endpoint
+    // API Login
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        User user = userService.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        Optional<User> userOptional = userRepository.findAll()
+                .stream()
+                .filter(u -> u.getEmail().equals(request.getEmail()))
+                .findFirst();
 
-        // Verify password: assume userService.checkPassword hashes and compares
-        if (!userService.checkPassword(request.getPassword(), user.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (user.getPasswordHash().equals(request.getPassword())) {  // (Lưu ý: sau này nên hash password)
+                UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                        user.getEmail(),
+                        user.getPasswordHash(),
+                        Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName().toUpperCase()))
+                );
+
+                String token = jwtUtil.generateToken(userDetails, user.getRole().getRoleName());
+
+                return ResponseEntity.ok(Map.of(
+                        "token", token,
+                        "role", user.getRole().getRoleName()
+                ));
+            }
         }
-
-        // Generate JWT token using username or userId
-        String token = jwtUtil.generateToken(user.getUsername());
-
-        // Extract role name from Role entity
-        String roleName = user.getRole().getRoleName();
-
-        AuthResponse response = new AuthResponse(token, roleName);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
 
-    // Change this:
-    // @PostMapping("/validate-token")
-    // public ResponseEntity<?> validateToken(...) { ... }
-
-    // To this:
+    // API Validate Token
     @GetMapping("/validate-token")
     public ResponseEntity<Void> validateToken(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.badRequest().build();
         }
+
         String token = authHeader.substring(7);
-        if (jwtUtil.validateToken(token)) {
+        String email = jwtUtil.extractUsername(token);
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+        if (jwtUtil.isTokenValid(token, userDetails)) {
             return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
