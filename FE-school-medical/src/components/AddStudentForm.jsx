@@ -166,13 +166,21 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         onStudentAdded(savedStudent);
       }
         // Close modal
-      onClose();
-    } catch (err) {
+      onClose();    } catch (err) {
       console.error('Error creating student:', err);
       
       // More specific error handling
-      if (err.message.includes('400')) {
+      if (err.message.includes('Authentication required')) {
+        setError('Session expired. Please login again.');
+        // The API already handles redirection to login
+      } else if (err.message.includes('Access forbidden')) {
+        setError('You do not have permission to perform this action.');
+      } else if (err.message.includes('400')) {
         setError('Invalid data provided. Please check all fields and try again.');
+      } else if (err.message.includes('401')) {
+        setError('Authentication failed. Please login again.');
+      } else if (err.message.includes('403')) {
+        setError('Access denied. Please check your permissions.');
       } else if (err.message.includes('500')) {
         setError('Server error occurred. Please try again later.');
       } else {

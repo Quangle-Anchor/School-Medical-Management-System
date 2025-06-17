@@ -1,12 +1,13 @@
 
 package com.be_source.School_Medical_Management_System_.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
-import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
@@ -33,5 +34,7 @@ public class Students {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    private User parent;
+    private User parent;    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<com.be_source.School_Medical_Management_System_.model.Health_Info> healthInfoList;
 }
