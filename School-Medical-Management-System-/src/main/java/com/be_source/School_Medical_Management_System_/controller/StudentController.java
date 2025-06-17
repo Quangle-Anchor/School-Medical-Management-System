@@ -6,13 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
-//
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/students")
-public class StudentController {
-
-    @Autowired
+public class StudentController {    @Autowired
     private StudentService studentService;
 
     // Lấy danh sách tất cả học sinh
@@ -25,22 +22,16 @@ public class StudentController {
     @GetMapping("/{id}")
     public Optional<Students> getStudentById(@PathVariable Long id) {
         return studentService.getStudentById(id);
-    }
-
-    // Thêm mới học sinh
+    }    // Thêm mới học sinh
     @PostMapping
     public Students createStudent(@RequestBody Students student) {
         return studentService.saveStudent(student);
-    }
-
-    // Cập nhật thông tin học sinh
+    }    // Cập nhật thông tin học sinh
     @PutMapping("/{id}")
     public Students updateStudent(@PathVariable Long id, @RequestBody Students student) {
         student.setStudentId(id);
         return studentService.saveStudent(student);
-    }
-
-    // Xóa học sinh
+    }    // Xóa học sinh
     @DeleteMapping("/{id}")
     public void deleteStudent(@PathVariable Long id) {
         studentService.deleteStudent(id);
