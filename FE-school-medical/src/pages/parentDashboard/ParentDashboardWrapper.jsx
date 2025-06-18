@@ -4,7 +4,7 @@ import Sidebar from '../../components/SideBar';
 import ChartCard from '../../components/ChartCard';
 import DashboardCard from '../../components/DashboardCard';
 import MyChildView from './MyChildView';
-import AddStudentForm from '../../components/AddStudentForm';
+import AddStudentForm from './AddStudentForm';
 import { User, Calendar, FileText, Heart, Plus } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
 

@@ -30,7 +30,7 @@ function App() {
             </ProtectedRoute>
           } 
         />        <Route 
-          path="/nurseDashboard" 
+          path="/nurseDashboard/*" 
           element={
             <ProtectedRoute requiredRole="Nurse">
               <NurseDashboard />
