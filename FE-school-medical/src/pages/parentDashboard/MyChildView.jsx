@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User, Calendar, Phone, Mail, MapPin, Edit,
    Plus, Eye, Heart, FileText, Activity, X, Trash2 } from 'lucide-react';
-import { studentAPI } from '../api/studentsApi';
-import AddStudentForm from './AddStudentForm';
+import { studentAPI } from '../../api/studentsApi';
+import AddStudentForm from '../../components/AddStudentForm';
+
 
 const MyChildView = () => {
   const [students, setStudents] = useState([]);
@@ -14,12 +15,12 @@ const MyChildView = () => {
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
-
   useEffect(() => {
     fetchStudents();
-  }, []);  const fetchStudents = async () => {
+  }, []);const fetchStudents = async () => {
     try {
-      const studentsData = await studentAPI.getAllStudents();
+      // Use getMyStudents which automatically filters by parent for parent role
+      const studentsData = await studentAPI.getMyStudents();
       setStudents(studentsData);
       
       // Fetch health info for each student
@@ -95,11 +96,9 @@ const MyChildView = () => {
         lastCheckup: 'Recently added'
       }
     }));
-  };
-
-  const handleEditStudent = (student) => {
+  };  const handleEditStudent = (student) => {
     setEditingStudent(student);
-  };  const handleStudentUpdated = (updatedStudent) => {
+  };const handleStudentUpdated = (updatedStudent) => {
     setStudents(prev => prev.map(student => 
       student.studentId === updatedStudent.studentId ? updatedStudent : student
     ));
@@ -117,9 +116,7 @@ const MyChildView = () => {
       }
     }));
     setEditingStudent(null);
-  };
-
-  const handleDeleteStudent = async (student) => {
+  };  const handleDeleteStudent = async (student) => {
     setDeleting(true);
     try {
       await studentAPI.deleteStudent(student.studentId);
@@ -182,9 +179,9 @@ const MyChildView = () => {
     );
   }
 
-  return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">        {/* Header */}
+  return (    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">My Children</h1>
@@ -234,8 +231,7 @@ const MyChildView = () => {
           </div>
         ) : (          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {students.map((student) => (
-              <div key={student.studentId} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">
-                {/* Delete Button - Top Right */}
+              <div key={student.studentId} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">                {/* Delete Button - Top Right */}
                 <button
                   onClick={() => setDeleteConfirm(student)}
                   className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
@@ -298,9 +294,7 @@ const MyChildView = () => {
                   <p className="text-xs text-green-600 mt-1">
                     Last checkup: {healthInfo[student.studentId]?.lastCheckup || 'Not available'}
                   </p>
-                </div> */}
-
-                {/* Action Buttons */}
+                </div> */}                {/* Action Buttons */}
                 <div className="mt-4 flex space-x-2">
                   <button
                     onClick={() => setSelectedStudent(student)}
@@ -308,8 +302,7 @@ const MyChildView = () => {
                   >
                     <Eye className="w-4 h-4 mr-1" />
                     View Details
-                  </button>
-                  <button 
+                  </button>                  <button 
                     onClick={() => handleEditStudent(student)}
                     className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
                   >
@@ -437,16 +430,13 @@ const MyChildView = () => {
                     </p>
                   </div> */}
                 </div>
-              </div>
-
-              <div className="mt-6 flex justify-end space-x-3">
+              </div>              <div className="mt-6 flex justify-end space-x-3">
                 <button
                   onClick={() => setSelectedStudent(null)}
                   className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   Close
-                </button>
-                <button 
+                </button>                <button 
                   onClick={() => {
                     setSelectedStudent(null);
                     handleEditStudent(selectedStudent);
@@ -456,7 +446,7 @@ const MyChildView = () => {
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Information
                 </button>
-              </div>            </div>
+              </div></div>
           </div>
         )}
 

@@ -9,13 +9,18 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
   const handleLogin = async () => {
     try {
       const data = await authApi.login(email, password);
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role);
-      message.success('Login successful!');      // Redirect based on role
+      
+      // Store userId if available (needed for parent-child relationship)
+      if (data.userId) {
+        localStorage.setItem('userId', data.userId.toString());
+      }
+      
+      message.success('Login successful!');// Redirect based on role
       const roleDashboardMap = {
         Manager: '/managerDashboard',
         Admin: '/adminDashboard',

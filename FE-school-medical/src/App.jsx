@@ -1,8 +1,8 @@
-// import ManagerDashboard from './pages/managerDashboard/index.jsx';
-import AdminDashboard from "./pages/adminDashboard";
-import NurseDashboard from "./pages/nurseDashboard/NurseDashboard";
+import AdminDashboard from "./pages/adminDashboard/AdminDashboard";
+import ManagerDashboard from "./pages/managerDashboard/ManagerDashboard";
+import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
-import StudentDashboard from "./pages/studentDashboard/StudentDashboard";
+import StudentDashboard from "./pages/studentDashboard/StudentDashboardNew";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import AboutPage from "./pages/about/About";
@@ -21,7 +21,7 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/login" element={<LoginPage />} />
-        {/* <Route path="/managerDashboard" element={<ManagerDashboard />} /> */}
+
         <Route 
           path="/adminDashboard" 
           element={
@@ -29,12 +29,19 @@ function App() {
               <AdminDashboard />
             </ProtectedRoute>
           } 
-        />
-        <Route 
+        />        <Route 
           path="/nurseDashboard" 
           element={
             <ProtectedRoute requiredRole="Nurse">
               <NurseDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/managerDashboard" 
+          element={
+            <ProtectedRoute requiredRole="Manager">
+              <ManagerDashboard />
             </ProtectedRoute>
           } 
         />
