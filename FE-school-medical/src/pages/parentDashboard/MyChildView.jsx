@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Calendar, Phone, Mail, MapPin, Edit,
    Plus, Eye, Heart, FileText, Activity, X, Trash2 } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
-import AddStudentForm from '../../components/AddStudentForm';
+import AddStudentForm from './AddStudentForm';
 
 
 const MyChildView = () => {
