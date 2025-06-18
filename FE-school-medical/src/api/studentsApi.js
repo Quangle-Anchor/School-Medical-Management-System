@@ -75,27 +75,73 @@ export const studentAPI = {
     body: JSON.stringify(credentials),
   }),
 
-  // Get all students
+  // Get all students (admin/nurse/manager only)
   getAllStudents: () => apiRequest('/students'),
+  
+  // Get students by parent ID (parent only)
+  getStudentsByParent: (parentId) => apiRequest(`/students/parent/${parentId}`),
+  
+  // Get current user's students (automatically filtered by role)
+  getMyStudents: () => {
+    const userRole = localStorage.getItem('role');
+    const userId = localStorage.getItem('userId');
+    
+    if (userRole === 'Parent' && userId) {
+      return apiRequest(`/students/parent/${userId}`);
+    } else {
+      return apiRequest('/students');
+    }
+  },
   
   // Get student by ID
   getStudentById: (id) => apiRequest(`/students/${id}`),
   
-  // Create new student
-  createStudent: (studentData) => apiRequest('/students', {
-    method: 'POST',
-    body: JSON.stringify(studentData),
-  }),
+  // Create new student (automatically assigns parent if user is parent)
+  createStudent: (studentData) => {
+    const userRole = localStorage.getItem('role');
+    const userId = localStorage.getItem('userId');
+    
+    // If user is a parent, automatically set parent_id
+    if (userRole === 'Parent' && userId) {
+      studentData.parentId = parseInt(userId);
+    }
+    
+    return apiRequest('/students', {
+      method: 'POST',
+      body: JSON.stringify(studentData),
+    });
+  },
   
-  // Update student
-  updateStudent: (id, studentData) => apiRequest(`/students/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(studentData),
-  }),
-    // Delete student
-  deleteStudent: (id) => apiRequest(`/students/${id}`, {
-    method: 'DELETE',
-  }),  // Create health info
+  // Update student (with parent ownership check)
+  updateStudent: (id, studentData) => {
+    const userRole = localStorage.getItem('role');
+    const userId = localStorage.getItem('userId');
+    
+    // If user is a parent, ensure they can only update their own children
+    if (userRole === 'Parent' && userId) {
+      studentData.parentId = parseInt(userId);
+    }
+    
+    return apiRequest(`/students/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(studentData),
+    });
+  },    // Delete student (with parent ownership check)
+  deleteStudent: (id) => {
+    const userRole = localStorage.getItem('role');
+    const userId = localStorage.getItem('userId');
+    
+    // Add parent verification in the request if user is a parent
+    if (userRole === 'Parent' && userId) {
+      return apiRequest(`/students/${id}?parentId=${userId}`, {
+        method: 'DELETE',
+      });
+    }
+    
+    return apiRequest(`/students/${id}`, {
+      method: 'DELETE',
+    });
+  },// Create health info
   createHealthInfo: (healthInfoData) => apiRequest('/health-info', {
     method: 'POST',
     body: JSON.stringify(healthInfoData),

@@ -17,10 +17,8 @@ import {
   LogOut
 } from 'lucide-react';
 
-const Sidebar = ({ isCollapsed, onToggle, userRole = 'doctor', onMenuClick, activeMenu }) => {
-  // Different menu items based on user role
-  const getMenuItems = () => {
-    if (userRole === 'parent') {
+const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, activeMenu }) => {  // Different menu items based on user role
+  const getMenuItems = () => {    if (userRole === 'parent') {
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
         { id: 'my-child', icon: User, label: 'My Child' },
@@ -34,39 +32,111 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'doctor', onMenuClick, acti
       ];
     }
     
-    // Default menu items for doctors/medical staff
-    return [
-      { id: 'dashboard', icon: Activity, label: 'Dashboard' },
-      { id: 'patients', icon: Users, label: 'Patients' },
-      { id: 'appointments', icon: Calendar, label: 'Appointments' },
-      { id: 'medical-records', icon: FileText, label: 'Medical Records' },
-      { id: 'alerts', icon: Bell, label: 'Alerts' },
-      { id: 'settings', icon: Settings, label: 'Settings' },
-    ];
+    if (userRole === 'admin') {
+      return [
+        { id: 'dashboard', icon: Activity, label: 'Dashboard' },
+        { id: 'user-management', icon: Users, label: 'User Management' },
+        { id: 'system-settings', icon: Settings, label: 'System Settings' },
+        { id: 'reports', icon: FileText, label: 'Reports' },
+        { id: 'audit-logs', icon: Bell, label: 'Audit Logs' },
+        { id: 'analytics', icon: Stethoscope, label: 'Analytics' },
+      ];
+    }
+    
+    if (userRole === 'nurse') {
+      return [
+        { id: 'dashboard', icon: Activity, label: 'Dashboard' },
+        { id: 'patients', icon: Users, label: 'Patients' },
+        { id: 'appointments', icon: Calendar, label: 'Appointments' },
+        { id: 'medical-records', icon: FileText, label: 'Medical Records' },
+        { id: 'health-checkups', icon: Heart, label: 'Health Checkups' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+        { id: 'emergency', icon: Stethoscope, label: 'Emergency' },
+        { id: 'settings', icon: Settings, label: 'Settings' },
+      ];
+    }
+    
+    if (userRole === 'manager') {
+      return [
+        { id: 'dashboard', icon: Activity, label: 'Dashboard' },
+        { id: 'staff-management', icon: Users, label: 'Staff Management' },
+        { id: 'scheduling', icon: Calendar, label: 'Scheduling' },
+        { id: 'inventory', icon: FileText, label: 'Inventory' },
+        { id: 'financial', icon: Heart, label: 'Financial' },
+        { id: 'reports', icon: Bell, label: 'Reports' },
+        { id: 'quality-assurance', icon: Stethoscope, label: 'Quality Assurance' },
+        { id: 'settings', icon: Settings, label: 'Settings' },
+      ];
+    }
+    
+    if (userRole === 'student') {
+      return [
+        { id: 'dashboard', icon: Activity, label: 'Dashboard' },
+        { id: 'my-health', icon: Heart, label: 'My Health' },
+        { id: 'appointments', icon: Calendar, label: 'Appointments' },
+        { id: 'health-records', icon: FileText, label: 'Health Records' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+        { id: 'health-tips', icon: BookOpen, label: 'Health Tips' },
+        { id: 'settings', icon: Settings, label: 'Settings' },
+      ];
+    }
+    
+    // Log warning for unknown roles and return empty array
+    console.warn(`Unknown user role: ${userRole}`);
+    return [];
   };
-
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('userId');
     window.location.replace('/login');
-  };
-
-  const getUserInfo = () => {
-    if (userRole === 'parent') {
-      return {
-        initials: 'JD',
-        name: 'John Doe',
-        email: 'parent@medicare.com',
-        role: 'Parent'
-      };
+  };const getUserInfo = () => {
+    switch (userRole) {
+      case 'parent':
+        return {
+          initials: 'PT',
+          name: 'Parent User',
+          email: 'parent@medicare.com',
+          role: 'Parent'
+        };
+      case 'admin':
+        return {
+          initials: 'AD',
+          name: 'Admin User',
+          email: 'admin@medicare.com',
+          role: 'Administrator'
+        };
+      case 'nurse':
+        return {
+          initials: 'NR',
+          name: 'Nurse User',
+          email: 'nurse@medicare.com',
+          role: 'Nurse'
+        };
+      case 'manager':
+        return {
+          initials: 'MG',
+          name: 'Manager User',
+          email: 'manager@medicare.com',
+          role: 'Manager'
+        };
+      case 'student':
+        return {
+          initials: 'ST',
+          name: 'Student User',
+          email: 'student@medicare.com',
+          role: 'Student'
+        };      default:
+        console.warn(`Unknown user role: ${userRole}`);
+        return {
+          initials: 'U',
+          name: 'Unknown User',
+          email: 'user@medicare.com',
+          role: 'User'
+        };
     }
-    
-    return {
-      initials: 'DR',
-      name: 'Dr. Smith',
-      email: 'doctor@medicare.com',
-      role: 'Doctor'
-    };
   };
 
   const menuItems = getMenuItems();

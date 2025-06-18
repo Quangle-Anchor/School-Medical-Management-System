@@ -4,7 +4,7 @@ import Sidebar from './SideBar';
 import DashboardCard from './DashboardCard';
 import ChartCard from './ChartCard';
 
-const Dashboard = ({ cardData, userRole = 'doctor', customActions, activeMenu = 'dashboard', onMenuClick }) => {
+const Dashboard = ({ cardData, userRole = 'parent', customActions, activeMenu = 'dashboard', onMenuClick }) => {
   console.log('Dashboard props:', { userRole, hasCustomActions: !!customActions });
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
