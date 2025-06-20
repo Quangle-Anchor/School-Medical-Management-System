@@ -48,11 +48,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/principal/**").hasRole("PRINCIPAL")
-                        .requestMatchers("/api/nurse/**").hasRole("NURSE")
+                        .requestMatchers("/api/nurse/**","/api/nurse/medications/**").hasRole("NURSE")
                         .requestMatchers("/api/parents/**").hasRole("PARENT")
                         .requestMatchers("/api/students/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
                         .requestMatchers("/api/health-info/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
                         .requestMatchers("/api/medications/**").hasRole("PARENT")
+                        .requestMatchers("/api/health-incidents/**").hasAnyRole("PRINCIPAL", "NURSE")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
