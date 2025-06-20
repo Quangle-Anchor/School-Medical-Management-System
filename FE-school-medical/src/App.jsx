@@ -3,26 +3,31 @@ import ManagerDashboard from "./pages/managerDashboard/ManagerDashboard";
 import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
 import StudentDashboard from "./pages/studentDashboard/StudentDashboardNew";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import AboutPage from "./pages/about/About";
 import HomePage from "./pages/home/Homepage";
 import Contact from "./pages/Contact/Contact";
 import LoginPage from "./pages/login/Login";
+import SignUp from "./pages/login/SignUp";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const hideNavbarFooter = ['/login', '/signup'].includes(location.pathname);
+
   return (
-    <BrowserRouter>
-      <Navbar />
+    <>
+      {!hideNavbarFooter && <Navbar />}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route
           path="/adminDashboard"
           element={
@@ -64,7 +69,15 @@ function App() {
           }
         />
       </Routes>
-      <Footer />
+      {!hideNavbarFooter && <Footer />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

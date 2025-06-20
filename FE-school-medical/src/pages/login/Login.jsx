@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import authApi from '../../api/authApi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Input, Button, message, Alert } from 'antd';
 import logo from '../../assets/img/logo.png';
+import backgroundImg from '../../assets/img/health.png';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -34,49 +35,117 @@ const LoginPage = () => {
       console.error('Login error:', err);
       setError(err.response?.data || 'Login failed. Check credentials.');
     }
-  };
-
-  return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <img alt="Logo" src={logo} className="mx-auto h-50 w-50 rounded-full bg-gray-50 p-2 shadow-sm sm:h-44 sm:w-44 sm:p-3" />
-        <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">Sign in to your account</h2>
-      </div>
-
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        {error && <Alert message={error} type="error" showIcon className="mb-4" />}
-        <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">Email address</label>
-            <div className="mt-2">
-              <input id="email" name="email" type="email" required autoComplete="email"
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+  };  return (
+    <div 
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{
+        backgroundImage: `url(${backgroundImg})`,
+        backgroundSize: '80%',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Background overlay - removed backdrop-blur */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
+      
+      {/* Glassmorphism container */}
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="backdrop-blur-lg bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-8">
+          {/* Logo section */}
+          <div className="text-center mb-8">
+            <div className="inline-block p-3 bg-white/20 rounded-full backdrop-blur-sm mb-4">
+              <img 
+                alt="Logo" 
+                src={logo} 
+                className="h-16 w-16 rounded-full shadow-lg" 
               />
             </div>
+            <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
+            <p className="text-white/80">Sign in to your account</p>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">Password</label>
-              <div className="text-sm">
-                <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">Forgot password?</a>
+          {/* Error Alert */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl backdrop-blur-sm">
+              <div className="flex items-center">
+                <div className="text-red-300 mr-2">⚠️</div>
+                <span className="text-red-100 text-sm">{error}</span>
               </div>
             </div>
-            <div className="mt-2">
-              <input id="password" name="password" type="password" required autoComplete="current-password"
-                value={password} onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+          )}
+
+          {/* Form */}
+          <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-2">
+                Email address
+              </label>
+              <input 
+                id="email" 
+                name="email" 
+                type="email" 
+                required 
+                autoComplete="email"
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
+                placeholder="Enter your email"
               />
             </div>
-          </div>
 
-          <div>
-            <button type="submit" className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Sign in</button>
-          </div>
-        </form>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-2">
+                Password
+              </label>
+              <input 
+                id="password" 
+                name="password" 
+                type="password" 
+                required 
+                autoComplete="current-password"
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
+                placeholder="Enter your password"
+              />
+            </div>
 
-        <p className="mt-10 text-center text-sm/6 text-gray-500">New here? <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">Sign up</a></p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <label htmlFor="remember-me" className="ml-2 text-sm text-white/80">
+                  Remember me
+                </label>
+              </div>
+              <div className="text-sm">
+                <a href="#" className="text-blue-800 hover:text-blue-100 font-semibold transition-colors">
+                  Forgot password?
+                </a>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 backdrop-blur-sm"
+            >
+              Sign In
+            </button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-white/80 text-sm">
+              New here?{' '}
+              <Link to="/signup" className="text-blue-800 hover:text-blue-100 font-semibold transition-colors">
+                Create an account
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -15,7 +15,8 @@ import {
   MessageSquare,
   User,
   LogOut,
-  Warehouse
+  Warehouse,
+  Syringe 
 } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, activeMenu }) => {  // Different menu items based on user role
@@ -28,7 +29,7 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
         { id: 'health-reports', icon: Heart, label: 'Health Reports' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
-        { id: 'health-tips', icon: BookOpen, label: 'Health Tips' },
+        { id: 'medical-request', icon: Syringe, label: 'Medical Request' },
         { id: 'settings', icon: Settings, label: 'Settings' },
       ];
     }
