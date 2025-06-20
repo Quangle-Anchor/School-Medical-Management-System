@@ -2,6 +2,7 @@
 package com.be_source.School_Medical_Management_System_.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,6 +36,6 @@ public class Students {
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private User parent;    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
+    @JsonManagedReference
     private List<com.be_source.School_Medical_Management_System_.model.Health_Info> healthInfoList;
 }

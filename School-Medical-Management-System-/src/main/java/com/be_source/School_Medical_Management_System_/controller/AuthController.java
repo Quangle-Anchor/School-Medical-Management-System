@@ -3,6 +3,7 @@ package com.be_source.School_Medical_Management_System_.controller;
 import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.UserRepository;
 import com.be_source.School_Medical_Management_System_.request.LoginRequest;
+import com.be_source.School_Medical_Management_System_.request.SignupRequest;
 import com.be_source.School_Medical_Management_System_.security.JwtUtil;
 import com.be_source.School_Medical_Management_System_.service.AuthService;
 import com.be_source.School_Medical_Management_System_.service.UserService;
@@ -42,30 +43,27 @@ public class AuthController  {
     // API Login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        Optional<User> userOptional = userRepository.findAll()
-                .stream()
-                .filter(u -> u.getEmail().equals(request.getEmail()))
-                .findFirst();
+        Optional<User> userOptional = authService.login(request);
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            if (user.getPasswordHash().equals(request.getPassword())) {  // (Lưu ý: sau này nên hash password)
-                UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-                        user.getEmail(),
-                        user.getPasswordHash(),
-                        Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName().toUpperCase()))
-                );
 
-                String token = jwtUtil.generateToken(userDetails, user.getRole().getRoleName());
+            UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                    user.getEmail(),
+                    user.getPasswordHash(),
+                    Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName().toUpperCase()))
+            );
 
-                return ResponseEntity.ok(Map.of(
-                        "token", token,
-                        "role", user.getRole().getRoleName()
-                ));
-            }
+            String token = jwtUtil.generateToken(userDetails, user.getRole().getRoleName());
+
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "role", user.getRole().getRoleName()
+            ));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
+
 
     // API Validate Token
     @GetMapping("/validate-token")
@@ -83,6 +81,21 @@ public class AuthController  {
             return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
+        try {
+            User createdUser = authService.signUp(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "message", "User registered successfully",
+                    "userId", createdUser.getUserId()
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "error", e.getMessage()
+            ));
         }
     }
 }

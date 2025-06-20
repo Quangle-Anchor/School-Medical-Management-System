@@ -1,7 +1,9 @@
 package com.be_source.School_Medical_Management_System_.service;
 import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.UserRepository;
+import com.be_source.School_Medical_Management_System_.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -70,4 +72,18 @@ public class UserService {
     public List<User> getAllUsers()            { return userRepository.findAll(); }
     public Optional<User> getUserById(Long id) { return userRepository.findById(id); }
     public void deleteUser(Long id)            { userRepository.deleteById(id); }
+
+
+    @Autowired
+    private JwtUtil jwtUtil;
+    public User findByToken(String token) {
+        // Bỏ "Bearer " nếu token có prefix này
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        String email = jwtUtil.extractUsername(token); // hoặc extract email nếu bạn dùng email làm subject
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    }
+
 }

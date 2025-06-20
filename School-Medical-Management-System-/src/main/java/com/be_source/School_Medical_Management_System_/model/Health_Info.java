@@ -1,5 +1,7 @@
 package com.be_source.School_Medical_Management_System_.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,6 +22,7 @@ public class Health_Info {
 
     @ManyToOne
     @JoinColumn(name = "student_id")
+    @JsonBackReference
     private Students student;
 
     private String medicalConditions;
