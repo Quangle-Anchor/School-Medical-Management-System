@@ -145,7 +145,32 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         // Creating new student, only create health info if there's data
         console.log('Creating health info for new student');
         await studentAPI.createHealthInfo(healthInfoData);
-        console.log('Health info created successfully');
+        console.log('Health info created successfully');      }
+      
+      // After saving both student and health info, fetch the complete student data
+      // to ensure the parent component gets the full, up-to-date student object
+      let completeStudentData = { ...savedStudent };
+      
+      try {
+        const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(savedStudent.studentId);
+        if (healthInfoResponse && healthInfoResponse.length > 0) {
+          const healthInfo = healthInfoResponse[0];
+          completeStudentData = {
+            ...savedStudent,
+            medicalConditions: healthInfo.medicalConditions || '',
+            allergies: healthInfo.allergies || '',
+            notes: healthInfo.notes || ''
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching updated health info:', error);
+        // If we can't fetch health info, still use the form data
+        completeStudentData = {
+          ...savedStudent,
+          medicalConditions: formData.medicalConditions || '',
+          allergies: formData.allergies || '',
+          notes: formData.notes || ''
+        };
       }
       
       // Reset form
@@ -161,12 +186,12 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         allergies: '',
         notes: '',
       });
-        // Notify parent component
+        // Notify parent component with complete student data
       if (onStudentAdded) {
-        onStudentAdded(savedStudent);
+        onStudentAdded(completeStudentData);
       }
         // Close modal
-      onClose();    } catch (err) {
+      onClose();} catch (err) {
       console.error('Error creating student:', err);
       
       // More specific error handling

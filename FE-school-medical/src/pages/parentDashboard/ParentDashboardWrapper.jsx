@@ -25,7 +25,7 @@ const ParentDashboardWrapper = () => {
     if (path.includes('/health-reports')) return 'health-reports';
     if (path.includes('/notifications')) return 'notifications';
     if (path.includes('/messages')) return 'messages';
-    if (path.includes('/health-tips')) return 'health-tips';
+    if (path.includes('/medical-request')) return 'medical-request';
     if (path.includes('/settings')) return 'settings';
     return 'dashboard';
   };
@@ -80,8 +80,8 @@ const ParentDashboardWrapper = () => {
       case 'messages':
         navigate('/parentDashboard/messages');
         break;
-      case 'health-tips':
-        navigate('/parentDashboard/health-tips');
+      case 'medical-request':
+        navigate('/parentDashboard/medical-request');
         break;
       case 'settings':
         navigate('/parentDashboard/settings');
@@ -171,11 +171,11 @@ const ParentDashboardWrapper = () => {
             <p>Messages content coming soon...</p>
           </div>
         );
-      case 'health-tips':
+      case 'medical-request':
         return (
           <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Health Tips</h1>
-            <p>Health tips content coming soon...</p>
+            <h1 className="text-2xl font-bold mb-4">Medical Request</h1>
+            <p>Medical Request content coming soon...</p>
           </div>
         );
       case 'settings':
