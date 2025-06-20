@@ -1,9 +1,12 @@
 package com.be_source.School_Medical_Management_System_.security;
 
+import com.be_source.School_Medical_Management_System_.model.User;
+import com.be_source.School_Medical_Management_System_.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +29,13 @@ public class JwtUtil {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+    @Autowired
+    private UserRepository userRepository;
+    public User extractUserFromToken(String token) {
+        String email = extractUsername(token.replace("Bearer ", ""));
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     public Date extractExpiration(String token) {

@@ -28,7 +28,7 @@ public class SecurityConfig {
     private UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    private CorsConfigurationSource corsConfigurationSource;    // ✅ Public FilterChain cho login, register
+    private CorsConfigurationSource corsConfigurationSource;    // Public FilterChain cho login, register
     @Bean
     @Order(1)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -39,7 +39,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ Protected FilterChain cho các API cần bảo vệ
+    // Protected FilterChain cho các API cần bảo vệ
     @Bean
     @Order(2)
     public SecurityFilterChain protectedSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -52,13 +52,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/parents/**").hasRole("PARENT")
                         .requestMatchers("/api/students/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
                         .requestMatchers("/api/health-info/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
+                        .requestMatchers("/api/medications/**").hasRole("PARENT")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    // ✅ Tạo JwtAuthenticationFilter từ constructor
+    // Tạo JwtAuthenticationFilter từ constructor
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtUtil, userDetailsService);
