@@ -39,5 +39,12 @@ public class MedicationRequest {
     private Inventory inventory;
 
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "is_confirmed")
+    private Boolean isConfirmed = false;
+
+    @Column(name = "confirmed_at")
+    private LocalDateTime confirmedAt;
+
 }
 

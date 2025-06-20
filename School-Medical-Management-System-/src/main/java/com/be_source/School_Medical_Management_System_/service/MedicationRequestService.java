@@ -72,6 +72,8 @@ public class MedicationRequestService {
 
         request.setRequestedBy(parent);
         request.setCreatedAt(LocalDateTime.now());
+        request.setIsConfirmed(false);
+        request.setConfirmedAt(null);
 
         medicationRequestRepository.save(request);
     }
@@ -79,7 +81,8 @@ public class MedicationRequestService {
 
 
 
-    public MedicationRequest update(Long id, MedicationRequest updatedRequest, User parent) {
+
+    public MedicationRequest update(Long id, MedicationRequest updatedRequest, MultipartFile prescriptionFile, User parent) {
         MedicationRequest existing = medicationRequestRepository.findByRequestIdAndRequestedBy(id, parent)
                 .orElseThrow(() -> new RuntimeException("Not found or not authorized"));
 
@@ -91,10 +94,30 @@ public class MedicationRequestService {
         existing.setMedicationName(updatedRequest.getMedicationName());
         existing.setDosage(updatedRequest.getDosage());
         existing.setFrequency(updatedRequest.getFrequency());
-        existing.setPrescriptionFile(updatedRequest.getPrescriptionFile());
+
+        // Upload lại đơn thuốc nếu có file mới
+        if (prescriptionFile != null && !prescriptionFile.isEmpty()) {
+            try {
+                String fileName = UUID.randomUUID() + "_" + prescriptionFile.getOriginalFilename();
+                Path uploadDir = Paths.get("src/main/resources/static", prescriptionUploadPath);
+                if (!Files.exists(uploadDir)) Files.createDirectories(uploadDir);
+
+                Path destinationPath = uploadDir.resolve(fileName);
+                Files.copy(prescriptionFile.getInputStream(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
+
+                existing.setPrescriptionFile(fileName);
+            } catch (IOException e) {
+                throw new RuntimeException("Error uploading prescription file", e);
+            }
+        }
+
+        // Reset xác nhận
+        existing.setIsConfirmed(false);
+        existing.setConfirmedAt(null);
 
         return medicationRequestRepository.save(existing);
     }
+
 
     public void delete(Long id, User parent) {
         MedicationRequest existing = medicationRequestRepository.findByRequestIdAndRequestedBy(id, parent)
@@ -115,4 +138,18 @@ public class MedicationRequestService {
 
         return medicationRequestRepository.findByStudentOrderByCreatedAtDesc(student);
     }
+    public List<MedicationRequest> getUnconfirmedRequests() {
+        return medicationRequestRepository.findByIsConfirmedFalse();
+    }
+
+    public void confirmRequest(Long id) {
+        MedicationRequest request = medicationRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Medication request not found"));
+
+        request.setIsConfirmed(true);
+        request.setConfirmedAt(LocalDateTime.now());
+        medicationRequestRepository.save(request);
+    }
+
+
 }

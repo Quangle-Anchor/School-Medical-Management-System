@@ -14,4 +14,5 @@ public interface MedicationRequestRepository extends JpaRepository<MedicationReq
     List<MedicationRequest> findByRequestedBy(User parent);
     Optional<MedicationRequest> findByRequestIdAndRequestedBy(Long id, User parent);
     List<MedicationRequest> findByStudentOrderByCreatedAtDesc(Students student);
+    List<MedicationRequest> findByIsConfirmedFalse();
 }

@@ -64,13 +64,25 @@ public class MedicationRequestController {
 
 
     // PUT cập nhật yêu cầu thuốc
-    @PutMapping("/{id}")
-    public ResponseEntity<MedicationRequest> update(@PathVariable Long id,
-                                                    @RequestBody MedicationRequest request,
-                                                    @RequestHeader("Authorization") String authHeader) {
-        User parent = extractUser(authHeader);
-        return ResponseEntity.ok(medicationRequestService.update(id, request, parent));
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateMedicationRequest(
+            @PathVariable Long id,
+            @RequestPart("medicationRequest") String medicationRequestJson,
+            @RequestPart(value = "prescriptionFile", required = false) MultipartFile prescriptionFile,
+            @RequestHeader("Authorization") String authHeader) {
+
+        try {
+            User parent = extractUser(authHeader);
+            ObjectMapper mapper = new ObjectMapper();
+            MedicationRequest medicationRequest = mapper.readValue(medicationRequestJson, MedicationRequest.class);
+
+            MedicationRequest updated = medicationRequestService.update(id, medicationRequest, prescriptionFile, parent);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request: " + e.getMessage());
+        }
     }
+
 
     // DELETE xoá yêu cầu thuốc
     @DeleteMapping("/{id}")
@@ -90,5 +102,22 @@ public class MedicationRequestController {
         List<MedicationRequest> history = medicationRequestService.getHistoryByStudent(studentId, email);
         return ResponseEntity.ok(history);
     }
+
+    // Lấy danh sách đơn thuốc chưa được xác nhận
+    @GetMapping("/nurse/pending")
+    public ResponseEntity<List<MedicationRequest>> getPendingMedicationRequests(
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(medicationRequestService.getUnconfirmedRequests());
+    }
+
+    // Xác nhận đơn thuốc
+    @PutMapping("/nurse/confirm/{id}")
+    public ResponseEntity<?> confirmMedicationRequest(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader) {
+        medicationRequestService.confirmRequest(id);
+        return ResponseEntity.ok("Medication request confirmed");
+    }
+
 }
 
