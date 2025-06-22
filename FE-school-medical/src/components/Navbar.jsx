@@ -11,6 +11,7 @@ import {
   UserIcon,
   HeartIcon
 } from '@heroicons/react/24/outline';
+import logo from '../assets/img/2.png'; // Adjust the path as necessary
 
 const AuthNavbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -184,15 +185,23 @@ const AuthNavbar = () => {
       {({ open }) => (
         <>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <Link to="/" className="flex items-center space-x-2 text-white hover:text-blue-100 transition-colors duration-200">
-                  <div className="h-10 w-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/20">
-                    <HeartIcon className="h-6 w-6 text-blue-100" />
+            <div className="flex justify-between h-16">              <div className="flex items-center">
+                <Link to="/" className="flex items-center space-x-3 text-white hover:text-blue-100 transition-colors duration-200">
+                  <div className="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg">
+                    <img 
+                      alt="SVXS Logo" 
+                      src={logo} 
+                      className="h-8 w-8 rounded-full object-cover" 
+                    />
                   </div>
-                  <span className="text-xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                    MedCare
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                      SVXS
+                    </span>
+                    <span className="text-xs text-blue-200 font-medium">
+                      School Medical
+                    </span>
+                  </div>
                 </Link>
               </div>
 
@@ -301,12 +310,6 @@ const AuthNavbar = () => {
                       className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-white/20 backdrop-blur-sm"
                     >
                       Sign In
-                    </button>
-                    <button
-                      onClick={handleLogin}
-                      className="bg-white text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                    >
-                      Sign Up
                     </button>
                   </div>
                 )}

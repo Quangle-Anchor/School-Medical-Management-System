@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import authApi from '../../api/authApi';
 import { useNavigate, Link } from 'react-router-dom';
 import { Input, Button, message, Alert } from 'antd';
-import logo from '../../assets/img/logo.png';
-import backgroundImg from '../../assets/img/health.png';
+import logo from '../../assets/img/1.png';
+import backgroundImg from '../../assets/img/back.png';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -40,7 +40,7 @@ const LoginPage = () => {
       className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{
         backgroundImage: `url(${backgroundImg})`,
-        backgroundSize: '80%',
+        backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
       }}

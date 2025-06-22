@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Alert } from 'antd';
 import { User, Mail, Phone, Lock, UserCheck, Eye, EyeOff } from 'lucide-react';
 import authApi from '../../api/authApi';
-import logo from '../../assets/img/logo.png';
-import backgroundImg from '../../assets/img/health.png';
+import logo from '../../assets/img/1.png';
+import backgroundImg from '../../assets/img/pic.png';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -152,7 +152,7 @@ const SignUp = () => {
       className="min-h-screen flex items-center justify-center relative overflow-hidden py-12"
       style={{
         backgroundImage: `url(${backgroundImg})`,
-        backgroundSize: '80%',
+        backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
       }}
