@@ -17,10 +17,12 @@
     "antd-style": "^3.7.1",
     "axios": "^0.30.0",
     "bootstrap": "^5.3.6",
+    "date-fns": "^4.1.0",
     "i": "^0.3.7",
     "lucide-react": "^0.514.0",
     "react": "^19.1.0",
     "react-bootstrap": "^2.10.10",
+    "react-calendar": "^6.0.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
     "recharts": "^2.15.3"

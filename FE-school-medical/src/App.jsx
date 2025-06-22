@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import AboutPage from "./pages/about/About";
 import HomePage from "./pages/home/Homepage";
 import Contact from "./pages/Contact/Contact";
+import Calendar from "./pages/calendar/Calendar";
 import LoginPage from "./pages/login/Login";
 import SignUp from "./pages/login/SignUp";
 import Navbar from "./components/Navbar";
@@ -20,12 +21,13 @@ function AppContent() {
 
   return (
     <>
-     <Navbar />
+      <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/calendar" element={<Calendar />} /> 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
         <Route
