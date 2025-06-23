@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/students/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
                         .requestMatchers("/api/health-info/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
                         .requestMatchers("/api/medications/**").hasRole("PARENT")
-                        .requestMatchers("/api/health-incidents/**").hasAnyRole("PRINCIPAL", "NURSE")
+                        .requestMatchers("/api/health-incidents/**").hasAnyRole("PRINCIPAL", "NURSE", "PARENT")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

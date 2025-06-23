@@ -50,11 +50,10 @@ const healthIncidentAPI = {
       throw error;
     }
   },
-
   // Get health incidents by student ID
   getHealthIncidentsByStudent: async (studentId) => {
     try {
-      const response = await axiosInstance.get(`/api/health-incidents?studentId=${studentId}`);
+      const response = await axiosInstance.get(`/api/health-incidents/student/${studentId}`);
       return response.data;
     } catch (error) {
       throw error;
