@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { healthIncidentAPI } from '../../api/healthIncidentApi';
 import { Plus, Eye, Edit, Trash2, Calendar, AlertTriangle, User, Search, Filter, FileText, X } from 'lucide-react';
 import HealthIncidentForm from '../../components/HealthIncidentForm';
 
-const HealthIncidentsView = () => {
+const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,9 +13,67 @@ const HealthIncidentsView = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
+  // Define callback functions first to avoid hoisting issues
+  const fetchHealthIncidents = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Check if user has token before making API call
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('role');
+      
+      console.log('Fetching health incidents - Token present:', !!token, 'Role:', role);
+      
+      if (!token) {
+        setError('Authentication required. Please login again.');
+        return;
+      }
+      
+      const response = await healthIncidentAPI.getAllHealthIncidents();
+      console.log('Health incidents response:', response);
+      setIncidents(response);
+    } catch (err) {
+      console.error('Error fetching health incidents:', err);
+      
+      if (err.response?.status === 401) {
+        setError('Session expired. Please login again.');
+      } else if (err.response?.status === 403) {
+        setError('Access denied. You do not have permission to view health incidents.');
+      } else if (err.response?.status === 404) {
+        setError('Health incidents endpoint not found. Please contact support.');
+      } else {
+        setError(`Failed to load health incidents: ${err.message || 'Unknown error'}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchHealthIncidentsByStudent = useCallback(async (studentId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await healthIncidentAPI.getHealthIncidentsByStudent(studentId);
+      setIncidents(response || []);
+    } catch (err) {
+      if (err.message.includes('401') || err.message.includes('Authentication')) {
+        setError('Session expired. Please login again.');
+      } else if (err.message.includes('403')) {
+        setError('Access denied. You do not have permission to view this information.');
+      } else {
+        setError('Failed to load health incidents. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initialize component based on view type and authentication
   useEffect(() => {
-    // Check if user is authenticated before fetching data
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
     
@@ -24,42 +82,45 @@ const HealthIncidentsView = () => {
       setLoading(false);
       return;
     }
-    
-    if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager') {
-      setError('Access denied. Only nurses, admins, and managers can view health incidents.');
-      setLoading(false);
-      return;
-    }
-    
-    fetchHealthIncidents();
-  }, []);
 
-  const fetchHealthIncidents = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Check if user has token before making API call
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Authentication required. Please login again.');
+    if (isParentView) {
+      // Parent view logic
+      if (role !== 'Parent') {
+        setError('Access denied. Only parents can view their child\'s health incidents.');
+        setLoading(false);
         return;
       }
       
-      const response = await healthIncidentAPI.getAllHealthIncidents();
-      setIncidents(response);
-    } catch (err) {
-      if (err.message.includes('401') || err.message.includes('Authentication')) {
-        setError('Session expired. Please login again.');
-      } else if (err.message.includes('403')) {
-        setError('Access denied. You do not have permission to view health incidents.');
+      if (students.length === 1) {
+        setSelectedStudent(students[0]);
+      } else if (students.length === 0) {
+        setError('No children registered. Please add your child\'s information first.');
+        setLoading(false);
+        return;
       } else {
-        setError('Failed to load health incidents. Please try again.');
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
+    } else {
+      // Nurse view logic
+      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager') {
+        setError('Access denied. Only nurses, admins, and managers can view health incidents.');
+        setLoading(false);
+        return;
+      }
     }
-  };
+  }, [isParentView, students.length]);
+
+  // Separate effect for nurse data fetching to prevent loops
+  useEffect(() => {
+    if (!isParentView && !error && incidents.length === 0 && loading) {
+      fetchHealthIncidents();
+    }
+  }, [isParentView, error, incidents.length, loading, fetchHealthIncidents]);  // Fetch incidents when student is selected (parent view)
+  useEffect(() => {
+    if (isParentView && selectedStudent && selectedStudent.studentId) {
+      fetchHealthIncidentsByStudent(selectedStudent.studentId);
+    }
+  }, [selectedStudent?.studentId, isParentView, fetchHealthIncidentsByStudent]); // Only depend on studentId
 
   const handleCreateIncident = () => {
     setEditingIncident(null);
@@ -70,7 +131,6 @@ const HealthIncidentsView = () => {
     setEditingIncident(incident);
     setShowForm(true);
   };
-
   const handleDeleteIncident = async (incidentId) => {
     if (!window.confirm('Are you sure you want to delete this health incident?')) {
       return;
@@ -78,7 +138,12 @@ const HealthIncidentsView = () => {
 
     try {
       await healthIncidentAPI.deleteHealthIncident(incidentId);
-      await fetchHealthIncidents(); // Refresh the list
+      // Refresh the appropriate list based on view type
+      if (isParentView && selectedStudent) {
+        await fetchHealthIncidentsByStudent(selectedStudent.studentId);
+      } else {
+        await fetchHealthIncidents();
+      }
     } catch (error) {
       setError('Failed to delete health incident. Please try again.');
     }
@@ -88,11 +153,15 @@ const HealthIncidentsView = () => {
     setSelectedIncident(incident);
     setShowDetailModal(true);
   };
-
   const handleIncidentSaved = () => {
     setShowForm(false);
     setEditingIncident(null);
-    fetchHealthIncidents(); // Refresh the list
+    // Refresh the appropriate list based on view type
+    if (isParentView && selectedStudent) {
+      fetchHealthIncidentsByStudent(selectedStudent.studentId);
+    } else {
+      fetchHealthIncidents();
+    }
   };
 
   const handleCloseForm = () => {
@@ -165,10 +234,18 @@ const HealthIncidentsView = () => {
           <AlertTriangle className="h-5 w-5 text-red-600 mr-3" />
           <div className="flex-1">
             <p className="text-red-800 font-medium">Error Loading Health Incidents</p>
-            <p className="text-red-600 text-sm">{error}</p>
-            <div className="mt-3 flex space-x-2">
+            <p className="text-red-600 text-sm">{error}</p>            <div className="mt-3 flex space-x-2">
               <button 
-                onClick={fetchHealthIncidents}
+                onClick={() => {
+                  setError(null);
+                  setIncidents([]); // Clear incidents to trigger refetch
+                  setLoading(true);
+                  if (isParentView && selectedStudent) {
+                    fetchHealthIncidentsByStudent(selectedStudent.studentId);
+                  } else if (!isParentView) {
+                    fetchHealthIncidents();
+                  }
+                }}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
               >
                 Try Again
@@ -187,7 +264,6 @@ const HealthIncidentsView = () => {
       </div>
     );
   }
-
   return (
     <div className="p-6">
       {/* Header */}
@@ -195,21 +271,65 @@ const HealthIncidentsView = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
             <AlertTriangle className="w-6 h-6 mr-2 text-orange-600" />
-            Health Incidents
+            {isParentView ? "Child's Health Incidents" : "Health Incidents"}
           </h1>
-          <p className="text-gray-600">Record and manage student health incidents</p>
+          <p className="text-gray-600">
+            {isParentView 
+              ? "View your child's health incident records" 
+              : "Record and manage student health incidents"
+            }
+          </p>
         </div>
-        <button
-          onClick={handleCreateIncident}
-          className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Record Incident
-        </button>
+        {!isParentView && (
+          <button
+            onClick={handleCreateIncident}
+            className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Record Incident
+          </button>
+        )}
       </div>
 
-      {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+      {/* Student Selection for Parent View */}
+      {isParentView && students.length > 1 && (
+        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+          <h3 className="text-lg font-medium mb-3">Select Child</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {students.map((student) => (
+              <button
+                key={student.studentId}
+                onClick={() => setSelectedStudent(student)}
+                className={`p-3 border rounded-lg text-left transition-colors ${
+                  selectedStudent?.studentId === student.studentId
+                    ? 'border-orange-500 bg-orange-50'
+                    : 'border-gray-300 hover:border-orange-300 hover:bg-orange-50'
+                }`}
+              >
+                <div className="font-medium">{student.fullName}</div>
+                <div className="text-sm text-gray-600">ID: {student.studentId}</div>
+                <div className="text-sm text-gray-600">Grade: {student.grade || 'N/A'}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Show selected student info for parent view */}
+      {isParentView && selectedStudent && (
+        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+          <h3 className="text-lg font-medium mb-2">Health Incidents for {selectedStudent.fullName}</h3>
+          <div className="text-sm text-gray-600">
+            Student ID: {selectedStudent.studentId} | Grade: {selectedStudent.grade || 'N/A'} | Class: {selectedStudent.className || 'N/A'}
+          </div>
+        </div>
+      )}
+
+      {/* Only show the rest if not parent view or if parent view and student is selected */}
+      {(!isParentView || (isParentView && selectedStudent)) && (
+        <>
+          {/* Search and Filter Bar */}
+          <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search Input */}
           <div className="flex-1 relative">
@@ -318,29 +438,32 @@ const HealthIncidentsView = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDateTime(incident.createdAt)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">                      <div className="flex space-x-2">
                         <button
                           onClick={() => handleViewIncident(incident)}
                           className="text-blue-600 hover:text-blue-900 inline-flex items-center"
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          View
+                          {isParentView ? 'View Details' : 'View'}
                         </button>
-                        <button
-                          onClick={() => handleEditIncident(incident)}
-                          className="text-green-600 hover:text-green-900 inline-flex items-center"
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteIncident(incident.incidentId)}
-                          className="text-red-600 hover:text-red-900 inline-flex items-center"
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </button>
+                        {!isParentView && (
+                          <>
+                            <button
+                              onClick={() => handleEditIncident(incident)}
+                              className="text-green-600 hover:text-green-900 inline-flex items-center"
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteIncident(incident.incidentId)}
+                              className="text-red-600 hover:text-red-900 inline-flex items-center"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -437,38 +560,42 @@ const HealthIncidentsView = () => {
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="mt-6 flex justify-end space-x-3">
+            </div>            <div className="mt-6 flex justify-end space-x-3">
               <button
                 onClick={handleCloseDetailModal}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
               >
                 Close
               </button>
-              <button
-                onClick={() => {
-                  handleCloseDetailModal();
-                  handleEditIncident(selectedIncident);
-                }}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Incident
-              </button>
+              {!isParentView && (
+                <button
+                  onClick={() => {
+                    handleCloseDetailModal();
+                    handleEditIncident(selectedIncident);
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Incident
+                </button>
+              )}
             </div>
           </div>
         </div>
       )}
+        </>
+      )}
 
-      {/* Form Modal */}
-      <HealthIncidentForm
-        isOpen={showForm}
-        onClose={handleCloseForm}
-        onIncidentSaved={handleIncidentSaved}
-        editingIncident={editingIncident}
-        isEditing={!!editingIncident}
-      />
+      {/* Form Modal - Only show for nurse view */}
+      {!isParentView && (
+        <HealthIncidentForm
+          isOpen={showForm}
+          onClose={handleCloseForm}
+          onIncidentSaved={handleIncidentSaved}
+          editingIncident={editingIncident}
+          isEditing={!!editingIncident}
+        />
+      )}
     </div>
   );
 };

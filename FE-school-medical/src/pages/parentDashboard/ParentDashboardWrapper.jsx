@@ -6,8 +6,11 @@ import DashboardCard from '../../components/DashboardCard';
 import MyChildView from './MyChildView';
 import AddStudentForm from './AddStudentForm';
 import MyMedicationRequests from './MyMedicationRequests';
+import HealthIncidentsView from '../nurseDashboard/HealthIncidentsView';
 import { User, Calendar, FileText, Heart, Plus } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
+import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
+
 
 const ParentDashboardWrapper = () => {
   const navigate = useNavigate();
@@ -16,6 +19,7 @@ const ParentDashboardWrapper = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [healthIncidentsCount, setHealthIncidentsCount] = useState(0);
 
   // Get current view from URL
   const getCurrentView = () => {
@@ -37,11 +41,19 @@ const ParentDashboardWrapper = () => {
   useEffect(() => {
     setActiveView(getCurrentView());
   }, [location.pathname]);
-
   // Fetch students on component mount
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  // Fetch health incidents after students are loaded
+  useEffect(() => {
+    if (students.length > 0) {
+      fetchHealthIncidents();
+    } else if (students.length === 0 && !loading) {
+      setHealthIncidentsCount(0);
+    }
+  }, [students, loading]);
   const fetchStudents = async () => {
     try {
       const studentsData = await studentAPI.getMyStudents();
@@ -51,10 +63,34 @@ const ParentDashboardWrapper = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };  const fetchHealthIncidents = async () => {
+    try {
+      if (students.length === 0) {
+        setHealthIncidentsCount(0);
+        return;
+      }
 
+      let totalCount = 0;
+      // Fetch health incidents for each student
+      for (const student of students) {
+        try {
+          const incidents = await healthIncidentAPI.getHealthIncidentsByStudent(student.studentId);
+          totalCount += incidents ? incidents.length : 0;
+        } catch (error) {
+          console.error(`Error fetching health incidents for student ${student.studentId}:`, error);
+          // Continue with other students even if one fails
+        }
+      }
+      setHealthIncidentsCount(totalCount);
+    } catch (error) {
+      console.error('Error fetching health incidents:', error);
+      setHealthIncidentsCount(0);
+    }
+  };
   const handleStudentAdded = (newStudent) => {
     setStudents(prev => [...prev, newStudent]);
+    // Refresh health incidents count after adding a new student
+    // The useEffect will handle fetching incidents for the new student
   };
 
   const handleMenuClick = (menuId) => {
@@ -106,11 +142,10 @@ const ParentDashboardWrapper = () => {
       change: 'This week',
       changeType: 'positive',
       icon: Calendar
-    },
-    { 
+    },    { 
       title: 'Health Records', 
-      value: '12', 
-      change: 'Total documents',
+      value: loading ? '...' : healthIncidentsCount.toString(),
+      change: 'Health incidents',
       changeType: 'neutral',
       icon: FileText
     },
@@ -143,14 +178,8 @@ const ParentDashboardWrapper = () => {
             <h1 className="text-2xl font-bold mb-4">Appointments</h1>
             <p>Appointments content coming soon...</p>
           </div>
-        );
-      case 'medical-records':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Medical Records</h1>
-            <p>Medical records content coming soon...</p>
-          </div>
-        );
+        );      case 'medical-records':
+        return <HealthIncidentsView isParentView={true} students={students} />;
       case 'health-reports':
         return (
           <div className="p-6">

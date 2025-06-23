@@ -6,12 +6,17 @@ import PatientsView from './PatientsView';
 import NurseMedicationRequests from './NurseMedicationRequests';
 import HealthIncidentsView from './HealthIncidentsView';
 import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell, Warehouse } from 'lucide-react';
+import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
+import { studentAPI } from '../../api/studentsApi';
 
 const NurseDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [healthIncidents, setHealthIncidents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [students, setStudents] = useState([]);
   // Get current view from URL
   const getCurrentView = () => {
     const path = location.pathname;    if (path.includes('/patients')) return 'patients';
@@ -24,14 +29,21 @@ const NurseDashboard = () => {
     if (path.includes('/settings')) return 'settings';
     return 'dashboard';
   };
-
   const [activeView, setActiveView] = useState(getCurrentView());
-
+  
   // Update active view when URL changes
   useEffect(() => {
     setActiveView(getCurrentView());
   }, [location.pathname]);
 
+  // Fetch health incidents on component mount
+  useEffect(() => {
+    fetchHealthIncidents();
+  }, []);
+  // Fetch students on component mount  
+  useEffect(() => {
+    fetchStudents();
+  }, []);
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
@@ -45,11 +57,32 @@ const NurseDashboard = () => {
     setActiveView(menuId);
   };
 
+  const fetchStudents = async () => {
+    try {
+      const studentsData = await studentAPI.getMyStudents();
+      setStudents(studentsData);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const fetchHealthIncidents = async () => {
+    try {
+      const incidents = await healthIncidentAPI.getAllHealthIncidents();
+      setHealthIncidents(incidents);
+    } catch (error) {
+      console.error('Error fetching health incidents:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Nurse dashboard data
   const nurseCardData = [
     {
       title: 'Patients Today',
-      value: '24',
+      value: loading ? '...' : students.length.toString(),
       change: '+3 from yesterday',
       changeType: 'positive',
       icon: Users,
@@ -60,20 +93,12 @@ const NurseDashboard = () => {
       change: '6 remaining today',
       changeType: 'neutral',
       icon: Calendar,
-    },
-    {
-      title: 'Health Checkups',
-      value: '12',
-      change: 'Completed today',
-      changeType: 'positive',
+    },    {
+      title: 'Health Incidents',
+      value: loading ? '...' : healthIncidents.length.toString(),
+      change: 'Total recorded incidents',
+      changeType: healthIncidents.length > 5 ? 'negative' : 'neutral',
       icon: Heart,
-    },
-    {
-      title: 'Emergency Cases',
-      value: '2',
-      change: 'Active alerts',
-      changeType: 'negative',
-      icon: Stethoscope,
     },
   ];
 
