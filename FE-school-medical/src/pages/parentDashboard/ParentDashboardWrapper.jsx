@@ -170,23 +170,18 @@ const ParentDashboardWrapper = () => {
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Messages</h1>
             <p>Messages content coming soon...</p>
-          </div>
-        );
+          </div>        );
       case 'medical-request':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Medical Request</h1>
-            <p>Medical Request content coming soon...</p>
-          </div>
-        );
+        return <MyMedicationRequests />;
+      case 'medication-requests':
+        return <MyMedicationRequests />;
       case 'settings':
         return (
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Settings</h1>
             <p>Settings content coming soon...</p>
           </div>
-        );      case 'medication-requests':
-        return <MyMedicationRequests />;
+        );   
       default:
         return (
           <div className="p-6 space-y-6 bg-gray-50 min-h-screen">

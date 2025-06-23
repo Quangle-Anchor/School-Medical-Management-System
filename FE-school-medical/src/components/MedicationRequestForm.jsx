@@ -16,10 +16,16 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
   const [loading, setLoading] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [error, setError] = useState('');
-
   // Load students when component mounts
   useEffect(() => {
     if (isOpen) {
+      // Check authentication first
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication required. Please login again.');
+        return;
+      }
+      
       fetchMyStudents();
     }
   }, [isOpen]);
@@ -44,14 +50,27 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
     }
     setError('');
   }, [isEditing, editingRequest, isOpen]);
-
   const fetchMyStudents = async () => {
     try {
       setLoadingStudents(true);
+      
+      // Check if user has token before making API call
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication required. Please login again.');
+        return;
+      }
+      
       const response = await studentAPI.getMyStudents();
       setStudents(response.data || response || []);
     } catch (error) {
-      setError('Failed to load students. Please try again.');
+      if (error.message.includes('401') || error.message.includes('Authentication')) {
+        setError('Session expired. Please login again.');
+      } else if (error.message.includes('403')) {
+        setError('Access denied. You do not have permission to access student data.');
+      } else {
+        setError('Failed to load students. Please try again.');
+      }
     } finally {
       setLoadingStudents(false);
     }
