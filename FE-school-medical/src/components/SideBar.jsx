@@ -16,7 +16,8 @@ import {
   User,
   LogOut,
   Warehouse,
-  Syringe 
+  Syringe,
+  AlertTriangle
 } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, activeMenu }) => {  // Different menu items based on user role
@@ -43,14 +44,13 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
         { id: 'audit-logs', icon: Bell, label: 'Audit Logs' },
         { id: 'analytics', icon: Stethoscope, label: 'Analytics' },
       ];
-    }
-      if (userRole === 'nurse') {
+    }    if (userRole === 'nurse') {
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
         { id: 'patients', icon: Users, label: 'Patients' },
         { id: 'appointments', icon: Calendar, label: 'Appointments' },
         { id: 'medical-records', icon: FileText, label: 'Medical Records' },
-        { id: 'health-checkups', icon: Heart, label: 'Health Checkups' },
+        { id: 'health-incidents', icon: AlertTriangle, label: 'Health Incidents' },
         { id: 'medication-requests', icon: Syringe, label: 'Medication Requests' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'inventory', icon: Warehouse, label: 'inventory' },

@@ -4,6 +4,7 @@ import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
 import PatientsView from './PatientsView';
 import NurseMedicationRequests from './NurseMedicationRequests';
+import HealthIncidentsView from './HealthIncidentsView';
 import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell, Warehouse } from 'lucide-react';
 
 const NurseDashboard = () => {
@@ -11,13 +12,12 @@ const NurseDashboard = () => {
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-
   // Get current view from URL
   const getCurrentView = () => {
     const path = location.pathname;    if (path.includes('/patients')) return 'patients';
     if (path.includes('/appointments')) return 'appointments';
     if (path.includes('/medical-records')) return 'medical-records';
-    if (path.includes('/health-checkups')) return 'health-checkups';
+    if (path.includes('/health-incidents')) return 'health-incidents';
     if (path.includes('/medication-requests')) return 'medication-requests';
     if (path.includes('/notifications')) return 'notifications';
     if (path.includes('/inventory')) return 'inventory';
@@ -190,34 +190,12 @@ const NurseDashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
-        );
+          </div>        );
       
-      case 'health-checkups':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Health Checkups</h1>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Checkup Management</h2>
-              <p className="text-gray-600 mb-4">Conduct and track routine health checkups and screenings.</p>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 border rounded-lg">
-                    <h3 className="font-medium mb-2">Routine Checkups</h3>
-                    <p className="text-sm text-gray-600">Annual physical examinations and wellness checks</p>
-                    <button className="mt-2 px-3 py-1 bg-blue-600 text-white text-sm rounded">Schedule</button>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <h3 className="font-medium mb-2">Specialized Screenings</h3>
-                    <p className="text-sm text-gray-600">Targeted health screenings and tests</p>
-                    <button className="mt-2 px-3 py-1 bg-green-600 text-white text-sm rounded">Manage</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+      case 'health-incidents':
+        return <HealthIncidentsView />;
       
+    
       case 'notifications':
         return (
           <div className="p-6">
@@ -244,7 +222,8 @@ const NurseDashboard = () => {
               </div>
             </div>
           </div>
-        );      case 'inventory':
+        );      
+        case 'inventory':
         return (
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -388,88 +367,7 @@ const NurseDashboard = () => {
               </div>
             )}
           </div>        );
-      
-      case 'emergency':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Emergency Protocol</h1>
-            <div className="space-y-6">
-              {/* Emergency Alert Status */}
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                <h2 className="text-xl font-bold text-red-800 mb-4">Active Emergency Alerts</h2>
-                <div className="space-y-3">
-                  <div className="bg-red-100 border border-red-300 rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-red-800">Code Blue - Room 205</h3>
-                        <p className="text-red-700">Patient requires immediate medical attention</p>
-                        <p className="text-sm text-red-600">Alert triggered: 2 minutes ago</p>
-                      </div>
-                      <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                        Respond
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Emergency Procedures */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold mb-4">Emergency Procedures</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">Cardiac Arrest</h3>
-                    <p className="text-sm text-gray-600 mb-3">Immediate CPR and AED protocol</p>
-                    <button className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                      View Protocol
-                    </button>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">Respiratory Distress</h3>
-                    <p className="text-sm text-gray-600 mb-3">Oxygen therapy and airway management</p>
-                    <button className="px-3 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">
-                      View Protocol
-                    </button>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">Severe Allergic Reaction</h3>
-                    <p className="text-sm text-gray-600 mb-3">Epinephrine administration protocol</p>
-                    <button className="px-3 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">
-                      View Protocol
-                    </button>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">Fire Emergency</h3>
-                    <p className="text-sm text-gray-600 mb-3">Evacuation and safety procedures</p>
-                    <button className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
-                      View Protocol
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Emergency Contacts */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold mb-4">Emergency Contacts</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 border rounded-lg">
-                    <h3 className="font-semibold">Emergency Services</h3>
-                    <p className="text-2xl font-bold text-red-600">911</p>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <h3 className="font-semibold">Hospital Security</h3>
-                    <p className="text-2xl font-bold text-blue-600">2911</p>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <h3 className="font-semibold">Poison Control</h3>
-                    <p className="text-2xl font-bold text-green-600">1-800-222-1222</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      
       case 'settings':
         return (
           <div className="p-6">

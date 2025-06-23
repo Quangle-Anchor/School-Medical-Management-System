@@ -53,11 +53,12 @@ public class HealthIncidentController {
     public ResponseEntity<HealthIncident> update(@PathVariable Long id,
                                                  @RequestBody HealthIncident updatedIncident) {
         return ResponseEntity.ok(healthIncidentService.update(id, updatedIncident));
-    }
-
-    @DeleteMapping("/{id}")
+    }    @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         healthIncidentService.delete(id);
         return ResponseEntity.noContent().build();
+    }    @GetMapping("/student/{studentId}")
+    public ResponseEntity<List<HealthIncident>> getByStudentId(@PathVariable Long studentId) {
+        return ResponseEntity.ok(healthIncidentService.getByStudentId(studentId));
     }
 }
