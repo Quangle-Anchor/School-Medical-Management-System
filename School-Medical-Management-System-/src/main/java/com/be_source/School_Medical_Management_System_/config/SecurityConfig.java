@@ -47,8 +47,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/principal/**","/api/health-incidents/**").hasRole("PRINCIPAL")
-                        .requestMatchers("/api/nurse/**","/api/nurse/medications/**","/api/medications/nurse/**","/api/health-incidents/**").hasRole("NURSE")
+                        .requestMatchers("/api/principal/**").hasRole("PRINCIPAL")
+                        .requestMatchers("/api/nurse/**","/api/nurse/medications/**","/api/medications/nurse/**").hasRole("NURSE")
                         .requestMatchers("/api/parents/**","/api/medications/**").hasRole("PARENT")
                         .requestMatchers("/api/students/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
                         .requestMatchers("/api/health-info/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")

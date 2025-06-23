@@ -9,7 +9,6 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
@@ -20,7 +19,15 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY_STRING = "my_super_secret_key_1234567890123456";  // Phải dài >= 32 ký tự
+    private static final String SECRET_KEY_STRING = "my_super_secret_key_1234567890123456"; // >= 32 ký tự
+
+    @Autowired
+    private UserRepository userRepository;
+
+    // Hàm chuẩn hóa token: loại bỏ prefix Bearer nếu có
+    private String cleanToken(String token) {
+        return token.startsWith("Bearer ") ? token.substring(7) : token;
+    }
 
     private Key getSigningKey() {
         byte[] keyBytes = SECRET_KEY_STRING.getBytes(StandardCharsets.UTF_8);
@@ -30,10 +37,9 @@ public class JwtUtil {
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
-    @Autowired
-    private UserRepository userRepository;
+
     public User extractUserFromToken(String token) {
-        String email = extractUsername(token.replace("Bearer ", ""));
+        String email = extractUsername(token);
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
@@ -48,10 +54,11 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
+        String cleanedToken = cleanToken(token);
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
+                .parseClaimsJws(cleanedToken)
                 .getBody();
     }
 
