@@ -44,14 +44,14 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
         { id: 'analytics', icon: Stethoscope, label: 'Analytics' },
       ];
     }
-    
-    if (userRole === 'nurse') {
+      if (userRole === 'nurse') {
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
         { id: 'patients', icon: Users, label: 'Patients' },
         { id: 'appointments', icon: Calendar, label: 'Appointments' },
         { id: 'medical-records', icon: FileText, label: 'Medical Records' },
         { id: 'health-checkups', icon: Heart, label: 'Health Checkups' },
+        { id: 'medication-requests', icon: Syringe, label: 'Medication Requests' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'inventory', icon: Warehouse, label: 'inventory' },
         { id: 'settings', icon: Settings, label: 'Settings' },
@@ -86,63 +86,23 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
     // Log warning for unknown roles and return empty array
     console.warn(`Unknown user role: ${userRole}`);
     return [];
-  };
-  const handleLogout = () => {
+  };  const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('userId');
+    localStorage.removeItem('email');
+    localStorage.removeItem('fullname');
+    
+    // Dispatch custom event to notify other components of logout
+    window.dispatchEvent(new CustomEvent('authChange'));
+    
     window.location.replace('/login');
-  };const getUserInfo = () => {
-    switch (userRole) {
-      case 'parent':
-        return {
-          initials: 'PT',
-          name: 'Parent User',
-          email: 'parent@medicare.com',
-          role: 'Parent'
-        };
-      case 'admin':
-        return {
-          initials: 'AD',
-          name: 'Admin User',
-          email: 'admin@medicare.com',
-          role: 'Administrator'
-        };
-      case 'nurse':
-        return {
-          initials: 'NR',
-          name: 'Nurse User',
-          email: 'nurse@medicare.com',
-          role: 'Nurse'
-        };
-      case 'manager':
-        return {
-          initials: 'MG',
-          name: 'Manager User',
-          email: 'manager@medicare.com',
-          role: 'Manager'
-        };
-      case 'student':
-        return {
-          initials: 'ST',
-          name: 'Student User',
-          email: 'student@medicare.com',
-          role: 'Student'
-        };      default:
-        console.warn(`Unknown user role: ${userRole}`);
-        return {
-          initials: 'U',
-          name: 'Unknown User',
-          email: 'user@medicare.com',
-          role: 'User'
-        };
-    }
-  };
+  }
 
   const menuItems = getMenuItems();
-  const userInfo = getUserInfo();
+  // const userInfo = getUserInfo();
 
   return (
     <div className={`bg-white border-r border-border transition-all duration-300 ${
@@ -190,30 +150,6 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
           ))}
         </ul>
       </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-border">
-        {!isCollapsed && (
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium">{userInfo.initials}</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{userInfo.name}</p>
-                <p className="text-xs text-muted-foreground">{userInfo.email}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-3 py-2 rounded-md transition-colors hover:bg-red-50 text-red-600 hover:text-red-700"
-            >
-              <LogOut className="w-4 h-4 flex-shrink-0" />
-              <span>Logout</span>
-            </button>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

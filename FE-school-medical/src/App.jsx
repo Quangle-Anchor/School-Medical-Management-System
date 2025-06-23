@@ -4,6 +4,7 @@ import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
 import StudentDashboard from "./pages/studentDashboard/StudentDashboardNew";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 import AboutPage from "./pages/about/About";
 import HomePage from "./pages/home/Homepage";
@@ -14,20 +15,79 @@ import SignUp from "./pages/login/SignUp";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
+import backgroundImg from "./assets/img/back.png";
 
 function AppContent() {
   const location = useLocation();
-  const hideNavbarFooter = ['/login', '/signup'].includes(location.pathname);
+  const hideFooter = ['/login', '/signup'].includes(location.pathname);
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [isMouseNearTop, setIsMouseNearTop] = useState(false);
+
+  useEffect(() => {
+    if (hideFooter) return; // Don't apply scroll behavior on login/signup pages
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < 50) {
+        // Always show navbar at the top of the page
+        setIsNavbarVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down and past threshold - hide navbar
+        if (!isMouseNearTop) {
+          setIsNavbarVisible(false);
+        }
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up - show navbar
+        setIsNavbarVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    const handleMouseMove = (e) => {
+      // Show navbar when mouse is near the top 100px of the screen
+      const isNearTop = e.clientY <= 100;
+      setIsMouseNearTop(isNearTop);
+      
+      if (isNearTop && !isNavbarVisible) {
+        setIsNavbarVisible(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };  }, [lastScrollY, isNavbarVisible, isMouseNearTop, hideFooter]);
 
   return (
-    <>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
+    <div 
+      className="min-h-screen relative"
+    
+    >
+      {/* Background overlay */}
+      {/* <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div> */}
+      
+      {/* Smart Navbar - always visible, but smart behavior only on non-login/signup pages */}
+      <div 
+        className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
+          (hideFooter || isNavbarVisible) ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
+        <Navbar />
+      </div>
+
+      {/* Main content area with padding for navbar */}
+      <div className="relative z-10 pt-16">
+        <Routes>        <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/calendar" element={<Calendar />} /> 
+        <Route path="/calendar" element={<Calendar />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
         <Route
@@ -37,7 +97,7 @@ function AppContent() {
               <AdminDashboard />
             </ProtectedRoute>
           }
-        />{" "}
+        />
         <Route
           path="/nurseDashboard/*"
           element={
@@ -70,9 +130,12 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-      </Routes>
-      {!hideNavbarFooter && <Footer />}
-    </>
+        </Routes>
+        
+        {/* Footer - hidden on login/signup pages */}
+        {!hideFooter && <Footer />}
+      </div>
+    </div>
   );
 }
 

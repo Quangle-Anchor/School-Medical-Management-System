@@ -4,7 +4,7 @@ import { Alert } from 'antd';
 import { User, Mail, Phone, Lock, UserCheck, Eye, EyeOff } from 'lucide-react';
 import authApi from '../../api/authApi';
 import logo from '../../assets/img/1.png';
-import backgroundImg from '../../assets/img/pic.png';
+import backgroundImg from '../../assets/img/back2.png';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({

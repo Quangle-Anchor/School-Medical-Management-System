@@ -45,9 +45,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
             basicData.medicalConditions = healthInfo.medicalConditions || '';
             basicData.allergies = healthInfo.allergies || '';
             basicData.notes = healthInfo.notes || '';
-          }
-        } catch (error) {
-          console.error('Error fetching health info for editing:', error);
+          }        } catch (error) {
           // Continue with empty health info fields
         } finally {
           setLoadingHealthInfo(false);
@@ -98,18 +96,13 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
       };
 
       let savedStudent;
-      
-      if (isEditing && editingStudent) {
+        if (isEditing && editingStudent) {
         // Update existing student
-        console.log('Updating student with data:', studentData);
         savedStudent = await studentAPI.updateStudent(editingStudent.studentId, studentData);
-        console.log('Student updated successfully:', savedStudent);
       } else {
         // Create new student
-        console.log('Creating student with data:', studentData);
         savedStudent = await studentAPI.createStudent(studentData);
-        console.log('Student created successfully:', savedStudent);
-      }      // Handle health info (for both create and update)
+      }// Handle health info (for both create and update)
       const healthInfoData = {
         student: { studentId: savedStudent.studentId },
         medicalConditions: formData.medicalConditions || null,
@@ -121,31 +114,23 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         // When editing, check if health info already exists
         try {
           const existingHealthInfo = await studentAPI.getHealthInfoByStudentId(editingStudent.studentId);
-          
-          if (existingHealthInfo && existingHealthInfo.length > 0) {
+            if (existingHealthInfo && existingHealthInfo.length > 0) {
             // Update existing health info (even if all fields are empty)
             const healthInfoId = existingHealthInfo[0].healthInfoId;
-            console.log('Updating existing health info with ID:', healthInfoId);
             await studentAPI.updateHealthInfo(healthInfoId, healthInfoData);
-            console.log('Health info updated successfully');
           } else if (formData.medicalConditions || formData.allergies || formData.notes) {
             // No existing health info, but user provided health data, create new one
-            console.log('Creating new health info for existing student');
             await studentAPI.createHealthInfo(healthInfoData);
-            console.log('Health info created successfully');
           }
         } catch (error) {
-          console.error('Error handling health info update:', error);
           // Fallback: only create if there's actual health data
           if (formData.medicalConditions || formData.allergies || formData.notes) {
             await studentAPI.createHealthInfo(healthInfoData);
-          }
-        }
+          }        }
       } else if (formData.medicalConditions || formData.allergies || formData.notes) {
         // Creating new student, only create health info if there's data
-        console.log('Creating health info for new student');
         await studentAPI.createHealthInfo(healthInfoData);
-        console.log('Health info created successfully');      }
+      }
       
       // After saving both student and health info, fetch the complete student data
       // to ensure the parent component gets the full, up-to-date student object
@@ -160,10 +145,8 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
             medicalConditions: healthInfo.medicalConditions || '',
             allergies: healthInfo.allergies || '',
             notes: healthInfo.notes || ''
-          };
-        }
+          };        }
       } catch (error) {
-        console.error('Error fetching updated health info:', error);
         // If we can't fetch health info, still use the form data
         completeStudentData = {
           ...savedStudent,
@@ -189,11 +172,8 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         // Notify parent component with complete student data
       if (onStudentAdded) {
         onStudentAdded(completeStudentData);
-      }
-        // Close modal
+      }      // Close modal
       onClose();} catch (err) {
-      console.error('Error creating student:', err);
-      
       // More specific error handling
       if (err.message.includes('Authentication required')) {
         setError('Session expired. Please login again.');

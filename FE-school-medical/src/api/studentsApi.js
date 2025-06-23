@@ -59,10 +59,8 @@ const apiRequest = async (endpoint, options = {}) => {
     if (contentType && contentType.includes('application/json')) {
       return await response.json();
     }
-    
-    return response;
+      return response;
   } catch (error) {
-    console.error('API request failed:', error);
     throw error;
   }
 };
@@ -73,11 +71,8 @@ export const studentAPI = {
   login: (credentials) => apiRequest('/auth/login', {
     method: 'POST',
     body: JSON.stringify(credentials),
-  }),
-
-  // Get all students (admin/nurse/manager only)
+  }),  // Get all students (admin/nurse/manager only)
   getAllStudents: () => apiRequest('/students'),
-  
   // Get students by parent ID (parent only)
   getStudentsByParent: (parentId) => apiRequest(`/students/parent/${parentId}`),
     // Get current user's students (automatically filtered by role and parent)
@@ -133,6 +128,9 @@ export const studentAPI = {
 
   // Get all health info
   getAllHealthInfo: () => apiRequest('/health-info'),
+
+  // Get all students for nurse (nurse-specific endpoint if available)
+  getAllStudentsForNurse: () => apiRequest('/nurse/students'),
 };
 
 // Export default API object

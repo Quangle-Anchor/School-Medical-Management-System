@@ -5,6 +5,7 @@ import ChartCard from '../../components/ChartCard';
 import DashboardCard from '../../components/DashboardCard';
 import MyChildView from './MyChildView';
 import AddStudentForm from './AddStudentForm';
+import MyMedicationRequests from './MyMedicationRequests';
 import { User, Calendar, FileText, Heart, Plus } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
 
@@ -18,11 +19,11 @@ const ParentDashboardWrapper = () => {
 
   // Get current view from URL
   const getCurrentView = () => {
-    const path = location.pathname;
-    if (path.includes('/my-child')) return 'my-child';
+    const path = location.pathname;    if (path.includes('/my-child')) return 'my-child';
     if (path.includes('/appointments')) return 'appointments';
     if (path.includes('/medical-records')) return 'medical-records';
     if (path.includes('/health-reports')) return 'health-reports';
+    if (path.includes('/medication-requests')) return 'medication-requests';
     if (path.includes('/notifications')) return 'notifications';
     if (path.includes('/messages')) return 'messages';
     if (path.includes('/medical-request')) return 'medical-request';
@@ -184,9 +185,11 @@ const ParentDashboardWrapper = () => {
             <h1 className="text-2xl font-bold mb-4">Settings</h1>
             <p>Settings content coming soon...</p>
           </div>
-        );      default:
+        );      case 'medication-requests':
+        return <MyMedicationRequests />;
+      default:
         return (
-          <div className="p-6 space-y-6 bg-gray-50 min-h-full">
+          <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
             {/* Header */}
             <div className="mb-8">
               <div className="flex items-center justify-between">
@@ -259,8 +262,7 @@ const ParentDashboardWrapper = () => {
           </div>
         );
     }
-  };
-  return (
+  };  return (
     <div className="flex min-h-screen bg-background">
       <Sidebar 
         isCollapsed={sidebarCollapsed} 
@@ -270,7 +272,7 @@ const ParentDashboardWrapper = () => {
         onMenuClick={handleMenuClick}
       />
       
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1">
         {renderContent()}
       </main>
       

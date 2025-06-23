@@ -1,0 +1,359 @@
+import React, { useState, useEffect } from 'react';
+import { medicationAPI } from '../../api/medicationApi';
+import { Plus, Eye, Edit, Trash2, Clock, CheckCircle, XCircle, Pill, Calendar, User } from 'lucide-react';
+import MedicationRequestForm from '../../components/MedicationRequestForm';
+
+const MyMedicationRequests = () => {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingRequest, setEditingRequest] = useState(null);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  useEffect(() => {
+    fetchMyRequests();
+  }, []);
+
+  const fetchMyRequests = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await medicationAPI.getMyMedicationRequests();
+      setRequests(response);
+    } catch (err) {
+      setError('Failed to load medication requests. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateRequest = () => {
+    setEditingRequest(null);
+    setShowForm(true);
+  };
+
+  const handleEditRequest = (request) => {
+    setEditingRequest(request);
+    setShowForm(true);
+  };
+
+  const handleDeleteRequest = async (requestId) => {
+    if (!window.confirm('Are you sure you want to delete this medication request?')) {
+      return;
+    }
+
+    try {
+      await medicationAPI.deleteMedicationRequest(requestId);
+      await fetchMyRequests(); // Refresh the list
+    } catch (error) {
+      setError('Failed to delete medication request. Please try again.');
+    }
+  };
+
+  const handleViewRequest = (request) => {
+    setSelectedRequest(request);
+    setShowDetailModal(true);
+  };
+
+  const handleRequestSubmitted = () => {
+    setShowForm(false);
+    setEditingRequest(null);
+    fetchMyRequests(); // Refresh the list
+  };
+
+  const getStatusBadge = (isConfirmed, confirmedAt) => {
+    if (isConfirmed) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Confirmed
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+          <Clock className="w-3 h-3 mr-1" />
+          Pending
+        </span>
+      );
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">Loading medication requests...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
+          <XCircle className="h-5 w-5 text-red-600 mr-3" />
+          <div className="flex-1">
+            <p className="text-red-800 font-medium">Error Loading Requests</p>
+            <p className="text-red-600 text-sm">{error}</p>
+            <button 
+              onClick={fetchMyRequests}
+              className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">My Medication Requests</h1>
+          <p className="text-gray-600">Manage medication requests for your children</p>
+        </div>
+        <button
+          onClick={handleCreateRequest}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Request
+        </button>
+      </div>
+
+      {/* Requests List */}
+      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+        {requests.length === 0 ? (
+          <div className="p-12 text-center">
+            <Pill className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <p className="text-lg font-medium text-gray-900 mb-2">No medication requests</p>
+            <p className="text-gray-600 mb-4">You haven't submitted any medication requests yet.</p>
+            <button
+              onClick={handleCreateRequest}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create First Request
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Student & Medication
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Dosage & Frequency
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {requests.map((request) => (
+                  <tr key={request.requestId} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {request.student?.fullName || 'Unknown Student'}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {request.medicationName}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{request.dosage}</div>
+                      <div className="text-sm text-gray-500">{request.frequency}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(request.isConfirmed, request.confirmedAt)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(request.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleViewRequest(request)}
+                          className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </button>
+                        {!request.isConfirmed && (
+                          <>
+                            <button
+                              onClick={() => handleEditRequest(request)}
+                              className="text-green-600 hover:text-green-900 inline-flex items-center"
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteRequest(request.requestId)}
+                              className="text-red-600 hover:text-red-900 inline-flex items-center"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Medication Request Details</h2>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Student Information */}
+              <div>
+                <h3 className="font-semibold text-lg border-b pb-2 flex items-center">
+                  <User className="w-5 h-5 mr-2" />
+                  Student Information
+                </h3>
+                <div className="mt-3 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Student Name:</span>
+                    <span className="text-gray-900">{selectedRequest.student?.fullName || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Student ID:</span>
+                    <span className="text-gray-900">{selectedRequest.student?.studentId || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Medication Information */}
+              <div>
+                <h3 className="font-semibold text-lg border-b pb-2 flex items-center">
+                  <Pill className="w-5 h-5 mr-2" />
+                  Medication Information
+                </h3>
+                <div className="mt-3 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Medication Name:</span>
+                    <span className="text-gray-900">{selectedRequest.medicationName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Dosage:</span>
+                    <span className="text-gray-900">{selectedRequest.dosage}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Frequency:</span>
+                    <span className="text-gray-900">{selectedRequest.frequency}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Request Status */}
+              <div>
+                <h3 className="font-semibold text-lg border-b pb-2 flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Request Status
+                </h3>
+                <div className="mt-3 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Status:</span>
+                    <span>{getStatusBadge(selectedRequest.isConfirmed, selectedRequest.confirmedAt)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Created:</span>
+                    <span className="text-gray-900">{formatDate(selectedRequest.createdAt)}</span>
+                  </div>
+                  {selectedRequest.confirmedAt && (
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Confirmed:</span>
+                      <span className="text-gray-900">{formatDate(selectedRequest.confirmedAt)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              {!selectedRequest.isConfirmed && (
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    handleEditRequest(selectedRequest);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Request
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Medication Request Form */}
+      <MedicationRequestForm
+        isOpen={showForm}
+        onClose={() => {
+          setShowForm(false);
+          setEditingRequest(null);
+        }}
+        onRequestSubmitted={handleRequestSubmitted}
+        editingRequest={editingRequest}
+        isEditing={!!editingRequest}
+      />
+    </div>
+  );
+};
+
+export default MyMedicationRequests;
