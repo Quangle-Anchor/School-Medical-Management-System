@@ -11,19 +11,47 @@ const MyMedicationRequests = () => {
   const [editingRequest, setEditingRequest] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-
   useEffect(() => {
+    // Check if user is authenticated before fetching data
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    
+    if (!token) {
+      setError('Authentication required. Please login again.');
+      setLoading(false);
+      return;
+    }
+    
+    if (role !== 'Parent') {
+      setError('Access denied. Only parents can view medication requests.');
+      setLoading(false);
+      return;
+    }
+    
     fetchMyRequests();
   }, []);
-
   const fetchMyRequests = async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Check if user has token before making API call
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication required. Please login again.');
+        return;
+      }
+      
       const response = await medicationAPI.getMyMedicationRequests();
       setRequests(response);
     } catch (err) {
-      setError('Failed to load medication requests. Please try again.');
+      if (err.message.includes('401') || err.message.includes('Authentication')) {
+        setError('Session expired. Please login again.');
+      } else if (err.message.includes('403')) {
+        setError('Access denied. You do not have permission to view medication requests.');
+      } else {
+        setError('Failed to load medication requests. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -102,7 +130,6 @@ const MyMedicationRequests = () => {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="p-6">
@@ -111,12 +138,22 @@ const MyMedicationRequests = () => {
           <div className="flex-1">
             <p className="text-red-800 font-medium">Error Loading Requests</p>
             <p className="text-red-600 text-sm">{error}</p>
-            <button 
-              onClick={fetchMyRequests}
-              className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
-            >
-              Try Again
-            </button>
+            <div className="mt-3 flex space-x-2">
+              <button 
+                onClick={fetchMyRequests}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+              >
+                Try Again
+              </button>
+              {(error.includes('Authentication') || error.includes('Session expired')) && (
+                <button 
+                  onClick={() => window.location.href = '/login'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                >
+                  Login Again
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

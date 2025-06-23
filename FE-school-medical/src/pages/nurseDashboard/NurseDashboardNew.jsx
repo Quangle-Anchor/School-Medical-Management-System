@@ -115,11 +115,13 @@ const NurseDashboard = () => {
       case 'low': return 'text-red-600';
       default: return 'text-gray-600';
     }
-  };
-  const renderContent = () => {
+  };  const renderContent = () => {
     switch (activeView) {
       case 'patients':
         return <PatientsView />;
+      
+      case 'medication-requests':
+        return <NurseMedicationRequests />;
       
       case 'appointments':
         return (

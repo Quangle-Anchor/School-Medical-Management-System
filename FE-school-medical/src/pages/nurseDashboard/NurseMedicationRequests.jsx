@@ -9,15 +9,37 @@ const NurseMedicationRequests = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [confirming, setConfirming] = useState(null);
-
   useEffect(() => {
+    // Check if user is authenticated before fetching data
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    
+    if (!token) {
+      setError('Authentication required. Please login again.');
+      setLoading(false);
+      return;
+    }
+    
+    if (role !== 'Nurse') {
+      setError('Access denied. Only nurses can view medication requests.');
+      setLoading(false);
+      return;
+    }
+    
     fetchPendingRequests();
   }, []);
-
   const fetchPendingRequests = async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Check if user has token before making API call
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication required. Please login again.');
+        return;
+      }
+      
       const response = await medicationAPI.getPendingRequests();
       setRequests(response);
     } catch (err) {
@@ -105,7 +127,6 @@ const NurseMedicationRequests = () => {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="p-6">
@@ -114,12 +135,22 @@ const NurseMedicationRequests = () => {
           <div className="flex-1">
             <p className="text-red-800 font-medium">Error Loading Requests</p>
             <p className="text-red-600 text-sm">{error}</p>
-            <button 
-              onClick={fetchPendingRequests}
-              className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
-            >
-              Try Again
-            </button>
+            <div className="mt-3 flex space-x-2">
+              <button 
+                onClick={fetchPendingRequests}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+              >
+                Try Again
+              </button>
+              {(error.includes('Authentication') || error.includes('Session expired')) && (
+                <button 
+                  onClick={() => window.location.href = '/login'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                >
+                  Login Again
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

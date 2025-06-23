@@ -4,7 +4,7 @@ const medicationAPI = {
   // Get my medication requests (for parents)
   getMyMedicationRequests: async () => {
     try {
-      const response = await axiosInstance.get('/medications/my');
+      const response = await axiosInstance.get('/api/medications/my');
       return response.data;
     } catch (error) {
       throw error;
@@ -21,7 +21,7 @@ const medicationAPI = {
         formData.append('prescriptionFile', prescriptionFile);
       }
 
-      const response = await axiosInstance.post('/medications', formData, {
+      const response = await axiosInstance.post('/api/medications', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -42,7 +42,7 @@ const medicationAPI = {
         formData.append('prescriptionFile', prescriptionFile);
       }
 
-      const response = await axiosInstance.put(`/medications/${id}`, formData, {
+      const response = await axiosInstance.put(`/api/medications/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -56,7 +56,7 @@ const medicationAPI = {
   // Delete medication request
   deleteMedicationRequest: async (id) => {
     try {
-      const response = await axiosInstance.delete(`/medications/${id}`);
+      const response = await axiosInstance.delete(`/api/medications/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -66,7 +66,7 @@ const medicationAPI = {
   // Get medication history for a student
   getMedicationHistory: async (studentId) => {
     try {
-      const response = await axiosInstance.get(`/medications/student/${studentId}/history`);
+      const response = await axiosInstance.get(`/api/medications/student/${studentId}/history`);
       return response.data;
     } catch (error) {
       throw error;
@@ -76,7 +76,7 @@ const medicationAPI = {
   // Nurse: Get pending medication requests
   getPendingRequests: async () => {
     try {
-      const response = await axiosInstance.get('/medications/nurse/pending');
+      const response = await axiosInstance.get('/api/medications/nurse/pending');
       return response.data;
     } catch (error) {
       throw error;
@@ -86,7 +86,7 @@ const medicationAPI = {
   // Nurse: Confirm medication request
   confirmMedicationRequest: async (id) => {
     try {
-      const response = await axiosInstance.put(`/medications/nurse/confirm/${id}`);
+      const response = await axiosInstance.put(`/api/medications/nurse/confirm/${id}`);
       return response.data;
     } catch (error) {
       throw error;
