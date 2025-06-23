@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
+import PatientsView from './PatientsView';
+import NurseMedicationRequests from './NurseMedicationRequests';
 import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell, Warehouse } from 'lucide-react';
 
 const NurseDashboard = () => {
@@ -12,11 +14,11 @@ const NurseDashboard = () => {
 
   // Get current view from URL
   const getCurrentView = () => {
-    const path = location.pathname;
-    if (path.includes('/patients')) return 'patients';
+    const path = location.pathname;    if (path.includes('/patients')) return 'patients';
     if (path.includes('/appointments')) return 'appointments';
     if (path.includes('/medical-records')) return 'medical-records';
     if (path.includes('/health-checkups')) return 'health-checkups';
+    if (path.includes('/medication-requests')) return 'medication-requests';
     if (path.includes('/notifications')) return 'notifications';
     if (path.includes('/inventory')) return 'inventory';
     if (path.includes('/settings')) return 'settings';
@@ -114,40 +116,10 @@ const NurseDashboard = () => {
       default: return 'text-gray-600';
     }
   };
-
   const renderContent = () => {
     switch (activeView) {
       case 'patients':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Patients</h1>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Patient Management</h2>
-              <p className="text-gray-600 mb-4">View and manage patient information and care plans.</p>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Active Patients</h3>
-                    <p className="text-sm text-gray-600">24 patients under care today</p>
-                  </div>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    View All
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium">Recent Admissions</h4>
-                    <p className="text-sm text-gray-600">3 new patients admitted</p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium">Discharge Planning</h4>
-                    <p className="text-sm text-gray-600">5 patients ready for discharge</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <PatientsView />;
       
       case 'appointments':
         return (

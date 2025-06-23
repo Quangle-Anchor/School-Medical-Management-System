@@ -11,17 +11,26 @@ const LoginPage = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const handleLogin = async () => {
-    try {
-      const data = await authApi.login(email, password);
+    try {      const data = await authApi.login(email, password);
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role);
+      localStorage.setItem('email', data.email);
       
       // Store userId if available (needed for parent-child relationship)
       if (data.userId) {
         localStorage.setItem('userId', data.userId.toString());
       }
+        // Store fullname if available (for profile display)
+      if (data.fullName) {
+        localStorage.setItem('fullname', data.fullName);
+      }
       
-      message.success('Login successful!');// Redirect based on role
+      message.success('Login successful!');
+      
+      // Dispatch custom event to notify navbar of authentication change
+      window.dispatchEvent(new CustomEvent('authChange'));
+      
+      // Redirect based on role
       const roleDashboardMap = {
         Manager: '/managerDashboard',
         Admin: '/adminDashboard',

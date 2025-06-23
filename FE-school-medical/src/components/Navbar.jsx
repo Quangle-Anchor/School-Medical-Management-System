@@ -1,17 +1,13 @@
-
 import { useState, useEffect, Fragment } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Disclosure, Menu, Transition } from '@headlessui/react';
+import { Menu, Transition } from '@headlessui/react';
 import { 
-  Bars3Icon, 
-  XMarkIcon, 
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
   UserIcon,
-  HeartIcon
 } from '@heroicons/react/24/outline';
-import logo from '../assets/img/2.png'; // Adjust the path as necessary
+import logo from '../assets/img/2.png';
 
 const AuthNavbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,44 +21,60 @@ const AuthNavbar = () => {
     checkAuthStatus();
     
     // Listen for storage changes (login/logout in other tabs)
-    const handleStorageChange = () => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'token' || e.key === 'role' || e.key === 'email' || e.key === 'fullname') {
+        console.log('Storage changed, rechecking auth status'); // Debug log
+        checkAuthStatus();
+      }
+    };
+    
+    // Also listen for custom events from login/logout
+    const handleAuthChange = () => {
+      console.log('Auth change event detected'); // Debug log
       checkAuthStatus();
     };
     
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('authChange', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authChange', handleAuthChange);
+    };
   }, []);
+
   const checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem('token');
       const role = localStorage.getItem('role');
+      const email = localStorage.getItem('email');
       const userId = localStorage.getItem('userId');
+      const fullname = localStorage.getItem('fullname');
+      
+      console.log('Checking auth status:', { token: !!token, role, email, userId, fullname }); // Debug log
       
       if (token && role) {
-        // Validate token with API call (simulate for now)
-        const isValidToken = await validateToken(token);
+        // For now, skip token validation and trust localStorage
+        // TODO: Implement proper token validation with backend
         
-        if (isValidToken) {
-          // Create user object from stored data
-          const userData = {
-            id: userId || 1,
-            name: 'User', // You might want to store and retrieve actual user name
-            email: 'user@medcare.com', // You might want to store and retrieve actual email
-            role: role,
-            avatar: null
-          };
-          
-          setIsAuthenticated(true);
-          setUser(userData);
-        } else {
-          // Token invalid, clear storage
-          localStorage.removeItem('token');
-          localStorage.removeItem('role');
-          localStorage.removeItem('userId');
-          setIsAuthenticated(false);
-          setUser(null);
-        }
+        // Create user object from stored data
+        const userData = {
+          id: userId || 1,
+          name: fullname || (role === 'Parent' ? 'Parent User' : 
+                role === 'Admin' ? 'Admin User' :
+                role === 'Nurse' ? 'Nurse User' :
+                role === 'Manager' ? 'Manager User' :
+                role === 'Student' ? 'Student User' : 'User'),
+          email: email || `${role.toLowerCase()}@medcare.com`,
+          role: role,
+          avatar: null
+        };
+        
+        console.log('Setting authenticated user:', userData); // Debug log
+        setIsAuthenticated(true);
+        setUser(userData);
       } else {
+        console.log('No token or role found, setting unauthenticated'); // Debug log
         setIsAuthenticated(false);
         setUser(null);
       }
@@ -75,32 +87,26 @@ const AuthNavbar = () => {
     }
   };
 
-  // Simulate token validation (replace with actual API call)
-  const validateToken = async (token) => {
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // For demo purposes, consider token valid if it exists
-      // Replace with actual API validation
-      return token && token.length > 0;
-    } catch (error) {
-      console.error('Token validation failed:', error);
-      return false;
-    }
-  };
   const handleLogin = () => {
     // Navigate to login page instead of mock login
     navigate('/login');
   };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('userId');
+    localStorage.removeItem('email');
+    localStorage.removeItem('fullname');
     setIsAuthenticated(false);
     setUser(null);
+    
+    // Dispatch custom event to notify other components of logout
+    window.dispatchEvent(new CustomEvent('authChange'));
+    
     navigate('/');
   };
+
   // Role-based navigation
   const getRoleBasedNavigation = (role) => {
     const baseNavigation = [
@@ -114,37 +120,28 @@ const AuthNavbar = () => {
       Manager: [
         { name: 'Manager Dashboard', href: '/managerDashboard' },
         ...baseNavigation,
-        { name: 'Reports', href: '/reports' },
-        { name: 'Staff Management', href: '/staff' }
       ],
       Admin: [
         { name: 'Admin Dashboard', href: '/adminDashboard' },
         ...baseNavigation,
-        { name: 'System Settings', href: '/settings' },
-        { name: 'User Management', href: '/users' }
       ],
       Nurse: [
         { name: 'Nurse Dashboard', href: '/nurseDashboard' },
         ...baseNavigation,
-        { name: 'Patient Care', href: '/patients' },
-        { name: 'Schedule', href: '/schedule' }
       ],
       Parent: [
         { name: 'Parent Dashboard', href: '/parentDashboard' },
         ...baseNavigation,
-        { name: 'Child Health', href: '/child-health' },
-        { name: 'Appointments', href: '/appointments' }
       ],
       Student: [
         { name: 'Student Dashboard', href: '/studentDashboard' },
         ...baseNavigation,
-        { name: 'Health Records', href: '/health-records' },
-        { name: 'Wellness', href: '/wellness' }
       ]
     };
 
     return roleSpecificNavigation[role] || baseNavigation;
   };
+
   const navigation = isAuthenticated && user 
     ? getRoleBasedNavigation(user.role)
     : [
@@ -163,260 +160,144 @@ const AuthNavbar = () => {
 
   const classNames = (...classes) => {
     return classes.filter(Boolean).join(' ');
-  };
-
-  if (loading) {
-    return (
-      <nav className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 shadow-lg border-b border-blue-500/20">
+  };  if (loading) {
+    return (      <nav className="backdrop-blur-lg bg-white/10 border-b border-white/20 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="animate-pulse flex space-x-4">
-              <div className="h-10 w-10 bg-white/20 rounded-lg"></div>
-              <div className="h-6 w-24 bg-white/20 rounded"></div>
+              <div className="h-10 w-10 bg-white/20 rounded-lg backdrop-blur-sm"></div>
+              <div className="h-6 w-24 bg-white/10 rounded backdrop-blur-sm"></div>
             </div>
           </div>
         </div>
       </nav>
-    );
-  }
-
-  return (
-    <Disclosure as="nav" className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 shadow-lg border-b border-blue-500/20">
-      {({ open }) => (
-        <>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">              <div className="flex items-center">
-                <Link to="/" className="flex items-center space-x-3 text-white hover:text-blue-100 transition-colors duration-200">
-                  <div className="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg">
-                    <img 
-                      alt="SVXS Logo" 
-                      src={logo} 
-                      className="h-8 w-8 rounded-full object-cover" 
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                      SVXS
-                    </span>
-                    <span className="text-xs text-blue-200 font-medium">
-                      School Medical
-                    </span>
-                  </div>
-                </Link>
-              </div>
-
-              {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center space-x-1">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={classNames(
-                      isActive(item.href)
-                        ? 'bg-white/20 text-white shadow-lg backdrop-blur-sm border border-white/30'
-                        : 'text-blue-100 hover:bg-white/10 hover:text-white',
-                      'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200'
-                    )}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-
-              {/* User Menu / Auth Buttons */}
-              <div className="hidden md:flex items-center space-x-4">
-                {isAuthenticated ? (
-                  <Menu as="div" className="relative">
-                    <div>
-                      <Menu.Button className="flex items-center space-x-2 text-white hover:text-blue-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/20 rounded-lg p-2">
-                        {user?.avatar ? (
-                          <img
-                            className="h-8 w-8 rounded-full object-cover border-2 border-white/20"
-                            src={user.avatar}
-                            alt={user.name}
-                          />
-                        ) : (
-                          <UserCircleIcon className="h-8 w-8" />
-                        )}
-                        <span className="text-sm font-medium">{user?.name}</span>
-                        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">{user?.role}</span>
-                      </Menu.Button>
-                    </div>
-                    <Transition
-                      as={Fragment}
-                      enter="transition ease-out duration-100"
-                      enterFrom="transform opacity-0 scale-95"
-                      enterTo="transform opacity-100 scale-100"
-                      leave="transition ease-in duration-75"
-                      leaveFrom="transform opacity-100 scale-100"
-                      leaveTo="transform opacity-0 scale-95"
-                    >
-                      <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right bg-white rounded-lg shadow-xl ring-1 ring-black/5 focus:outline-none">
-                        <div className="p-2">
-                          <div className="px-3 py-2 border-b border-gray-100">
-                            <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                            <p className="text-sm text-gray-500">{user?.email}</p>
-                          </div>
-                          <Menu.Item>
-                            {({ active }) => (
-                              <Link
-                                to="/profile"
-                                className={classNames(
-                                  active ? 'bg-blue-50 text-blue-600' : 'text-gray-700',
-                                  'group flex items-center px-3 py-2 text-sm rounded-md mt-2'
-                                )}
-                              >
-                                <UserIcon className="mr-3 h-4 w-4" />
-                                Profile
-                              </Link>
-                            )}
-                          </Menu.Item>
-                          <Menu.Item>
-                            {({ active }) => (
-                              <Link
-                                to="/settings"
-                                className={classNames(
-                                  active ? 'bg-blue-50 text-blue-600' : 'text-gray-700',
-                                  'group flex items-center px-3 py-2 text-sm rounded-md'
-                                )}
-                              >
-                                <Cog6ToothIcon className="mr-3 h-4 w-4" />
-                                Settings
-                              </Link>
-                            )}
-                          </Menu.Item>
-                          <Menu.Item>
-                            {({ active }) => (
-                              <button
-                                onClick={handleLogout}
-                                className={classNames(
-                                  active ? 'bg-red-50 text-red-600' : 'text-gray-700',
-                                  'group flex items-center w-full px-3 py-2 text-sm rounded-md'
-                                )}
-                              >
-                                <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4" />
-                                Sign out
-                              </button>
-                            )}
-                          </Menu.Item>
-                        </div>
-                      </Menu.Items>
-                    </Transition>
-                  </Menu>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={handleLogin}
-                      className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-white/20 backdrop-blur-sm"
-                    >
-                      Sign In
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile menu button */}
-              <div className="md:hidden flex items-center">
-                <Disclosure.Button className="text-white hover:bg-white/10 hover:text-white p-2 rounded-lg transition-colors duration-200">
-                  {open ? (
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  ) : (
-                    <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-                  )}
-                </Disclosure.Button>
-              </div>
+    );  }    return (
+    <nav className="backdrop-blur-lg bg-white/10 border-b border-white/20 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+            <div className="flex items-center">              <Link to="/" className="flex items-center space-x-3 text-white hover:text-white/80 transition-colors duration-200">
+                <div className="inline-block p-2 bg-white/20 rounded-full backdrop-blur-sm shadow-lg">
+                  <img  
+                    alt="SVXS Logo" 
+                    src={logo} 
+                    className="h-8 w-8 rounded-full object-cover shadow-lg" 
+                  />
+                </div>                <div className="flex flex-col">
+                  <span className="text-xl font-bold text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text drop-shadow-2xl">
+                    SVXS
+                  </span>
+                  <span className="text-xs text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text font-medium drop-shadow-lg">
+                    School Medical
+                  </span>
+                </div>
+              </Link>
             </div>
+
+          {/* Navigation */}
+          <div className="flex items-center space-x-1">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}                className={classNames(
+                  isActive(item.href)
+                    ? 'bg-white/15 text-blue-500 font-semibold shadow-inner backdrop-blur-sm border border-white/30'
+                    : 'text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text hover:bg-white/10 hover:text-transparent hover:from-blue-500 hover:to-purple-600 hover:backdrop-blur-sm hover:border hover:border-white/20',
+                  'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:shadow-inner'
+                )}
+              >
+                {item.name}
+              </Link>
+            ))}
           </div>
 
-          {/* Mobile Navigation */}
-          <Disclosure.Panel className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-blue-800/50 backdrop-blur-sm">
-              {navigation.map((item) => (
-                <Disclosure.Button
-                  key={item.name}
-                  as={Link}
-                  to={item.href}
-                  className={classNames(
-                    isActive(item.href)
-                      ? 'bg-white/20 text-white border-white/30'
-                      : 'text-blue-100 hover:bg-white/10 hover:text-white border-transparent',
-                    'block px-3 py-2 rounded-md text-base font-medium border transition-all duration-200'
-                  )}
-                >
-                  {item.name}
-                </Disclosure.Button>
-              ))}
-              
-              {/* Mobile Auth Section */}
-              <div className="pt-4 pb-3 border-t border-white/20">
-                {isAuthenticated ? (
-                  <div className="space-y-1">
-                    <div className="px-3 py-2">
-                      <div className="flex items-center space-x-3">
-                        {user?.avatar ? (
-                          <img
-                            className="h-10 w-10 rounded-full object-cover border-2 border-white/20"
-                            src={user.avatar}
-                            alt={user.name}
-                          />
-                        ) : (
-                          <UserCircleIcon className="h-10 w-10 text-white" />
+          {/* User Menu / Auth Buttons */}
+          <div className="flex items-center space-x-4">
+            {isAuthenticated ? (
+              <Menu as="div" className="relative">
+                <div>                  <Menu.Button className="flex items-center space-x-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50 rounded-xl p-2 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15">
+                    {user?.avatar ? (
+                      <img
+                        className="h-8 w-8 rounded-full object-cover border border-white/30"
+                        src={user.avatar}
+                        alt={user.name}
+                      />
+                    ) : (
+                      <UserCircleIcon className="h-8 w-8 text-blue-400" />
+                    )}
+                    <span className="text-sm font-medium text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">{user?.name}</span>
+                    <span className="text-xs bg-white/10 px-2 py-1 rounded-full backdrop-blur-sm border border-white/20 text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">{user?.role}</span>
+                  </Menu.Button>
+                </div>
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right backdrop-blur-lg bg-white/10 rounded-3xl shadow-2xl focus:outline-none border border-white/20">
+                    <div className="p-2">                      <div className="px-3 py-2 border-b border-white/20">
+                        <p className="text-sm font-medium text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">{user?.name}</p>
+                        <p className="text-sm text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">{user?.email}</p>
+                      </div><Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            to="/profile"                            className={classNames(
+                              active ? 'bg-white/15 backdrop-blur-sm' : 'hover:bg-white/5',
+                              'group flex items-center px-3 py-2 text-sm rounded-xl mt-2 transition-all duration-300'
+                            )}                          >
+                            <UserIcon className="mr-3 h-4 w-4 text-blue-400" />
+                            <span className="text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">Profile</span>
+                          </Link>
                         )}
-                        <div>
-                          <div className="text-base font-medium text-white">{user?.name}</div>
-                          <div className="text-sm text-blue-100">{user?.email}</div>
-                          <div className="text-xs bg-white/20 px-2 py-1 rounded-full inline-block mt-1 text-white">
-                            {user?.role}
-                          </div>
-                        </div>
-                      </div>
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            to="/settings"                            className={classNames(
+                              active ? 'bg-white/15 backdrop-blur-sm' : 'hover:bg-white/5',
+                              'group flex items-center px-3 py-2 text-sm rounded-xl transition-all duration-300'
+                            )}                          >
+                            <Cog6ToothIcon className="mr-3 h-4 w-4 text-purple-400" />
+                            <span className="text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">Settings</span>
+                          </Link>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={handleLogout}                            className={classNames(
+                              active ? 'bg-red-500/20 backdrop-blur-sm' : 'hover:bg-red-500/10',
+                              'group flex items-center w-full px-3 py-2 text-sm rounded-xl transition-all duration-300'
+                            )}                          >
+                            <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4 text-red-400" />
+                            <span className="text-transparent bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text">Sign out</span>
+                          </button>
+                        )}
+                      </Menu.Item>
                     </div>
-                    <Disclosure.Button
-                      as={Link}
-                      to="/profile"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-blue-100 hover:text-white hover:bg-white/10 transition-colors duration-200"
-                    >
-                      Profile
-                    </Disclosure.Button>
-                    <Disclosure.Button
-                      as={Link}
-                      to="/settings"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-blue-100 hover:text-white hover:bg-white/10 transition-colors duration-200"
-                    >
-                      Settings
-                    </Disclosure.Button>
-                    <Disclosure.Button
-                      as="button"
-                      onClick={handleLogout}
-                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-blue-100 hover:text-white hover:bg-white/10 transition-colors duration-200"
-                    >
-                      Sign out
-                    </Disclosure.Button>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <Disclosure.Button
-                      as="button"
-                      onClick={handleLogin}
-                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-blue-100 hover:text-white hover:bg-white/10 transition-colors duration-200"
-                    >
-                      Sign In
-                    </Disclosure.Button>
-                    <Disclosure.Button
-                      as="button"
-                      onClick={handleLogin}
-                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium bg-white text-blue-700 hover:bg-blue-50 transition-colors duration-200"
-                    >
-                      Sign Up
-                    </Disclosure.Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Disclosure.Panel>
-        </>
-      )}
-    </Disclosure>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
+            ) : (              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleLogin}
+                  className="bg-white/10 hover:bg-white/15 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 border border-white/20 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                >
+                  <span className="text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">Sign In</span>
+                </button>                <Link
+                  to="/signup"
+                  className="bg-white/10 hover:bg-white/15 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 border border-white/20 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                >
+                  <span className="text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">Sign Up</span>
+                </Link>
+              </div>)}
+          </div>
+        </div>
+      </div>
+    </nav>
   );
 };
+
 export default AuthNavbar;

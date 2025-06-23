@@ -53,9 +53,7 @@ const MyChildView = () => {
               notes: '',
               lastCheckup: 'Not available'
             };
-          }
-        } catch (error) {
-          console.error(`Error fetching health info for student ${student.studentId}:`, error);
+          }        } catch (error) {
           // Set default values if there's an error
           healthData[student.studentId] = {
             bloodType: student.bloodType || 'Not specified',
@@ -69,8 +67,6 @@ const MyChildView = () => {
         }
       }      setHealthInfo(healthData);
     } catch (error) {
-      console.error('Error fetching students:', error);
-      
       if (error.message.includes('Authentication required')) {
         setError('Session expired. Please login again.');
       } else if (error.message.includes('Access forbidden')) {
@@ -130,11 +126,8 @@ const MyChildView = () => {
         delete updated[student.studentId];
         return updated;
       });
-      
-      setDeleteConfirm(null);
+        setDeleteConfirm(null);
     } catch (error) {
-      console.error('Error deleting student:', error);
-      
       if (error.message.includes('Authentication required')) {
         setError('Session expired. Please login again.');
       } else if (error.message.includes('Access forbidden')) {
