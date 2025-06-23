@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class HealthIncidentService {
@@ -56,9 +55,13 @@ public class HealthIncidentService {
 
         public void delete(Long id) {
             healthIncidentRepository.deleteById(id);
+        }        public List<HealthIncident> getByStudent(Students student) {
+            return healthIncidentRepository.findByStudent(student);
         }
 
-        public List<HealthIncident> getByStudent(Students student) {
+        public List<HealthIncident> getByStudentId(Long studentId) {
+            Students student = studentRepository.findById(studentId)
+                    .orElseThrow(() -> new RuntimeException("Student not found"));
             return healthIncidentRepository.findByStudent(student);
         }
     }
