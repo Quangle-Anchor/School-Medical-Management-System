@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Card } from "antd";
 import Navbar from "../../components/Navbar";
+import BlogExperience from "./BlogExperience";
 
 const SERVICES = [
   {
@@ -46,7 +47,6 @@ const ARTICLES = [
 const HomePage = () => {
   return (
     <div className="bg-gray-100 font-sans">
-
       {/* Hero Section */}
       <section className="bg-blue-100 flex h-[400px]">
         <div className="w-1/2 flex flex-col justify-center px-20">
@@ -112,6 +112,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      <BlogExperience />
     </div>
   );
 };
