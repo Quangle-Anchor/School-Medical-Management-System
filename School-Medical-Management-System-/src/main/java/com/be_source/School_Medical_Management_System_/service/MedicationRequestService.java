@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +29,7 @@ public class MedicationRequestService {
     private MedicationRequestRepository medicationRequestRepository;
 
     @Autowired
-    private JwtUtil jwtUtil;;
+    private JwtUtil jwtUtil;
 
     @Autowired
     private StudentRepository studentRepository;
@@ -75,12 +72,14 @@ public class MedicationRequestService {
         request.setIsConfirmed(false);
         request.setConfirmedAt(null);
 
+        // Gán số lượng thuốc nếu có
+        request.setTotalQuantity(request.getTotalQuantity());
+        request.setMorningQuantity(request.getMorningQuantity());
+        request.setNoonQuantity(request.getNoonQuantity());
+        request.setEveningQuantity(request.getEveningQuantity());
+
         medicationRequestRepository.save(request);
     }
-
-
-
-
 
     public MedicationRequest update(Long id, MedicationRequest updatedRequest, MultipartFile prescriptionFile, User parent) {
         MedicationRequest existing = medicationRequestRepository.findByRequestIdAndRequestedBy(id, parent)
@@ -94,6 +93,12 @@ public class MedicationRequestService {
         existing.setMedicationName(updatedRequest.getMedicationName());
         existing.setDosage(updatedRequest.getDosage());
         existing.setFrequency(updatedRequest.getFrequency());
+
+        // Gán số lượng thuốc nếu có
+        existing.setTotalQuantity(updatedRequest.getTotalQuantity());
+        existing.setMorningQuantity(updatedRequest.getMorningQuantity());
+        existing.setNoonQuantity(updatedRequest.getNoonQuantity());
+        existing.setEveningQuantity(updatedRequest.getEveningQuantity());
 
         // Upload lại đơn thuốc nếu có file mới
         if (prescriptionFile != null && !prescriptionFile.isEmpty()) {
@@ -118,7 +123,6 @@ public class MedicationRequestService {
         return medicationRequestRepository.save(existing);
     }
 
-
     public void delete(Long id, User parent) {
         MedicationRequest existing = medicationRequestRepository.findByRequestIdAndRequestedBy(id, parent)
                 .orElseThrow(() -> new RuntimeException("Not found or not authorized"));
@@ -138,6 +142,7 @@ public class MedicationRequestService {
 
         return medicationRequestRepository.findByStudentOrderByCreatedAtDesc(student);
     }
+
     public List<MedicationRequest> getUnconfirmedRequests() {
         return medicationRequestRepository.findByIsConfirmedFalse();
     }
@@ -150,6 +155,4 @@ public class MedicationRequestService {
         request.setConfirmedAt(LocalDateTime.now());
         medicationRequestRepository.save(request);
     }
-
-
 }
