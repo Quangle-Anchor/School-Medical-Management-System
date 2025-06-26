@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -35,7 +34,7 @@ public class MedicationRequestService {
     private StudentRepository studentRepository;
 
     @Autowired
-    private UserService userService;
+    private UserUtilService userServiceImpl;
 
     @Autowired
     private UserRepository userRepository;
@@ -45,7 +44,7 @@ public class MedicationRequestService {
     }
 
     public void create(MedicationRequest request, MultipartFile prescriptionFile, String token) {
-        User parent = userService.findByToken(token);
+        User parent = userServiceImpl.getCurrentUser(token);
 
         List<Students> children = studentRepository.findByParent(parent);
         if (children.stream().noneMatch(s -> s.getStudentId().equals(request.getStudent().getStudentId()))) {

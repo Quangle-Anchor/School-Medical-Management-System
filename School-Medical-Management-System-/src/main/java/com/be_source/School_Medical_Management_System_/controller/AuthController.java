@@ -1,13 +1,11 @@
 package com.be_source.School_Medical_Management_System_.controller;
 
 import com.be_source.School_Medical_Management_System_.model.User;
-import com.be_source.School_Medical_Management_System_.repository.UserRepository;
 import com.be_source.School_Medical_Management_System_.request.LoginRequest;
 import com.be_source.School_Medical_Management_System_.request.SignupRequest;
+import com.be_source.School_Medical_Management_System_.response.AuthResponse;
 import com.be_source.School_Medical_Management_System_.security.JwtUtil;
 import com.be_source.School_Medical_Management_System_.service.AuthService;
-import com.be_source.School_Medical_Management_System_.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,71 +17,42 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController  {
+@CrossOrigin(origins = "http://localhost:5173")
+public class AuthController {
 
     private final JwtUtil jwtUtil;
-    private final AuthService authService;
-    private final UserService userService;
+    private final AuthService authService; // dùng interface
+    private final UserDetailsService userDetailsService;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    public AuthController(JwtUtil jwtUtil, AuthService authService, UserService userService) {
+    public AuthController(JwtUtil jwtUtil, AuthService authService, UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.authService = authService;
-        this.userService = userService;
+        this.userDetailsService = userDetailsService;
     }
 
-    // API Login
+    // ✅ Login sử dụng Optional<User> an toàn
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         Optional<User> userOptional = authService.login(request);
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-
-            UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-                    user.getEmail(),
-                    user.getPasswordHash(),
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName().toUpperCase()))
-            );
-
-            String token = jwtUtil.generateToken(userDetails, user.getRole().getRoleName());
-
-            return ResponseEntity.ok(Map.of(
-                    "token", token,
-                    "role", user.getRole().getRoleName(),
-                    "email", user.getEmail()
-
-            ));
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-    }
-
-
-    // API Validate Token
-    @GetMapping("/validate-token")
-    public ResponseEntity<Void> validateToken(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.badRequest().build();
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));
         }
 
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractUsername(token);
+        User user = userOptional.get();
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPasswordHash(),
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName().toUpperCase()))
+        );
 
-        if (jwtUtil.isTokenValid(token, userDetails)) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        String token = jwtUtil.generateToken(userDetails, user.getRole().getRoleName());
+        AuthResponse response = new AuthResponse(token, user.getRole().getRoleName(), user.getEmail());
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/signup")
@@ -95,9 +64,20 @@ public class AuthController  {
                     "userId", createdUser.getUserId()
             ));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "error", e.getMessage()
-            ));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/validate-token")
+    public ResponseEntity<Void> validateToken(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) return ResponseEntity.badRequest().build();
+
+        String token = authHeader.substring(7);
+        String email = jwtUtil.extractUsername(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+        return jwtUtil.isTokenValid(token, userDetails)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }

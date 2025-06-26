@@ -1,89 +1,65 @@
 package com.be_source.School_Medical_Management_System_.controller;
 
-import com.be_source.School_Medical_Management_System_.model.Students;
-import com.be_source.School_Medical_Management_System_.model.User;
-import com.be_source.School_Medical_Management_System_.repository.UserRepository;
-import com.be_source.School_Medical_Management_System_.security.JwtUtil;
+import com.be_source.School_Medical_Management_System_.response.StudentResponse;
 import com.be_source.School_Medical_Management_System_.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Optional;
-@CrossOrigin(origins = "http://localhost:5173")
+
 @RestController
 @RequestMapping("/api/students")
-public class StudentController {    @Autowired
+@CrossOrigin(origins = "http://localhost:5173")
+public class StudentController {
+
+    @Autowired
     private StudentService studentService;
 
-    // Lấy danh sách tất cả học sinh
     @GetMapping
-    public List<Students> getAllStudents() {
-        return studentService.getAllStudents();
-    }
+    public ResponseEntity<Page<StudentResponse>> getAllStudents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "studentId,asc") String[] sort) {
 
-    // View Students theo ParentID
-    @GetMapping("/my")
-    public ResponseEntity<List<Students>> getMyStudents(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractUsername(token);
-        User currentUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        List<Students> myStudents = studentService.getStudentsByParent(currentUser);
-        return ResponseEntity.ok(myStudents);
-    }
-
-
-    // Lấy thông tin 1 học sinh theo ID
-    @GetMapping("/{id}")
-    public Optional<Students> getStudentById(@PathVariable Long id) {
-        return studentService.getStudentById(id);
-    }
-
-    // Thêm mới học sinh
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-    @PostMapping
-    public ResponseEntity<Students> createStudent(
-            @RequestBody Students student,
-            @RequestHeader("Authorization") String authHeader) {
-
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractUsername(token);
-
-        User currentUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        student.setParent(currentUser);
-
-        Students savedStudent = studentService.saveStudent(student);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedStudent);
-    }
-
-    // Cập nhật thông tin học sinh
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateStudent(@PathVariable Long id, @RequestBody Students updatedStudent) {
-        Optional<Students> existingOptional = studentService.getStudentById(id);
-
-        if (existingOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        Sort sortObj = Sort.by(sort[0]).ascending();
+        if (sort.length > 1 && sort[1].equalsIgnoreCase("desc")) {
+            sortObj = sortObj.descending();
         }
-        Students existingStudent = existingOptional.get();
-        // Giữ nguyên parent
-        updatedStudent.setStudentId(id);
-        updatedStudent.setParent(existingStudent.getParent());
-        updatedStudent.setHealthInfoList(existingStudent.getHealthInfoList());
-        Students saved = studentService.saveStudent(updatedStudent);
-        return ResponseEntity.ok(saved);
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+        return ResponseEntity.ok(studentService.getAllStudents(pageable));
     }
-    // Xóa học sinh
+
+    @GetMapping("/my")
+    public ResponseEntity<List<StudentResponse>> getMyStudents(
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(studentService.getStudentsByCurrentParent(authHeader));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<StudentResponse> getStudentById(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<StudentResponse> createStudent(
+            @RequestBody StudentResponse student,
+            @RequestHeader("Authorization") String authHeader) {
+        StudentResponse created = studentService.createStudent(student, authHeader);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<StudentResponse> updateStudent(
+            @PathVariable Long id,
+            @RequestBody StudentResponse student) {
+        return ResponseEntity.ok(studentService.updateStudent(id, student));
+    }
+
     @DeleteMapping("/{id}")
-    public void deleteStudent(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
         studentService.deleteStudent(id);
+        return ResponseEntity.noContent().build();
     }
 }
