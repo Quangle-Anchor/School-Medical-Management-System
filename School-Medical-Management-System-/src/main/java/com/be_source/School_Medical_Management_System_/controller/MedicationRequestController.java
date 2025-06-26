@@ -7,9 +7,7 @@ import com.be_source.School_Medical_Management_System_.security.JwtUtil;
 import com.be_source.School_Medical_Management_System_.service.MedicationRequestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,7 +27,6 @@ public class MedicationRequestController {
     @Autowired
     private UserRepository userRepository;
 
-    // Helper method: lấy User đang đăng nhập từ token
     private User extractUser(String authHeader) {
         String token = authHeader.substring(7);
         String email = jwtUtil.extractUsername(token);
@@ -37,14 +34,12 @@ public class MedicationRequestController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // GET all medication requests của phụ huynh hiện tại
     @GetMapping("/my")
     public ResponseEntity<List<MedicationRequest>> getMyMedicationRequests(@RequestHeader("Authorization") String authHeader) {
         User parent = extractUser(authHeader);
         return ResponseEntity.ok(medicationRequestService.getRequestsByParent(parent));
     }
 
-    // POST tạo yêu cầu thuốc mới
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createMedicationRequest(
             @RequestPart("medicationRequest") String medicationRequestJson,
@@ -62,8 +57,6 @@ public class MedicationRequestController {
         }
     }
 
-
-    // PUT cập nhật yêu cầu thuốc
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateMedicationRequest(
             @PathVariable Long id,
@@ -83,8 +76,6 @@ public class MedicationRequestController {
         }
     }
 
-
-    // DELETE xoá yêu cầu thuốc
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id,
                                     @RequestHeader("Authorization") String authHeader) {
@@ -103,14 +94,12 @@ public class MedicationRequestController {
         return ResponseEntity.ok(history);
     }
 
-    // Lấy danh sách đơn thuốc chưa được xác nhận
     @GetMapping("/nurse/pending")
     public ResponseEntity<List<MedicationRequest>> getPendingMedicationRequests(
             @RequestHeader("Authorization") String authHeader) {
         return ResponseEntity.ok(medicationRequestService.getUnconfirmedRequests());
     }
 
-    // Xác nhận đơn thuốc
     @PutMapping("/nurse/confirm/{id}")
     public ResponseEntity<?> confirmMedicationRequest(
             @PathVariable Long id,
@@ -118,6 +107,4 @@ public class MedicationRequestController {
         medicationRequestService.confirmRequest(id);
         return ResponseEntity.ok("Medication request confirmed");
     }
-
 }
-

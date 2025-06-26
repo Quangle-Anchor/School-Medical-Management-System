@@ -29,10 +29,7 @@ public class Medicine {
 
     private String sideEffects;
 
-    private String usageInstructions;
-
     private String storageInstructions;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 }
-

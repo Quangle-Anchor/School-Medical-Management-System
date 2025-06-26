@@ -38,6 +38,18 @@ public class MedicationRequest {
     @JoinColumn(name = "inventory_id")
     private Inventory inventory;
 
+    @Column(name = "total_quantity")
+    private Integer totalQuantity;
+
+    @Column(name = "morning_quantity")
+    private Integer morningQuantity;
+
+    @Column(name = "noon_quantity")
+    private Integer noonQuantity;
+
+    @Column(name = "evening_quantity")
+    private Integer eveningQuantity;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "is_confirmed")
@@ -45,6 +57,4 @@ public class MedicationRequest {
 
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
-
 }
-

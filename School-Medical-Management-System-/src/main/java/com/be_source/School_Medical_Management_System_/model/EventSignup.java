@@ -1,32 +1,30 @@
 package com.be_source.School_Medical_Management_System_.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "checkup_signups")
+@Table(name = "event_signups")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CheckupSignup {
+public class EventSignup {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long signupId;
 
     @ManyToOne
-    @JoinColumn(name = "checkup_id")
-    private PeriodicCheckup checkup;
+    @JoinColumn(name = "event_id", nullable = false)
+    private HealthEvent event;
 
     @ManyToOne
-    @JoinColumn(name = "student_id")
+    @JoinColumn(name = "student_id", nullable = false)
     private Students student;
 
     private LocalDateTime signupDate = LocalDateTime.now();
-}
 
+    private String status = "pending"; // Giá trị mặc định là "pending", có thể chuyển sang "approved", "rejected"
+}
