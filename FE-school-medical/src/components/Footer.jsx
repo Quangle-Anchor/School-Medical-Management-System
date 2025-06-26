@@ -12,9 +12,9 @@ import {
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white py-8">
+    <footer className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white py-3">
       <div className="container mx-auto px-4 max-w-[1440px]">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-3">
           {/* Contact Us Section */}
           <div className="mx-auto max-w-xs">
             <h4 className="text-lg font-semibold mb-4 flex items-center justify-start gap-2">
@@ -91,7 +91,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Copyright */}
-        <div className="border-t border-blue-400 pt-6">
+        <div className="border-t border-blue-400 pt-2">
           <p className="text-center text-sm opacity-90 select-none">
             © 2025 School Health Services. All rights reserved.
           </p>
