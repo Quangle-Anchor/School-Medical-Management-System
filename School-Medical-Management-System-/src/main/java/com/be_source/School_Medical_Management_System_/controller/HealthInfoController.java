@@ -1,12 +1,13 @@
 package com.be_source.School_Medical_Management_System_.controller;
 
-import com.be_source.School_Medical_Management_System_.model.Health_Info;
+import com.be_source.School_Medical_Management_System_.response.HealthInfoResponse;
 import com.be_source.School_Medical_Management_System_.service.HealthInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/health-info")
@@ -16,31 +17,33 @@ public class HealthInfoController {
     private HealthInfoService healthInfoService;
 
     @GetMapping
-    public List<Health_Info> getAllHealthInfo() {
-        return healthInfoService.getAllHealthInfo();
-    }    @GetMapping("/{id}")
-    public Optional<Health_Info> getHealthInfoById(@PathVariable Long id) {
-        return healthInfoService.getHealthInfoById(id);
+    public ResponseEntity<List<HealthInfoResponse>> getAll() {
+        return ResponseEntity.ok(healthInfoService.getAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<HealthInfoResponse> getHealthInfoById(@PathVariable Long id) {
+        return ResponseEntity.ok(healthInfoService.getById(id));
     }
 
     @GetMapping("/student/{studentId}")
-    public List<Health_Info> getHealthInfoByStudentId(@PathVariable Long studentId) {
-        return healthInfoService.getHealthInfoByStudentId(studentId);
+    public ResponseEntity<List<HealthInfoResponse>> getHealthInfoByStudentId(@PathVariable Long studentId) {
+        return ResponseEntity.ok(healthInfoService.getByStudentId(studentId));
     }
 
     @PostMapping
-    public Health_Info createHealthInfo(@RequestBody Health_Info healthInfo) {
-        return healthInfoService.saveHealthInfo(healthInfo);
+    public ResponseEntity<HealthInfoResponse> createHealthInfo(@RequestBody HealthInfoResponse dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(healthInfoService.save(dto));
     }
 
     @PutMapping("/{id}")
-    public Health_Info updateHealthInfo(@PathVariable Long id, @RequestBody Health_Info healthInfo) {
-        healthInfo.setHealthInfoId(id);
-        return healthInfoService.saveHealthInfo(healthInfo);
+    public ResponseEntity<HealthInfoResponse> updateHealthInfo(@PathVariable Long id, @RequestBody HealthInfoResponse dto) {
+        return ResponseEntity.ok(healthInfoService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public void deleteHealthInfo(@PathVariable Long id) {
-        healthInfoService.deleteHealthInfo(id);
+    public ResponseEntity<Void> deleteHealthInfo(@PathVariable Long id) {
+        healthInfoService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
