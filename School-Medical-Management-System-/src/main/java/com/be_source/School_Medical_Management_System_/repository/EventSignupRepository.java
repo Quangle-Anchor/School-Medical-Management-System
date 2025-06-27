@@ -11,5 +11,6 @@ import java.util.Optional;
 public interface EventSignupRepository extends JpaRepository<EventSignup, Long> {
     List<EventSignup> findByStudent(Students student);
     List<EventSignup> findByEvent(HealthEvent event);
+    List<EventSignup> findByStudentIn(List<Students> students);
     Optional<EventSignup> findByEventAndStudent(HealthEvent event, Students student);
 }

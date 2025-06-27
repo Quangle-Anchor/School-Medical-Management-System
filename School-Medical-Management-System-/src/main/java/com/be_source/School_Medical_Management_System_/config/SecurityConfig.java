@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -46,6 +47,21 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
+                        // PHÂN QUYỀN RIÊNG CHO health-events:
+                        // Cho phép tất cả role GET (xem)
+                        .requestMatchers(HttpMethod.GET, "/api/health-events/**").hasAnyRole("ADMIN", "PRINCIPAL", "PARENT", "NURSE")
+                        // Chỉ cho Principal và Nurse thêm, sửa, xoá
+                        .requestMatchers(HttpMethod.POST, "/api/health-events/**").hasAnyRole("PRINCIPAL")
+                        .requestMatchers(HttpMethod.PUT, "/api/health-events/**").hasAnyRole("PRINCIPAL")
+                        .requestMatchers(HttpMethod.DELETE, "/api/health-events/**").hasAnyRole("PRINCIPAL")
+
+                        //PHÂN QUYỀN CHO EventSignup
+                        .requestMatchers(HttpMethod.POST, "/api/event-signups/**").hasRole("PARENT")
+                        .requestMatchers(HttpMethod.GET, "/api/event-signups/my").hasRole("PARENT")
+                        .requestMatchers(HttpMethod.GET, "/api/event-signups/event/**").hasAnyRole("NURSE", "PRINCIPAL")
+                        .requestMatchers(HttpMethod.PUT, "/api/event-signups/**").hasAnyRole("NURSE", "PRINCIPAL")
+
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/principal/**").hasRole("PRINCIPAL")
                         .requestMatchers("/api/nurse/**","/api/nurse/medications/**","/api/medications/nurse/**").hasRole("NURSE")
