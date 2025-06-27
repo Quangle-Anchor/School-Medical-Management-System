@@ -3,6 +3,8 @@ import ManagerDashboard from "./pages/managerDashboard/ManagerDashboard";
 import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
 import StudentDashboard from "./pages/studentDashboard/StudentDashboardNew";
+import Profile from "./pages/profile/Profile";
+import Settings from "./pages/Settings/Settings";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -90,6 +92,22 @@ function AppContent() {
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/adminDashboard"
           element={

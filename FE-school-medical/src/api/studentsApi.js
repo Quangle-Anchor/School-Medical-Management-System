@@ -1,136 +1,232 @@
-const API_BASE_URL = 'http://localhost:8080/api';
-
-// Helper function to check if user is authenticated
-const isAuthenticated = () => {
-  const token = localStorage.getItem('token');
-  return token !== null && token !== undefined && token !== '';
-};
-
-// Helper function to handle authentication errors
-const handleAuthError = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('role');
-  window.location.href = '/login';
-};
-
-// Generic API request function
-const apiRequest = async (endpoint, options = {}) => {
-  // Check if user is authenticated for protected endpoints
-  if (!isAuthenticated() && !endpoint.includes('/auth/')) {
-    handleAuthError();
-    throw new Error('Authentication required. Please login first.');
-  }
-
-  const url = `${API_BASE_URL}${endpoint}`;
-  
-  // Get token from localStorage
-  const token = localStorage.getItem('token');
-  
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
-      ...options.headers,
-    },
-    ...options,
-  };
-
-  try {
-    const response = await fetch(url, config);
-    
-    // Handle unauthorized responses
-    if (response.status === 401) {
-      // Token is invalid or expired
-      handleAuthError();
-      throw new Error('Authentication required. Please login again.');
-    }
-    
-    // Handle forbidden responses
-    if (response.status === 403) {
-      throw new Error('Access forbidden. You do not have permission to perform this action.');
-    }
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    // Handle empty responses (like DELETE requests)
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return await response.json();
-    }
-      return response;
-  } catch (error) {
-    throw error;
-  }
-};
+import axiosInstance from './axiosInstance';
 
 // Student API functions
 export const studentAPI = {
   // Authentication functions
-  login: (credentials) => apiRequest('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-  }),  // Get all students (admin/nurse/manager only)
-  getAllStudents: () => apiRequest('/students'),
+  login: async (credentials) => {
+    try {
+      const response = await axiosInstance.post('/api/auth/login', credentials);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get all students (admin/nurse/manager only)
+  getAllStudents: async () => {
+    try {
+      const response = await axiosInstance.get('/api/students?page=0&size=100');
+      console.log('getAllStudents response:', response.data);
+      // Handle paginated response - extract content array
+      return response.data.content || [];
+    } catch (error) {
+      console.error('Error in getAllStudents:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      return []; // Return empty array on error
+    }
+  },
+
   // Get students by parent ID (parent only)
-  getStudentsByParent: (parentId) => apiRequest(`/students/parent/${parentId}`),
-    // Get current user's students (automatically filtered by role and parent)
-  getMyStudents: () => {
-    const userRole = localStorage.getItem('role');
-    
-    if (userRole === 'Parent') {
-      // Use the new /my endpoint that automatically filters by authenticated parent
-      return apiRequest('/students/my');
-    } else {
-      // For other roles, get all students
-      return apiRequest('/students');
+  getStudentsByParent: async (parentId) => {
+    try {
+      const response = await axiosInstance.get(`/api/students/parent/${parentId}`);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error in getStudentsByParent:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      return [];
+    }
+  },
+
+  // Get current user's students (automatically filtered by role and parent)
+  getMyStudents: async () => {
+    try {
+      const userRole = localStorage.getItem('role');
+      
+      if (userRole === 'Parent') {
+        // Use the new /my endpoint that automatically filters by authenticated parent
+        const response = await axiosInstance.get('/api/students/my');
+        console.log('getMyStudents (parent) response:', response.data);
+        return Array.isArray(response.data) ? response.data : [];
+      } else {
+        // For other roles, get all students with pagination
+        const response = await axiosInstance.get('/api/students?page=0&size=100');
+        console.log('getMyStudents (other roles) response:', response.data);
+        // Handle paginated response - extract content array
+        return response.data.content || [];
+      }
+    } catch (error) {
+      console.error('Error in getMyStudents:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      return []; // Return empty array on error
     }
   },
   
   // Get student by ID
-  getStudentById: (id) => apiRequest(`/students/${id}`),
-    // Create new student (parent is automatically assigned by backend from JWT token)
-  createStudent: (studentData) => {
-    return apiRequest('/students', {
-      method: 'POST',
-      body: JSON.stringify(studentData),
-    });
+  getStudentById: async (id) => {
+    try {
+      const response = await axiosInstance.get(`/api/students/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error in getStudentById:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
   },
-    // Update student (parent ownership is checked by backend)
-  updateStudent: (id, studentData) => {
-    return apiRequest(`/students/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(studentData),
-    });  },
+
+  // Create new student (parent is automatically assigned by backend from JWT token)
+  createStudent: async (studentData) => {
+    try {
+      const response = await axiosInstance.post('/api/students', studentData);
+      return response.data;
+    } catch (error) {
+      console.error('Error in createStudent:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
+  },
+
+  // Update student (parent ownership is checked by backend)
+  updateStudent: async (id, studentData) => {
+    try {
+      const response = await axiosInstance.put(`/api/students/${id}`, studentData);
+      return response.data;
+    } catch (error) {
+      console.error('Error in updateStudent:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
+  },
 
   // Delete student (parent ownership is checked by backend)
-  deleteStudent: (id) => {
-    return apiRequest(`/students/${id}`, {
-      method: 'DELETE',
-    });
+  deleteStudent: async (id) => {
+    try {
+      const response = await axiosInstance.delete(`/api/students/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error in deleteStudent:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
   },
 
   // Create health info
-  createHealthInfo: (healthInfoData) => apiRequest('/health-info', {
-    method: 'POST',
-    body: JSON.stringify(healthInfoData),
-  }),
+  createHealthInfo: async (healthInfoData) => {
+    try {
+      const response = await axiosInstance.post('/api/health-info', healthInfoData);
+      return response.data;
+    } catch (error) {
+      console.error('Error in createHealthInfo:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
+  },
 
   // Update health info
-  updateHealthInfo: (id, healthInfoData) => apiRequest(`/health-info/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(healthInfoData),
-  }),
+  updateHealthInfo: async (id, healthInfoData) => {
+    try {
+      const response = await axiosInstance.put(`/api/health-info/${id}`, healthInfoData);
+      return response.data;
+    } catch (error) {
+      console.error('Error in updateHealthInfo:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
+  },
 
   // Get health info by student ID
-  getHealthInfoByStudentId: (studentId) => apiRequest(`/health-info/student/${studentId}`),
+  getHealthInfoByStudentId: async (studentId) => {
+    try {
+      const response = await axiosInstance.get(`/api/health-info/student/${studentId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error in getHealthInfoByStudentId:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
+  },
 
   // Get all health info
-  getAllHealthInfo: () => apiRequest('/health-info'),
+  getAllHealthInfo: async () => {
+    try {
+      const response = await axiosInstance.get('/api/health-info');
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error in getAllHealthInfo:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      return [];
+    }
+  },
 
   // Get all students for nurse (nurse-specific endpoint if available)
-  getAllStudentsForNurse: () => apiRequest('/nurse/students'),
+  getAllStudentsForNurse: async () => {
+    try {
+      // First try the nurse-specific endpoint
+      const response = await axiosInstance.get('/api/nurse/students');
+      console.log('getAllStudentsForNurse (nurse endpoint) response:', response.data);
+      return Array.isArray(response.data) ? response.data : response.data.content || [];
+    } catch (error) {
+      console.error('Nurse-specific endpoint failed, falling back to general students endpoint:', error);
+      try {
+        // Fallback to general students endpoint with pagination
+        const response = await axiosInstance.get('/api/students?page=0&size=100');
+        console.log('getAllStudentsForNurse (fallback) response:', response.data);
+        return response.data.content || [];
+      } catch (fallbackError) {
+        console.error('Error in getAllStudentsForNurse fallback:', fallbackError);
+        if (fallbackError.response?.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('role');
+          window.location.href = '/login';
+        }
+        return []; // Return empty array on error
+      }
+    }
+  },
 };
 
 // Export default API object
