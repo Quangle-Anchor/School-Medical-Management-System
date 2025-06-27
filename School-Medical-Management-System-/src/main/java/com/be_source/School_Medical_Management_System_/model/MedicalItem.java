@@ -1,35 +1,37 @@
 package com.be_source.School_Medical_Management_System_.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "medicines")
+@Table(name = "medical_items")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Medicine {
+@Builder
+public class MedicalItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long medicineId;
+    private Long itemId;
 
-    private String medicineName;
+    private String itemName;
 
+    private String category; // e.g., "Medicine", "Bandage", "Disinfectant"
+
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private String manufacturer;
 
-    private LocalDate expiryDate;
-
-    private String sideEffects;
+    private LocalDate expiryDate; // optional, nullable for non-expiring items
 
     private String storageInstructions;
+
+    private String unit;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 }
