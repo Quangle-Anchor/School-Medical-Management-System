@@ -20,7 +20,7 @@ public class StudentHealthInfoController {
     @Autowired
     private HealthInfoService healthInfoService;
 
-    // ✅ Lấy health info của student theo studentId
+    // Lấy health info của student theo studentId
     @GetMapping("/{studentId}/health-info")
     public ResponseEntity<List<HealthInfoResponse>> getHealthInfoByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(healthInfoService.getByStudentId(studentId));

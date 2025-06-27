@@ -1,9 +1,7 @@
 package com.be_source.School_Medical_Management_System_.controller;
 
-import com.be_source.School_Medical_Management_System_.model.MedicationRequest;
-import com.be_source.School_Medical_Management_System_.model.User;
-import com.be_source.School_Medical_Management_System_.repository.UserRepository;
-import com.be_source.School_Medical_Management_System_.security.JwtUtil;
+import com.be_source.School_Medical_Management_System_.request.MedicationRequestRequest;
+import com.be_source.School_Medical_Management_System_.response.MedicationRequestResponse;
 import com.be_source.School_Medical_Management_System_.service.MedicationRequestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,39 +19,25 @@ public class MedicationRequestController {
     @Autowired
     private MedicationRequestService medicationRequestService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    private User extractUser(String authHeader) {
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractUsername(token);
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping("/my")
-    public ResponseEntity<List<MedicationRequest>> getMyMedicationRequests(@RequestHeader("Authorization") String authHeader) {
-        User parent = extractUser(authHeader);
-        return ResponseEntity.ok(medicationRequestService.getRequestsByParent(parent));
+    public ResponseEntity<List<MedicationRequestResponse>> getMyRequests(
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(medicationRequestService.getMyRequests(authHeader));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createMedicationRequest(
             @RequestPart("medicationRequest") String medicationRequestJson,
             @RequestPart(value = "prescriptionFile", required = false) MultipartFile prescriptionFile,
-            @RequestHeader("Authorization") String token) {
-
+            @RequestHeader("Authorization") String authHeader) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            MedicationRequest medicationRequest = mapper.readValue(medicationRequestJson, MedicationRequest.class);
-
-            medicationRequestService.create(medicationRequest, prescriptionFile, token);
+            MedicationRequestRequest request = objectMapper.readValue(medicationRequestJson, MedicationRequestRequest.class);
+            medicationRequestService.create(request, prescriptionFile, authHeader);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid medicationRequest JSON: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Invalid request data: " + e.getMessage());
         }
     }
 
@@ -63,48 +47,37 @@ public class MedicationRequestController {
             @RequestPart("medicationRequest") String medicationRequestJson,
             @RequestPart(value = "prescriptionFile", required = false) MultipartFile prescriptionFile,
             @RequestHeader("Authorization") String authHeader) {
-
         try {
-            User parent = extractUser(authHeader);
-            ObjectMapper mapper = new ObjectMapper();
-            MedicationRequest medicationRequest = mapper.readValue(medicationRequestJson, MedicationRequest.class);
-
-            MedicationRequest updated = medicationRequestService.update(id, medicationRequest, prescriptionFile, parent);
+            MedicationRequestRequest request = objectMapper.readValue(medicationRequestJson, MedicationRequestRequest.class);
+            MedicationRequestResponse updated = medicationRequestService.update(id, request, prescriptionFile, authHeader);
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Update failed: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id,
-                                    @RequestHeader("Authorization") String authHeader) {
-        User parent = extractUser(authHeader);
-        medicationRequestService.delete(id, parent);
+    public ResponseEntity<?> deleteRequest(@PathVariable Long id,
+                                           @RequestHeader("Authorization") String authHeader) {
+        medicationRequestService.delete(id, authHeader);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/student/{studentId}/history")
-    public ResponseEntity<List<MedicationRequest>> viewMedicationHistory(
+    public ResponseEntity<List<MedicationRequestResponse>> getHistoryByStudent(
             @PathVariable Long studentId,
             @RequestHeader("Authorization") String authHeader) {
-
-        String email = jwtUtil.extractUsername(authHeader.substring(7));
-        List<MedicationRequest> history = medicationRequestService.getHistoryByStudent(studentId, email);
-        return ResponseEntity.ok(history);
+        return ResponseEntity.ok(medicationRequestService.getHistoryByStudent(studentId, authHeader));
     }
 
     @GetMapping("/nurse/pending")
-    public ResponseEntity<List<MedicationRequest>> getPendingMedicationRequests(
-            @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<MedicationRequestResponse>> getUnconfirmedRequests() {
         return ResponseEntity.ok(medicationRequestService.getUnconfirmedRequests());
     }
 
     @PutMapping("/nurse/confirm/{id}")
-    public ResponseEntity<?> confirmMedicationRequest(
-            @PathVariable Long id,
-            @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> confirmRequest(@PathVariable Long id) {
         medicationRequestService.confirmRequest(id);
-        return ResponseEntity.ok("Medication request confirmed");
+        return ResponseEntity.ok("Request confirmed successfully.");
     }
 }
