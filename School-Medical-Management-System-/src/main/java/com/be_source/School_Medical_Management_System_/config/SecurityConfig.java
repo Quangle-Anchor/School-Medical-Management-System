@@ -61,6 +61,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/event-signups/event/**").hasAnyRole("NURSE", "PRINCIPAL")
                         .requestMatchers(HttpMethod.PUT, "/api/event-signups/**").hasAnyRole("NURSE", "PRINCIPAL")
 
+                        //PHÂN QUYỀN CHO Inventory va MedicalItem
+                        .requestMatchers("/api/inventory/**").hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
+                        .requestMatchers("/api/medical-items/**").hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
+
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/principal/**").hasRole("PRINCIPAL")
