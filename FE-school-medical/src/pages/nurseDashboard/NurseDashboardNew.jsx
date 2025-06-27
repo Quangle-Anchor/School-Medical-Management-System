@@ -59,10 +59,14 @@ const NurseDashboard = () => {
 
   const fetchStudents = async () => {
     try {
-      const studentsData = await studentAPI.getMyStudents();
-      setStudents(studentsData);
+      console.log('Fetching students for nurse dashboard...');
+      // Use getAllStudents to get all students in the database
+      const studentsData = await studentAPI.getAllStudents();
+      console.log('Received students data:', studentsData, 'Type:', typeof studentsData, 'IsArray:', Array.isArray(studentsData));
+      setStudents(Array.isArray(studentsData) ? studentsData : []); // Ensure we always set an array
     } catch (error) {
       console.error('Error fetching students:', error);
+      setStudents([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -70,9 +74,10 @@ const NurseDashboard = () => {
   const fetchHealthIncidents = async () => {
     try {
       const incidents = await healthIncidentAPI.getAllHealthIncidents();
-      setHealthIncidents(incidents);
+      setHealthIncidents(incidents || []); // Ensure we always set an array
     } catch (error) {
       console.error('Error fetching health incidents:', error);
+      setHealthIncidents([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -81,10 +86,10 @@ const NurseDashboard = () => {
   // Nurse dashboard data
   const nurseCardData = [
     {
-      title: 'Patients Today',
-      value: loading ? '...' : students.length.toString(),
-      change: '+3 from yesterday',
-      changeType: 'positive',
+      title: 'Total Students',
+      value: loading ? '...' : (Array.isArray(students) ? students.length : 0).toString(),
+      change: 'Students in database',
+      changeType: 'neutral',
       icon: Users,
     },
     {

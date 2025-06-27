@@ -8,6 +8,7 @@ import {
   UserIcon,
 } from '@heroicons/react/24/outline';
 import logo from '../assets/img/2.png';
+import authApi from '../api/authApi';
 
 const AuthNavbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,7 +24,6 @@ const AuthNavbar = () => {
     // Listen for storage changes (login/logout in other tabs)
     const handleStorageChange = (e) => {
       if (e.key === 'token' || e.key === 'role' || e.key === 'email' || e.key === 'fullname') {
-        console.log('Storage changed, rechecking auth status'); // Debug log
         checkAuthStatus();
       }
     };
@@ -47,32 +47,67 @@ const AuthNavbar = () => {
     try {
       const token = localStorage.getItem('token');
       const role = localStorage.getItem('role');
-      const email = localStorage.getItem('email');
-      const userId = localStorage.getItem('userId');
-      const fullname = localStorage.getItem('fullname');
       
-      console.log('Checking auth status:', { token: !!token, role, email, userId, fullname }); // Debug log
+      console.log('Checking auth status:', { token: !!token, role }); // Debug log
       
       if (token && role) {
-        // For now, skip token validation and trust localStorage
-        // TODO: Implement proper token validation with backend
-        
-        // Create user object from stored data
-        const userData = {
-          id: userId || 1,
-          name: fullname || (role === 'Parent' ? 'Parent User' : 
-                role === 'Admin' ? 'Admin User' :
-                role === 'Nurse' ? 'Nurse User' :
-                role === 'Manager' ? 'Manager User' :
-                role === 'Student' ? 'Student User' : 'User'),
-          email: email || `${role.toLowerCase()}@medcare.com`,
-          role: role,
-          avatar: null
-        };
-        
-        console.log('Setting authenticated user:', userData); // Debug log
-        setIsAuthenticated(true);
-        setUser(userData);
+        try {
+          // Validate token and get current user from backend
+          const isValidToken = await authApi.validateToken();
+          
+          if (isValidToken) {
+            // Fetch current user profile from backend
+            const userProfile = await authApi.getCurrentUser();
+            
+            console.log('Fetched user profile from backend:', userProfile); // Debug log
+            
+            // Create user object from backend response
+            const userData = {
+              id: userProfile.userId,
+              name: userProfile.fullName || userProfile.username || 'User',
+              email: userProfile.email,
+              phone: userProfile.phone,
+              username: userProfile.username,
+              role: userProfile.role,
+            };
+            
+            console.log('Setting authenticated user:', userData); // Debug log
+            setIsAuthenticated(true);
+            setUser(userData);
+          } else {
+            // Token is invalid, clear auth state
+            console.log('Token validation failed, clearing auth state'); // Debug log
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('email');
+            localStorage.removeItem('fullname');
+            setIsAuthenticated(false);
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Error validating token or fetching user:', error);
+          // If API call fails, fall back to stored data but with a warning
+          const email = localStorage.getItem('email');
+          const userId = localStorage.getItem('userId');
+          const fullname = localStorage.getItem('fullname');
+          
+          const userData = {
+            id: userId || 1,
+            name: fullname || (role === 'Parent' ? 'Parent User' : 
+                  role === 'Admin' ? 'Admin User' :
+                  role === 'Nurse' ? 'Nurse User' :
+                  role === 'Manager' ? 'Manager User' :
+                  role === 'Student' ? 'Student User' : 'User'),
+            email: email || `${role.toLowerCase()}@medcare.com`,
+            role: role,
+            avatar: null
+          };
+          
+          console.log('API failed, using stored data:', userData); // Debug log
+          setIsAuthenticated(true);
+          setUser(userData);
+        }
       } else {
         console.log('No token or role found, setting unauthenticated'); // Debug log
         setIsAuthenticated(false);
@@ -93,17 +128,21 @@ const AuthNavbar = () => {
   };
 
   const handleLogout = () => {
+    // Clear all authentication data
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('userId');
     localStorage.removeItem('email');
     localStorage.removeItem('fullname');
+    
+    // Clear state
     setIsAuthenticated(false);
     setUser(null);
     
     // Dispatch custom event to notify other components of logout
     window.dispatchEvent(new CustomEvent('authChange'));
     
+    // Navigate to home page
     navigate('/');
   };
 
@@ -224,8 +263,14 @@ const AuthNavbar = () => {
                     ) : (
                       <UserCircleIcon className="h-8 w-8 text-blue-400" />
                     )}
-                    <span className="text-sm font-medium text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">{user?.name}</span>
-                    <span className="text-xs bg-white/10 px-2 py-1 rounded-full backdrop-blur-sm border border-white/20 text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">{user?.role}</span>
+                    <div className="text-left">
+                      <div className="text-sm font-medium text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">
+                        {user?.name || user?.username}
+                      </div>
+                      <div className="text-xs bg-white/10 px-2 py-1 rounded-full backdrop-blur-sm border border-white/20 text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">
+                        {user?.role}
+                      </div>
+                    </div>
                   </Menu.Button>
                 </div>
                 <Transition
@@ -240,6 +285,15 @@ const AuthNavbar = () => {
                     <div className="p-2">                      <div className="px-3 py-2 border-b border-white/20">
                         <p className="text-sm font-medium text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">{user?.name}</p>
                         <p className="text-sm text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">{user?.email}</p>
+                        {user?.username && (
+                          <p className="text-xs text-transparent bg-gradient-to-r from-gray-400 to-gray-500 bg-clip-text">@{user.username}</p>
+                        )}
+                        {user?.phone && (
+                          <p className="text-xs text-transparent bg-gradient-to-r from-gray-400 to-gray-500 bg-clip-text">{user.phone}</p>
+                        )}
+                        <span className="inline-block mt-1 text-xs bg-white/10 px-2 py-1 rounded-full backdrop-blur-sm border border-white/20 text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">
+                          {user?.role}
+                        </span>
                       </div><Menu.Item>
                         {({ active }) => (
                           <Link
