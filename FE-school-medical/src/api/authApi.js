@@ -39,7 +39,7 @@ const authApi = {
       console.error("Token validation error:", error);
       return false;
     }
-  },
+    },
 
   updateProfile: async (profileData) => {
     try {
