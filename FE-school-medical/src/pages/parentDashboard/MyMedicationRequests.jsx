@@ -3,7 +3,7 @@ import { medicationAPI } from '../../api/medicationApi';
 import { Plus, Eye, Edit, Trash2, Clock, CheckCircle, XCircle, Pill, Calendar, User } from 'lucide-react';
 import MedicationRequestForm from '../../components/MedicationRequestForm';
 
-const MyMedicationRequests = () => {
+const MyMedicationRequests = ({ onRequestAdded }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -75,6 +75,11 @@ const MyMedicationRequests = () => {
     try {
       await medicationAPI.deleteMedicationRequest(requestId);
       await fetchMyRequests(); // Refresh the list
+      
+      // Call parent callback to update the dashboard count
+      if (onRequestAdded) {
+        onRequestAdded();
+      }
     } catch (error) {
       setError('Failed to delete medication request. Please try again.');
     }
@@ -89,6 +94,11 @@ const MyMedicationRequests = () => {
     setShowForm(false);
     setEditingRequest(null);
     fetchMyRequests(); // Refresh the list
+    
+    // Call parent callback to update the dashboard count
+    if (onRequestAdded) {
+      onRequestAdded();
+    }
   };
 
   const getStatusBadge = (isConfirmed, confirmedAt) => {
@@ -201,7 +211,10 @@ const MyMedicationRequests = () => {
                     Student & Medication
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Dosage & Frequency
+                    Dosage & Quantities
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Frequency
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -216,26 +229,44 @@ const MyMedicationRequests = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {requests.map((request) => (
-                  <tr key={request.requestId} className="hover:bg-gray-50">
+                  <tr key={request.requestId || request.request_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {request.student?.fullName || 'Unknown Student'}
+                          {request.student?.fullName || request.student?.full_name || 'Unknown Student'}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {request.medicationName}
+                          {request.medicationName || request.medication_name}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">{request.dosage}</div>
+                      <div className="text-xs text-gray-500 space-y-1">
+                        {request.totalQuantity || request.total_quantity ? (
+                          <div>Total: {request.totalQuantity || request.total_quantity}</div>
+                        ) : null}
+                        <div className="flex gap-2">
+                          {(request.morningQuantity || request.morning_quantity) ? (
+                            <span>M: {request.morningQuantity || request.morning_quantity}</span>
+                          ) : null}
+                          {(request.noonQuantity || request.noon_quantity) ? (
+                            <span>A: {request.noonQuantity || request.noon_quantity}</span>
+                          ) : null}
+                          {(request.eveningQuantity || request.evening_quantity) ? (
+                            <span>E: {request.eveningQuantity || request.evening_quantity}</span>
+                          ) : null}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{request.dosage}</div>
-                      <div className="text-sm text-gray-500">{request.frequency}</div>
+                      <div className="text-sm text-gray-900">{request.frequency}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(request.isConfirmed, request.confirmedAt)}
+                      {getStatusBadge(request.isConfirmed || request.is_confirmed, request.confirmedAt || request.confirmed_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(request.createdAt)}
+                      {formatDate(request.createdAt || request.created_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
@@ -246,7 +277,7 @@ const MyMedicationRequests = () => {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </button>
-                        {!request.isConfirmed && (
+                        {!(request.isConfirmed || request.is_confirmed) && (
                           <>
                             <button
                               onClick={() => handleEditRequest(request)}
@@ -256,7 +287,7 @@ const MyMedicationRequests = () => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDeleteRequest(request.requestId)}
+                              onClick={() => handleDeleteRequest(request.requestId || request.request_id)}
                               className="text-red-600 hover:text-red-900 inline-flex items-center"
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
@@ -298,11 +329,11 @@ const MyMedicationRequests = () => {
                 <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Student Name:</span>
-                    <span className="text-gray-900">{selectedRequest.student?.fullName || 'N/A'}</span>
+                    <span className="text-gray-900">{selectedRequest.student?.fullName || selectedRequest.student?.full_name || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Student ID:</span>
-                    <span className="text-gray-900">{selectedRequest.student?.studentId || 'N/A'}</span>
+                    <span className="text-gray-900">{selectedRequest.student?.studentId || selectedRequest.student?.student_id || selectedRequest.studentId || selectedRequest.student_id || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -316,7 +347,7 @@ const MyMedicationRequests = () => {
                 <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Medication Name:</span>
-                    <span className="text-gray-900">{selectedRequest.medicationName}</span>
+                    <span className="text-gray-900">{selectedRequest.medicationName || selectedRequest.medication_name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Dosage:</span>
@@ -325,6 +356,24 @@ const MyMedicationRequests = () => {
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Frequency:</span>
                     <span className="text-gray-900">{selectedRequest.frequency}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Total Quantity:</span>
+                    <span className="text-gray-900">{selectedRequest.totalQuantity || selectedRequest.total_quantity || 'N/A'}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mt-3">
+                    <div className="text-center">
+                      <span className="block text-sm font-medium text-gray-600">Morning</span>
+                      <span className="text-lg font-semibold text-blue-600">{selectedRequest.morningQuantity || selectedRequest.morning_quantity || 'N/A'}</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="block text-sm font-medium text-gray-600">Afternoon</span>
+                      <span className="text-lg font-semibold text-orange-600">{selectedRequest.noonQuantity || selectedRequest.noon_quantity || 'N/A'}</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="block text-sm font-medium text-gray-600">Evening</span>
+                      <span className="text-lg font-semibold text-purple-600">{selectedRequest.eveningQuantity || selectedRequest.evening_quantity || 'N/A'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -338,16 +387,22 @@ const MyMedicationRequests = () => {
                 <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Status:</span>
-                    <span>{getStatusBadge(selectedRequest.isConfirmed, selectedRequest.confirmedAt)}</span>
+                    <span>{getStatusBadge(selectedRequest.isConfirmed || selectedRequest.is_confirmed, selectedRequest.confirmedAt || selectedRequest.confirmed_at)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Created:</span>
-                    <span className="text-gray-900">{formatDate(selectedRequest.createdAt)}</span>
+                    <span className="text-gray-900">{formatDate(selectedRequest.createdAt || selectedRequest.created_at)}</span>
                   </div>
-                  {selectedRequest.confirmedAt && (
+                  {(selectedRequest.confirmedAt || selectedRequest.confirmed_at) && (
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Confirmed:</span>
-                      <span className="text-gray-900">{formatDate(selectedRequest.confirmedAt)}</span>
+                      <span className="text-gray-900">{formatDate(selectedRequest.confirmedAt || selectedRequest.confirmed_at)}</span>
+                    </div>
+                  )}
+                  {(selectedRequest.requestedBy || selectedRequest.requested_by) && (
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Requested By ID:</span>
+                      <span className="text-gray-900">{selectedRequest.requestedBy || selectedRequest.requested_by}</span>
                     </div>
                   )}
                 </div>
@@ -361,7 +416,7 @@ const MyMedicationRequests = () => {
               >
                 Close
               </button>
-              {!selectedRequest.isConfirmed && (
+              {!(selectedRequest.isConfirmed || selectedRequest.is_confirmed) && (
                 <button
                   onClick={() => {
                     setShowDetailModal(false);

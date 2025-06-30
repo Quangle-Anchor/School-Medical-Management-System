@@ -9,6 +9,10 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
     medicationName: '',
     dosage: '',
     frequency: '',
+    totalQuantity: '',
+    morningQuantity: '',
+    noonQuantity: '',
+    eveningQuantity: '',
   });
   
   const [prescriptionFile, setPrescriptionFile] = useState(null);
@@ -34,10 +38,14 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
   useEffect(() => {
     if (isEditing && editingRequest) {
       setFormData({
-        studentId: editingRequest.student?.studentId || '',
-        medicationName: editingRequest.medicationName || '',
+        studentId: editingRequest.student?.studentId || editingRequest.studentId || '',
+        medicationName: editingRequest.medicationName || editingRequest.medication_name || '',
         dosage: editingRequest.dosage || '',
         frequency: editingRequest.frequency || '',
+        totalQuantity: editingRequest.totalQuantity || editingRequest.total_quantity || '',
+        morningQuantity: editingRequest.morningQuantity || editingRequest.morning_quantity || '',
+        noonQuantity: editingRequest.noonQuantity || editingRequest.noon_quantity || '',
+        eveningQuantity: editingRequest.eveningQuantity || editingRequest.evening_quantity || '',
       });
     } else {
       setFormData({
@@ -45,6 +53,10 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
         medicationName: '',
         dosage: '',
         frequency: '',
+        totalQuantity: '',
+        morningQuantity: '',
+        noonQuantity: '',
+        eveningQuantity: '',
       });
       setPrescriptionFile(null);
     }
@@ -124,6 +136,10 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
         medicationName: formData.medicationName,
         dosage: formData.dosage,
         frequency: formData.frequency,
+        totalQuantity: formData.totalQuantity || '',
+        morningQuantity: formData.morningQuantity || '',
+        noonQuantity: formData.noonQuantity || '',
+        eveningQuantity: formData.eveningQuantity || '',
       };
 
       if (isEditing && editingRequest) {
@@ -138,6 +154,10 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
         medicationName: '',
         dosage: '',
         frequency: '',
+        totalQuantity: '',
+        morningQuantity: '',
+        noonQuantity: '',
+        eveningQuantity: '',
       });
       setPrescriptionFile(null);
 
@@ -263,26 +283,82 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
                 <label className="block text-sm font-medium mb-1">
                   Frequency <span className="text-red-500">*</span>
                 </label>
-                <select
+                <input
+                  type="text"
                   name="frequency"
                   value={formData.frequency}
                   onChange={handleInputChange}
                   required
+                  placeholder="e.g., Three times daily, Every 8 hours, As needed"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select frequency</option>
-                  <option value="Once daily">Once daily</option>
-                  <option value="Twice daily">Twice daily</option>
-                  <option value="Three times daily">Three times daily</option>
-                  <option value="Four times daily">Four times daily</option>
-                  <option value="Every 4 hours">Every 4 hours</option>
-                  <option value="Every 6 hours">Every 6 hours</option>
-                  <option value="Every 8 hours">Every 8 hours</option>
-                  <option value="As needed">As needed</option>
-                  <option value="Other">Other</option>
-                </select>
+                />
               </div>
             </div>
+          </div>
+
+          {/* Quantity Information */}
+          <div className="border rounded-lg p-4">
+            <h3 className="font-semibold mb-3 flex items-center">
+              <Clock className="w-4 h-4 mr-2" />
+              Quantity Details
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Total Quantity
+                </label>
+                <input
+                  type="text"
+                  name="totalQuantity"
+                  value={formData.totalQuantity}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 30 tablets, 100ml"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Morning Quantity
+                </label>
+                <input
+                  type="text"
+                  name="morningQuantity"
+                  value={formData.morningQuantity}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 1 tablet, 5ml"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Afternoon Quantity
+                </label>
+                <input
+                  type="text"
+                  name="noonQuantity"
+                  value={formData.noonQuantity}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 1 tablet, 5ml"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Evening Quantity
+                </label>
+                <input
+                  type="text"
+                  name="eveningQuantity"
+                  value={formData.eveningQuantity}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 1 tablet, 5ml"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Specify the quantities for different times of the day if applicable. Include units (tablets, ml, etc.). Leave empty if not needed.
+            </p>
           </div>
 
           {/* Prescription File Upload */}

@@ -10,6 +10,7 @@ import HealthIncidentsView from '../nurseDashboard/HealthIncidentsView';
 import { User, Calendar, FileText, Heart, Plus } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
 import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
+import { medicationAPI } from '../../api/medicationApi';
 
 
 const ParentDashboardWrapper = () => {
@@ -20,6 +21,7 @@ const ParentDashboardWrapper = () => {
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [healthIncidentsCount, setHealthIncidentsCount] = useState(0);
+  const [medicationRequestsCount, setMedicationRequestsCount] = useState(0);
 
   // Get current view from URL
   const getCurrentView = () => {
@@ -44,6 +46,7 @@ const ParentDashboardWrapper = () => {
   // Fetch students on component mount
   useEffect(() => {
     fetchStudents();
+    fetchMedicationRequests();
   }, []);
 
   // Fetch health incidents after students are loaded
@@ -87,10 +90,25 @@ const ParentDashboardWrapper = () => {
       setHealthIncidentsCount(0);
     }
   };
+
+  const fetchMedicationRequests = async () => {
+    try {
+      const medicationRequests = await medicationAPI.getMyMedicationRequests();
+      setMedicationRequestsCount(medicationRequests ? medicationRequests.length : 0);
+    } catch (error) {
+      console.error('Error fetching medication requests:', error);
+      setMedicationRequestsCount(0);
+    }
+  };
   const handleStudentAdded = (newStudent) => {
     setStudents(prev => [...prev, newStudent]);
     // Refresh health incidents count after adding a new student
     // The useEffect will handle fetching incidents for the new student
+  };
+
+  const handleMedicationRequestAdded = () => {
+    // Refresh medication requests count when a new request is added
+    fetchMedicationRequests();
   };
 
   const handleMenuClick = (menuId) => {
@@ -132,7 +150,7 @@ const ParentDashboardWrapper = () => {
     { 
       title: 'My Children', 
       value: loading ? '...' : students.length.toString(), 
-      change: 'Active profiles',
+      change: 'Active students',
       changeType: 'neutral',
       icon: User
     },
@@ -143,17 +161,17 @@ const ParentDashboardWrapper = () => {
       changeType: 'positive',
       icon: Calendar
     },    { 
-      title: 'Health Records', 
+      title: 'Health Incidents', 
       value: loading ? '...' : healthIncidentsCount.toString(),
       change: 'Health incidents',
       changeType: 'neutral',
       icon: FileText
     },
     { 
-      title: 'Health Score', 
-      value: '85%', 
-      change: '+5% from last month',
-      changeType: 'positive',
+      title: 'Medication Requests', 
+      value: loading ? '...' : medicationRequestsCount.toString(),
+      change: 'Total requests sent',
+      changeType: 'neutral',
       icon: Heart
     },
   ];
@@ -179,7 +197,7 @@ const ParentDashboardWrapper = () => {
             <p>Appointments content coming soon...</p>
           </div>
         );      case 'medical-records':
-        return <HealthIncidentsView isParentView={true} students={students} />;
+        return <HealthIncidentsView isParentView={true} students={students} parentLoading={loading} />;
       case 'health-reports':
         return (
           <div className="p-6">
@@ -194,16 +212,20 @@ const ParentDashboardWrapper = () => {
             <p>Notifications content coming soon...</p>
           </div>
         );
+
       case 'messages':
         return (
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Messages</h1>
             <p>Messages content coming soon...</p>
           </div>        );
+
       case 'medical-request':
-        return <MyMedicationRequests />;
+        return <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />;
+
       case 'medication-requests':
-        return <MyMedicationRequests />;
+        return <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />;
+
       case 'settings':
         return (
           <div className="p-6">
@@ -250,15 +272,8 @@ const ParentDashboardWrapper = () => {
               {/* Recent Activity */}
               <div className="bg-white rounded-lg border border-gray-200 p-6"
                 style={{
-                  background: `linear-gradient(
-                    45deg,
-                    rgba(142,197,252,1)   0%,
-                    rgba(141,211,255,1)  25%,
-                    rgba(161,216,255,1)  50%,
-                    rgba(193,210,255,1)  75%,
-                    rgba(224,195,255,1) 100%
-                  )`
-                }}>
+        background: 'radial-gradient(at center, #E8FEFF, #FFFFFF)'
+      }}>
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
                   <p className="text-sm text-gray-600">

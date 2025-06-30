@@ -98,6 +98,7 @@ const AuthNavbar = () => {
                   role === 'Admin' ? 'Admin User' :
                   role === 'Nurse' ? 'Nurse User' :
                   role === 'Manager' ? 'Manager User' :
+                  role === 'Principal' ? 'Principal User' :
                   role === 'Student' ? 'Student User' : 'User'),
             email: email || `${role.toLowerCase()}@medcare.com`,
             role: role,
@@ -158,6 +159,10 @@ const AuthNavbar = () => {
     const roleSpecificNavigation = {
       Manager: [
         { name: 'Manager Dashboard', href: '/managerDashboard' },
+        ...baseNavigation,
+      ],
+      Principal: [
+        { name: 'Principal Dashboard', href: '/managerDashboard' }, // Principal uses the same dashboard as Manager
         ...baseNavigation,
       ],
       Admin: [
