@@ -3,7 +3,7 @@ import { healthIncidentAPI } from '../../api/healthIncidentApi';
 import { Plus, Eye, Edit, Trash2, Calendar, AlertTriangle, User, Search, Filter, FileText, X } from 'lucide-react';
 import HealthIncidentForm from '../../components/HealthIncidentForm';
 
-const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
+const HealthIncidentsView = ({ isParentView = false, students = [], parentLoading = false }) => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,6 +15,28 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
   const [dateFilter, setDateFilter] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
 
+  // Helper function to transform incident data to ensure consistent structure
+  const transformIncidentData = (incidents) => {
+    if (!Array.isArray(incidents)) {
+      return [];
+    }
+    
+    return incidents.map(incident => {
+      // Ensure student information is available at the top level if it's nested
+      if (incident.student && typeof incident.student === 'object') {
+        return {
+          ...incident,
+          studentName: incident.student.fullName,
+          studentId: incident.student.studentId,
+          className: incident.student.className,
+          grade: incident.student.grade
+        };
+      }
+      
+      return incident;
+    });
+  };
+
   // Define callback functions first to avoid hoisting issues
   const fetchHealthIncidents = useCallback(async () => {
     try {
@@ -25,8 +47,6 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
       const token = localStorage.getItem('token');
       const role = localStorage.getItem('role');
       
-      console.log('Fetching health incidents - Token present:', !!token, 'Role:', role);
-      
       if (!token) {
         setError('Authentication required. Please login again.');
         return;
@@ -34,7 +54,13 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
       
       const response = await healthIncidentAPI.getAllHealthIncidents();
       console.log('Health incidents response:', response);
-      setIncidents(response);
+      
+      // Ensure we have the data in the correct format
+      const rawData = Array.isArray(response) ? response : (response?.data || []);
+      const incidentData = transformIncidentData(rawData);
+      console.log('Processed incident data:', incidentData);
+      
+      setIncidents(incidentData);
     } catch (err) {
       console.error('Error fetching health incidents:', err);
       
@@ -58,7 +84,13 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
       setError(null);
       
       const response = await healthIncidentAPI.getHealthIncidentsByStudent(studentId);
-      setIncidents(response || []);
+      console.log('Student health incidents response:', response);
+      
+      // Ensure we have the data in the correct format
+      const incidentData = Array.isArray(response) ? response : (response?.data || []);
+      console.log('Processed student incident data:', incidentData);
+      
+      setIncidents(incidentData);
     } catch (err) {
       if (err.message.includes('401') || err.message.includes('Authentication')) {
         setError('Session expired. Please login again.');
@@ -91,6 +123,11 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
         return;
       }
       
+      // Wait for parent data to load before checking students
+      if (parentLoading) {
+        return; // Don't set error while parent is still loading
+      }
+      
       if (students.length === 1) {
         setSelectedStudent(students[0]);
       } else if (students.length === 0) {
@@ -102,20 +139,34 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
       }
     } else {
       // Nurse view logic
-      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager') {
-        setError('Access denied. Only nurses, admins, and managers can view health incidents.');
+      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager' && role !== 'Principal') {
+        setError('Access denied. Only nurses, admins, managers, and principals can view health incidents.');
         setLoading(false);
         return;
       }
     }
-  }, [isParentView, students.length]);
+  }, [isParentView, students.length, parentLoading]);
 
   // Separate effect for nurse data fetching to prevent loops
   useEffect(() => {
     if (!isParentView && !error && incidents.length === 0 && loading) {
       fetchHealthIncidents();
     }
-  }, [isParentView, error, incidents.length, loading, fetchHealthIncidents]);  // Fetch incidents when student is selected (parent view)
+  }, [isParentView, error, incidents.length, loading, fetchHealthIncidents]);
+
+  // Handle students data changes in parent view
+  useEffect(() => {
+    if (isParentView && !parentLoading && students.length > 0) {
+      if (students.length === 1) {
+        setSelectedStudent(students[0]);
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
+    }
+  }, [students, parentLoading, isParentView]);
+
+  // Fetch incidents when student is selected (parent view)
   useEffect(() => {
     if (isParentView && selectedStudent && selectedStudent.studentId) {
       fetchHealthIncidentsByStudent(selectedStudent.studentId);
@@ -176,9 +227,13 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
 
   // Filter incidents based on search term and date
   const filteredIncidents = incidents.filter(incident => {
-    const matchesSearch = incident.student?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         incident.student?.studentId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         incident.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const studentName = incident.student?.fullName || incident.studentName || '';
+    const studentId = incident.student?.studentId || incident.studentId || '';
+    const description = incident.description || '';
+    
+    const matchesSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         description.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesDate = dateFilter === '' || incident.incidentDate === dateFilter;
     
@@ -216,12 +271,14 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
     }
   };
 
-  if (loading) {
+  if (loading || (isParentView && parentLoading)) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-          <span className="ml-3 text-gray-600">Loading health incidents...</span>
+          <span className="ml-3 text-gray-600">
+            {isParentView ? 'Loading student information...' : 'Loading health incidents...'}
+          </span>
         </div>
       </div>
     );
@@ -234,11 +291,18 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
           <AlertTriangle className="h-5 w-5 text-red-600 mr-3" />
           <div className="flex-1">
             <p className="text-red-800 font-medium">Error Loading Health Incidents</p>
-            <p className="text-red-600 text-sm">{error}</p>            <div className="mt-3 flex space-x-2">
+            <p className="text-red-600 text-sm">{error}</p>
+            <div className="mt-3 flex space-x-2">
               <button 
                 onClick={() => {
                   setError(null);
                   setIncidents([]); // Clear incidents to trigger refetch
+                  
+                  if (isParentView && parentLoading) {
+                    // If parent is still loading, just clear error and wait
+                    return;
+                  }
+                  
                   setLoading(true);
                   if (isParentView && selectedStudent) {
                     fetchHealthIncidentsByStudent(selectedStudent.studentId);
@@ -296,9 +360,9 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
           <h3 className="text-lg font-medium mb-3">Select Child</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {students.map((student) => (
+            {students.map((student, index) => (
               <button
-                key={student.studentId}
+                key={student.studentId || `student-${index}`}
                 onClick={() => setSelectedStudent(student)}
                 className={`p-3 border rounded-lg text-left transition-colors ${
                   selectedStudent?.studentId === student.studentId
@@ -399,23 +463,23 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
                   </td>
                 </tr>
               ) : (
-                filteredIncidents.map((incident) => (
-                  <tr key={incident.incidentId} className="hover:bg-gray-50">
+                filteredIncidents.map((incident, index) => (
+                  <tr key={incident.incidentId || `incident-${index}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
                             <span className="text-sm font-medium text-orange-800">
-                              {incident.student?.fullName?.charAt(0) || 'N'}
+                              {(incident.student?.fullName || incident.studentName || 'U')?.charAt(0)}
                             </span>
                           </div>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {incident.student?.fullName || 'Unknown'}
+                            {incident.student?.fullName || incident.studentName || 'Unknown Student'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            ID: {incident.student?.studentId || 'N/A'}
+                            ID: {incident.student?.studentId || incident.studentId || 'N/A'}
                           </div>
                         </div>
                       </div>
@@ -438,7 +502,8 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDateTime(incident.createdAt)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">                      <div className="flex space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
                         <button
                           onClick={() => handleViewIncident(incident)}
                           className="text-blue-600 hover:text-blue-900 inline-flex items-center"
@@ -501,19 +566,19 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-sm font-medium text-gray-600">Name:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.student?.fullName || 'Unknown'}</p>
+                    <p className="text-sm text-gray-900">{selectedIncident.student?.fullName || selectedIncident.studentName || 'Unknown Student'}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-600">Student ID:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.student?.studentId || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedIncident.student?.studentId || selectedIncident.studentId || 'N/A'}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-600">Class:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.student?.className || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedIncident.student?.className || selectedIncident.className || 'N/A'}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-600">Grade:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.student?.grade || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedIncident.student?.grade || selectedIncident.grade || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -560,7 +625,8 @@ const HealthIncidentsView = ({ isParentView = false, students = [] }) => {
                   </div>
                 </div>
               </div>
-            </div>            <div className="mt-6 flex justify-end space-x-3">
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
               <button
                 onClick={handleCloseDetailModal}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"

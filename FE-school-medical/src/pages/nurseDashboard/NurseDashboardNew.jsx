@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
-import PatientsView from './PatientsView';
+import StudentsView from './StudentsView';
 import NurseMedicationRequests from './NurseMedicationRequests';
 import HealthIncidentsView from './HealthIncidentsView';
+import InventoryView from './InventoryView';
 import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell, Warehouse } from 'lucide-react';
 import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
 import { studentAPI } from '../../api/studentsApi';
@@ -13,13 +14,13 @@ const NurseDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [healthIncidents, setHealthIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   // Get current view from URL
   const getCurrentView = () => {
-    const path = location.pathname;    if (path.includes('/patients')) return 'patients';
+    const path = location.pathname;    
+    if (path.includes('/students')) return 'students';
     if (path.includes('/appointments')) return 'appointments';
     if (path.includes('/medical-records')) return 'medical-records';
     if (path.includes('/health-incidents')) return 'health-incidents';
@@ -107,48 +108,10 @@ const NurseDashboard = () => {
     },
   ];
 
-  // Inventory data
-  const inventoryData = {
-    medications: [
-      { id: 1, name: 'Paracetamol 500mg', quantity: 245, unit: 'tablets', status: 'good' },
-      { id: 2, name: 'Ibuprofen 400mg', quantity: 45, unit: 'tablets', status: 'moderate' },
-      { id: 3, name: 'Amoxicillin 250mg', quantity: 12, unit: 'capsules', status: 'low' },
-      { id: 4, name: 'Cough Syrup', quantity: 8, unit: 'bottles', status: 'good' },
-      { id: 5, name: 'Aspirin 325mg', quantity: 150, unit: 'tablets', status: 'good' },
-      { id: 6, name: 'Insulin', quantity: 25, unit: 'vials', status: 'moderate' },
-      { id: 7, name: 'Antihistamine', quantity: 75, unit: 'tablets', status: 'good' },
-    ],
-    equipment: [
-      { id: 1, name: 'Digital Thermometer', quantity: 15, unit: 'units', status: 'good' },
-      { id: 2, name: 'Blood Pressure Monitor', quantity: 8, unit: 'units', status: 'good' },
-      { id: 3, name: 'Stethoscope', quantity: 12, unit: 'units', status: 'good' },
-      { id: 4, name: 'Pulse Oximeter', quantity: 6, unit: 'units', status: 'moderate' },
-      { id: 5, name: 'Otoscope', quantity: 4, unit: 'units', status: 'good' },
-      { id: 6, name: 'Ophthalmoscope', quantity: 3, unit: 'units', status: 'moderate' },
-      { id: 7, name: 'Reflex Hammer', quantity: 10, unit: 'units', status: 'good' },
-    ],
-    consumables: [
-      { id: 1, name: 'Disposable Gloves', quantity: 500, unit: 'pairs', status: 'good' },
-      { id: 2, name: 'Face Masks', quantity: 200, unit: 'pieces', status: 'good' },
-      { id: 3, name: 'Syringes', quantity: 25, unit: 'pieces', status: 'moderate' },
-      { id: 4, name: 'Bandages', quantity: 8, unit: 'rolls', status: 'low' },
-      { id: 5, name: 'Cotton Swabs', quantity: 300, unit: 'pieces', status: 'good' },
-      { id: 6, name: 'Alcohol Pads', quantity: 150, unit: 'pieces', status: 'good' },
-      { id: 7, name: 'Gauze Pads', quantity: 50, unit: 'pieces', status: 'moderate' },
-    ]
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'good': return 'text-green-600';
-      case 'moderate': return 'text-yellow-600';
-      case 'low': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };  const renderContent = () => {
+  const renderContent = () => {
     switch (activeView) {
-      case 'patients':
-        return <PatientsView />;
+      case 'students':
+        return <StudentsView />;
       
       case 'medication-requests':
         return <NurseMedicationRequests />;
@@ -251,152 +214,10 @@ const NurseDashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
-        );      
-        case 'inventory':
-        return (
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center">
-                {selectedCategory && (
-                  <button
-                    onClick={() => setSelectedCategory(null)}
-                    className="mr-4 px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                  >
-                    ← Back
-                  </button>
-                )}
-                <h1 className="text-2xl font-bold">
-                  {selectedCategory ? 
-                    `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Inventory` : 
-                    'Medical Inventory'
-                  }
-                </h1>
-              </div>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Add New Item
-              </button>
-            </div>
-
-            {!selectedCategory ? (
-              <div className="space-y-6">
-                {/* Inventory Overview Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-white rounded-lg shadow p-4">
-                    <h3 className="font-semibold text-gray-700 mb-2">Total Items</h3>
-                    <p className="text-3xl font-bold text-blue-600">247</p>
-                    <p className="text-sm text-gray-500">Active supplies</p>
-                  </div>
-                  <div className="bg-white rounded-lg shadow p-4">
-                    <h3 className="font-semibold text-gray-700 mb-2">Low Stock</h3>
-                    <p className="text-3xl font-bold text-red-600">12</p>
-                    <p className="text-sm text-gray-500">Need reorder</p>
-                  </div>
-                  <div className="bg-white rounded-lg shadow p-4">
-                    <h3 className="font-semibold text-gray-700 mb-2">Expired</h3>
-                    <p className="text-3xl font-bold text-yellow-600">5</p>
-                    <p className="text-sm text-gray-500">Remove soon</p>
-                  </div>
-                  <div className="bg-white rounded-lg shadow p-4">
-                    <h3 className="font-semibold text-gray-700 mb-2">Value</h3>
-                    <p className="text-3xl font-bold text-green-600">$15,420</p>
-                    <p className="text-sm text-gray-500">Total inventory</p>
-                  </div>
-                </div>
-
-                {/* Category Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Medications Category */}
-                  <div 
-                    onClick={() => setSelectedCategory('medications')}
-                    className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-blue-300"
-                  >
-                    <div className="flex items-center mb-4">
-                      <div className="w-4 h-4 bg-blue-500 rounded-full mr-3"></div>
-                      <h3 className="text-xl font-semibold text-gray-800">Medications</h3>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600">Total Items: {inventoryData.medications.length}</p>
-                      <p className="text-sm text-gray-600">
-                        Low Stock: {inventoryData.medications.filter(item => item.status === 'low').length} items
-                      </p>
-                      <div className="mt-4">
-                        <div className="text-xs text-gray-500">Recent items:</div>
-                        <div className="text-sm">Paracetamol, Ibuprofen, Amoxicillin...</div>
-                      </div>
-                    </div>
-                    <div className="mt-4 text-blue-600 text-sm font-medium">Click to view all →</div>
-                  </div>
-
-                  {/* Medical Equipment Category */}
-                  <div 
-                    onClick={() => setSelectedCategory('equipment')}
-                    className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-green-300"
-                  >
-                    <div className="flex items-center mb-4">
-                      <div className="w-4 h-4 bg-green-500 rounded-full mr-3"></div>
-                      <h3 className="text-xl font-semibold text-gray-800">Medical Equipment</h3>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600">Total Items: {inventoryData.equipment.length}</p>
-                      <p className="text-sm text-gray-600">
-                        Low Stock: {inventoryData.equipment.filter(item => item.status === 'low').length} items
-                      </p>
-                      <div className="mt-4">
-                        <div className="text-xs text-gray-500">Recent items:</div>
-                        <div className="text-sm">Thermometers, BP Monitors, Stethoscopes...</div>
-                      </div>
-                    </div>
-                    <div className="mt-4 text-green-600 text-sm font-medium">Click to view all →</div>
-                  </div>
-
-                  {/* Consumables Category */}
-                  <div 
-                    onClick={() => setSelectedCategory('consumables')}
-                    className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-purple-300"
-                  >
-                    <div className="flex items-center mb-4">
-                      <div className="w-4 h-4 bg-purple-500 rounded-full mr-3"></div>
-                      <h3 className="text-xl font-semibold text-gray-800">Consumables</h3>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600">Total Items: {inventoryData.consumables.length}</p>
-                      <p className="text-sm text-gray-600">
-                        Low Stock: {inventoryData.consumables.filter(item => item.status === 'low').length} items
-                      </p>
-                      <div className="mt-4">
-                        <div className="text-xs text-gray-500">Recent items:</div>
-                        <div className="text-sm">Gloves, Masks, Syringes...</div>
-                      </div>
-                    </div>
-                    <div className="mt-4 text-purple-600 text-sm font-medium">Click to view all →</div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              // Category Detail View
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {inventoryData[selectedCategory]?.map((item) => (
-                    <div key={item.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-gray-800">{item.name}</h4>
-                        <span className={`text-sm font-semibold ${getStatusColor(item.status)}`}>
-                          {item.quantity} {item.unit}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm text-gray-500">
-                        <span>Stock Level: {item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>
-                        <button className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200">
-                          Edit
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>        );
+          </div>        );      
+      
+      case 'inventory':
+        return <InventoryView />;
 
       case 'settings':
         return (

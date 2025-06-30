@@ -47,7 +47,7 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
     }    if (userRole === 'nurse') {
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
-        { id: 'patients', icon: Users, label: 'Patients' },
+        { id: 'students', icon: Users, label: 'Students' },
         { id: 'appointments', icon: Calendar, label: 'Appointments' },
         { id: 'medical-records', icon: FileText, label: 'Medical Records' },
         { id: 'health-incidents', icon: AlertTriangle, label: 'Health Incidents' },

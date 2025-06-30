@@ -3,11 +3,13 @@ import { studentAPI } from '../../api/studentsApi';
 import { Search, Filter, Eye, Edit, FileText, Heart, Calendar, AlertCircle, Users, User, Activity, X, Plus, Trash2 } from 'lucide-react';
 import AddStudentForm from '../parentDashboard/AddStudentForm';
 
-const PatientsView = () => {  const [students, setStudents] = useState([]);
+const StudentsView = () => {
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterGrade, setFilterGrade] = useState('');  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [filterGrade, setFilterGrade] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -27,13 +29,11 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
       setError('No authentication token found. Please login.');
       setLoading(false);
       return;
-    }
-    
-    if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager') {
-      setError('Access denied. Only nurses, admins, and managers can view all patients.');
-      setLoading(false);
-      return;
-    }
+    }      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager' && role !== 'Principal') {
+        setError('Access denied. Only nurses, admins, managers, and principals can view all students.');
+        setLoading(false);
+        return;
+      }
     
     fetchAllStudents();
   }, []);
@@ -51,8 +51,8 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
         return;
       }
       
-      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager') {
-        setError('Access denied. You do not have permission to view all patients.');
+      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager' && role !== 'Principal') {
+        setError('Access denied. You do not have permission to view all students.');
         return;
       }
 
@@ -75,8 +75,11 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
           }
         } else {
           // For non-nurses, just throw the original error
-          throw firstError;        }
-      }      if (response && response.data) {
+          throw firstError;
+        }
+      }
+      
+      if (response && response.data) {
         setStudents(response.data);
         
         // Fetch health info for each student
@@ -155,13 +158,13 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
       if (err.message.includes('Authentication required') || err.message.includes('401')) {
         setError('Session expired. Please login again.');
       } else if (err.message.includes('403') || err.message.includes('forbidden')) {
-        setError(`Access denied. Your role (${localStorage.getItem('role')}) may not have permission to view all patients. Please contact your administrator.`);
+        setError(`Access denied. Your role (${localStorage.getItem('role')}) may not have permission to view all students. Please contact your administrator.`);
       } else if (err.message.includes('404')) {
         setError('Students endpoint not found. Please check if the backend server is running correctly.');
       } else if (err.message.includes('network') || err.message.includes('fetch')) {
         setError('Network error. Please check your connection and try again.');
       } else {
-        setError(`Failed to load patients: ${err.message}`);
+        setError(`Failed to load students: ${err.message}`);
       }
     } finally {
       setLoading(false);
@@ -246,7 +249,7 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
       // Refresh data to ensure consistency
       fetchAllStudents();
     } catch (error) {
-      setError(editingPatient ? 'Failed to update patient information. Please try again.' : 'Failed to add new patient. Please try again.');
+      setError(editingPatient ? 'Failed to update student information. Please try again.' : 'Failed to add new student. Please try again.');
     }
   };
 
@@ -283,7 +286,7 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
       setShowDeleteModal(false);
       setPatientToDelete(null);
     } catch (error) {
-      setError('Failed to delete patient. Please try again.');
+      setError('Failed to delete student. Please try again.');
     } finally {
       setDeleting(false);
     }
@@ -299,7 +302,7 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading patients...</span>
+          <span className="ml-3 text-gray-600">Loading students...</span>
         </div>
       </div>
     );
@@ -310,7 +313,7 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
           <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
           <div className="flex-1">
-            <p className="text-red-800 font-medium">Error Loading Patients</p>
+            <p className="text-red-800 font-medium">Error Loading Students</p>
             <p className="text-red-600 text-sm">{error}</p>
             <div className="mt-3 flex space-x-2">
               <button 
@@ -333,19 +336,21 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
       </div>
     );
   }
+  
   return (
-    <div className="p-6">      {/* Header */}
+    <div className="p-6">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">All Patients</h1>
-          <p className="text-gray-600">Manage and view all student patient records</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">All Students</h1>
+          <p className="text-gray-600">Manage and view all student records</p>
         </div>
         <button
           onClick={() => setShowAddForm(true)}
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Add Patient
+          Add Student
         </button>
       </div>
 
@@ -415,14 +420,14 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
                   <td colSpan="5" className="px-6 py-12 text-center">
                     <div className="text-gray-500">
                       <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-lg font-medium">No patients found</p>
+                      <p className="text-lg font-medium">No students found</p>
                       <p className="text-sm">Try adjusting your search or filter criteria</p>
                     </div>
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((student) => (
-                  <tr key={student.id} className="hover:bg-gray-50">
+                filteredStudents.map((student, index) => (
+                  <tr key={student.studentId || `student-${index}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
@@ -704,4 +709,4 @@ const PatientsView = () => {  const [students, setStudents] = useState([]);
   );
 };
 
-export default PatientsView;
+export default StudentsView;
