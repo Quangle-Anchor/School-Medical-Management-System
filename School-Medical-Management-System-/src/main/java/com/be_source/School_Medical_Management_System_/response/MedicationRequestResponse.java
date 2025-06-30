@@ -16,9 +16,9 @@ public class MedicationRequestResponse {
     private String frequency;
 
     private Integer totalQuantity;
-    private Integer morningQuantity;
-    private Integer noonQuantity;
-    private Integer eveningQuantity;
+    private String morningQuantity;
+    private String noonQuantity;
+    private String eveningQuantity;
 
     private String prescriptionFile;
     private boolean isConfirmed;
