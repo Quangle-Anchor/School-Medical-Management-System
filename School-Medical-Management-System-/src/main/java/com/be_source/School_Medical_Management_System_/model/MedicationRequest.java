@@ -26,7 +26,7 @@ public class MedicationRequest {
 
     private String dosage;
 
-    private String frequency;
+    private String frequency; // Đã đổi từ Integer sang String
 
     private String prescriptionFile;
 
@@ -42,13 +42,13 @@ public class MedicationRequest {
     private Integer totalQuantity;
 
     @Column(name = "morning_quantity")
-    private Integer morningQuantity;
+    private String morningQuantity; // Đổi từ Integer sang String
 
     @Column(name = "noon_quantity")
-    private Integer noonQuantity;
+    private String noonQuantity; // Đổi từ Integer sang String
 
     @Column(name = "evening_quantity")
-    private Integer eveningQuantity;
+    private String eveningQuantity; // Đổi từ Integer sang String
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
