@@ -152,8 +152,7 @@ const AuthNavbar = () => {
     const baseNavigation = [
       { name: 'Home', href: '/home' },
       { name: 'About', href: '/about' },
-      { name: 'Contact', href: '/contact' },
-      { name: 'Calendar', href: '/calendar' },
+      { name: 'Contact', href: '/contact' },     
     ];
 
     const roleSpecificNavigation = {
@@ -192,7 +191,6 @@ const AuthNavbar = () => {
         { name: 'Home', href: '/home' },
         { name: 'About', href: '/about' },
         { name: 'Contact', href: '/contact' },
-        { name: 'Calendar', href: '/calendar' },
       ];
 
   const isActive = (href) => {
