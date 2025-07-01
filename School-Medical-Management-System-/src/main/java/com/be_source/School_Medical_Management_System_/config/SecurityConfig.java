@@ -35,7 +35,7 @@ public class SecurityConfig {
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher("/api/auth/**", "/api/public/**","api/students/{id}/health-info")
+                .securityMatcher("/api/auth/**", "/api/public/**","api/students/{id}", "api/students/{id}/health-info")
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
@@ -64,7 +64,6 @@ public class SecurityConfig {
                         //PHÂN QUYỀN CHO Inventory va MedicalItem
                         .requestMatchers("/api/inventory/**").hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
                         .requestMatchers("/api/medical-items/**").hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
-
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/principal/**").hasRole("PRINCIPAL")

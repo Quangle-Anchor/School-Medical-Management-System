@@ -41,8 +41,8 @@ public class HealthIncidentServiceImpl implements HealthIncidentService {
     }
 
     @Override
-    public HealthIncidentResponse create(HealthIncidentRequest request, String authHeader) {
-        User currentUser = userUtilService.getCurrentUser(authHeader);
+    public HealthIncidentResponse create(HealthIncidentRequest request) {
+        User currentUser = userUtilService.getCurrentUser();
         Students student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 

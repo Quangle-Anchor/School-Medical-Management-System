@@ -27,9 +27,9 @@ public class HealthIncidentController {
     }
 
     @PostMapping
-    public ResponseEntity<HealthIncidentResponse> create(@RequestBody HealthIncidentRequest request,
-                                                         @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok(healthIncidentService.create(request, authHeader));
+    public ResponseEntity<HealthIncidentResponse> create(@RequestBody HealthIncidentRequest request
+                                                         ) {
+        return ResponseEntity.ok(healthIncidentService.create(request));
     }
 
     @PutMapping("/{id}")

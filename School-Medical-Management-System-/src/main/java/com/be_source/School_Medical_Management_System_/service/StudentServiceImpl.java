@@ -35,18 +35,17 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public List<StudentResponse> getStudentsByCurrentParent(String authHeader) {
-        User currentUser = userUtilService.getCurrentUser(authHeader);
+    public List<StudentResponse> getStudentsByCurrentParent() {
+        User currentUser = userUtilService.getCurrentUser();
         return studentRepository.findByParent(currentUser).stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public StudentResponse createStudent(StudentResponse dto, String authHeader) {
+    public StudentResponse createStudent(StudentResponse dto) {
         Students student = toEntity(dto);
-        student.setStudentId(null); // ensure create
-        student.setParent(userUtilService.getCurrentUser(authHeader));
+        student.setParent(userUtilService.getCurrentUser());
         return toDto(studentRepository.save(student));
     }
 

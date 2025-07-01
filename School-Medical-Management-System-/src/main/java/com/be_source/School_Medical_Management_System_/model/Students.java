@@ -35,7 +35,10 @@ public class Students {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    private User parent;    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    private User parent;
+
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<com.be_source.School_Medical_Management_System_.model.Health_Info> healthInfoList;
+    private List<Health_Info> healthInfoList;
+
 }

@@ -35,16 +35,16 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
     private String prescriptionUploadPath;
 
     @Override
-    public List<MedicationRequestResponse> getMyRequests(String authHeader) {
-        User parent = userUtilService.getCurrentUser(authHeader);
+    public List<MedicationRequestResponse> getMyRequests() {
+        User parent = userUtilService.getCurrentUser();
         return medicationRequestRepository.findByRequestedBy(parent).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void create(MedicationRequestRequest request, MultipartFile file, String authHeader) {
-        User parent = userUtilService.getCurrentUser(authHeader);
+    public void create(MedicationRequestRequest request, MultipartFile file) {
+        User parent = userUtilService.getCurrentUser();
         Students student = validateOwnership(request.getStudentId(), parent);
 
         MedicationRequest entity = new MedicationRequest();
@@ -69,8 +69,8 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
     }
 
     @Override
-    public MedicationRequestResponse update(Long id, MedicationRequestRequest request, MultipartFile file, String authHeader) {
-        User parent = userUtilService.getCurrentUser(authHeader);
+    public MedicationRequestResponse update(Long id, MedicationRequestRequest request, MultipartFile file) {
+        User parent = userUtilService.getCurrentUser();
         MedicationRequest existing = medicationRequestRepository.findByRequestIdAndRequestedBy(id, parent)
                 .orElseThrow(() -> new RuntimeException("Not found or not authorized"));
 
@@ -95,16 +95,16 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
     }
 
     @Override
-    public void delete(Long id, String authHeader) {
-        User parent = userUtilService.getCurrentUser(authHeader);
+    public void delete(Long id) {
+        User parent = userUtilService.getCurrentUser();
         MedicationRequest existing = medicationRequestRepository.findByRequestIdAndRequestedBy(id, parent)
                 .orElseThrow(() -> new RuntimeException("Not found or not authorized"));
         medicationRequestRepository.delete(existing);
     }
 
     @Override
-    public List<MedicationRequestResponse> getHistoryByStudent(Long studentId, String authHeader) {
-        User parent = userUtilService.getCurrentUser(authHeader);
+    public List<MedicationRequestResponse> getHistoryByStudent(Long studentId) {
+        User parent = userUtilService.getCurrentUser();
         Students student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
