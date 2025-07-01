@@ -68,6 +68,14 @@ public class HealthEventServiceImpl implements HealthEventService {
         healthEventRepository.deleteById(id);
     }
 
+    @Override
+    public List<HealthEventResponse> getUpcomingEvents() {
+        LocalDateTime now = LocalDateTime.now();
+        return healthEventRepository.findByScheduleDateAfter(now).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     private HealthEventResponse mapToResponse(HealthEvent event) {
         return HealthEventResponse.builder()
                 .eventId(event.getEventId())
