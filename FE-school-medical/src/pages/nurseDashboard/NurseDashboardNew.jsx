@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
+import ChartCard from '../../components/ChartCard';
 import StudentsView from './StudentsView';
 import NurseMedicationRequests from './NurseMedicationRequests';
 import HealthIncidentsView from './HealthIncidentsView';
@@ -21,7 +22,7 @@ const NurseDashboard = () => {
   const getCurrentView = () => {
     const path = location.pathname;    
     if (path.includes('/students')) return 'students';
-    if (path.includes('/appointments')) return 'appointments';
+    if (path.includes('/health-event')) return 'health-even';
     if (path.includes('/medical-records')) return 'medical-records';
     if (path.includes('/health-incidents')) return 'health-incidents';
     if (path.includes('/medication-requests')) return 'medication-requests';
@@ -94,7 +95,7 @@ const NurseDashboard = () => {
       icon: Users,
     },
     {
-      title: 'Appointments',
+      title: 'health-event',
       value: '18',
       change: '6 remaining today',
       changeType: 'neutral',
@@ -112,17 +113,14 @@ const NurseDashboard = () => {
     switch (activeView) {
       case 'students':
         return <StudentsView />;
-      
-      case 'medication-requests':
-        return <NurseMedicationRequests />;
-      
-      case 'appointments':
+     
+      case 'health-event':
         return (
           <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Appointments</h1>
+            <h1 className="text-2xl font-bold mb-4">health-event'</h1>
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold mb-4">Today's Schedule</h2>
-              <p className="text-gray-600 mb-4">Manage today's appointments and patient visits.</p>
+              <p className="text-gray-600 mb-4">Manage today's health-event' and patient visits.</p>
               <div className="space-y-3">
                 <div className="p-4 border-l-4 border-blue-500 bg-blue-50">
                   <div className="flex justify-between items-center">
@@ -155,6 +153,10 @@ const NurseDashboard = () => {
             </div>
           </div>
         );
+         
+      case 'medication-requests':
+        return <NurseMedicationRequests />;
+      
       
       case 'medical-records':
         return (
@@ -300,38 +302,8 @@ const NurseDashboard = () => {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold mb-4">Care Plan Tasks</h2>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">Wound dressing change</p>
-                      <p className="text-xs text-gray-600">Room 302 - Due: 2:00 PM</p>
-                    </div>
-                    <button className="px-3 py-1 bg-blue-600 text-white text-xs rounded">
-                      Complete
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">Medication round</p>
-                      <p className="text-xs text-gray-600">Ward B - Due: 3:00 PM</p>
-                    </div>
-                    <button className="px-3 py-1 bg-yellow-600 text-white text-xs rounded">
-                      Pending
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">Patient discharge prep</p>
-                      <p className="text-xs text-gray-600">Room 105 - Due: 4:30 PM</p>
-                    </div>
-                    <button className="px-3 py-1 bg-green-600 text-white text-xs rounded">
-                      Ready
-                    </button>
-                  </div>
-                </div>
-              </div>
+              {/* Calendar Card */}
+              <ChartCard userRole="nurse" />
             </div>
           </div>
         );

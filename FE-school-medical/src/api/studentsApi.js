@@ -13,12 +13,12 @@ export const studentAPI = {
   },
 
   // Get all students (admin/nurse/manager only)
-  getAllStudents: async () => {
+  getAllStudents: async (page = 0, size = 10, sort = 'studentId,asc') => {
     try {
-      const response = await axiosInstance.get('/api/students?page=0&size=100');
+      const response = await axiosInstance.get(`/api/students?page=${page}&size=${size}&sort=${sort}`);
       console.log('getAllStudents response:', response.data);
-      // Handle paginated response - extract content array
-      return response.data.content || [];
+      // Handle paginated response - return the Page object directly
+      return response.data;
     } catch (error) {
       console.error('Error in getAllStudents:', error);
       if (error.response?.status === 401) {
@@ -26,23 +26,7 @@ export const studentAPI = {
         localStorage.removeItem('role');
         window.location.href = '/login';
       }
-      return []; // Return empty array on error
-    }
-  },
-
-  // Get students by parent ID (parent only)
-  getStudentsByParent: async (parentId) => {
-    try {
-      const response = await axiosInstance.get(`/api/students/parent/${parentId}`);
-      return Array.isArray(response.data) ? response.data : [];
-    } catch (error) {
-      console.error('Error in getStudentsByParent:', error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        window.location.href = '/login';
-      }
-      return [];
+      return { content: [], totalElements: 0, totalPages: 0 }; // Return empty page structure on error
     }
   },
 
@@ -52,7 +36,7 @@ export const studentAPI = {
       const userRole = localStorage.getItem('role');
       
       if (userRole === 'Parent') {
-        // Use the new /my endpoint that automatically filters by authenticated parent
+        // Use the /my endpoint that automatically filters by authenticated parent
         const response = await axiosInstance.get('/api/students/my');
         console.log('getMyStudents (parent) response:', response.data);
         return Array.isArray(response.data) ? response.data : [];
@@ -205,26 +189,18 @@ export const studentAPI = {
   // Get all students for nurse (nurse-specific endpoint if available)
   getAllStudentsForNurse: async () => {
     try {
-      // First try the nurse-specific endpoint
-      const response = await axiosInstance.get('/api/nurse/students');
-      console.log('getAllStudentsForNurse (nurse endpoint) response:', response.data);
-      return Array.isArray(response.data) ? response.data : response.data.content || [];
+      // Use the general students endpoint with pagination
+      const response = await axiosInstance.get('/api/students?page=0&size=100');
+      console.log('getAllStudentsForNurse response:', response.data);
+      return response.data.content || [];
     } catch (error) {
-      console.error('Nurse-specific endpoint failed, falling back to general students endpoint:', error);
-      try {
-        // Fallback to general students endpoint with pagination
-        const response = await axiosInstance.get('/api/students?page=0&size=100');
-        console.log('getAllStudentsForNurse (fallback) response:', response.data);
-        return response.data.content || [];
-      } catch (fallbackError) {
-        console.error('Error in getAllStudentsForNurse fallback:', fallbackError);
-        if (fallbackError.response?.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('role');
-          window.location.href = '/login';
-        }
-        return []; // Return empty array on error
+      console.error('Error in getAllStudentsForNurse:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
       }
+      return []; // Return empty array on error
     }
   },
 };

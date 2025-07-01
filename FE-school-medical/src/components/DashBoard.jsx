@@ -23,7 +23,7 @@ const Dashboard = ({ cardData, userRole = 'parent', customActions, activeMenu = 
       icon: Users,
     },
     {
-      title: 'Appointments Today',
+      title: 'Health Events Today',
       value: '89',
       change: '+5 from yesterday',
       changeType: 'positive',

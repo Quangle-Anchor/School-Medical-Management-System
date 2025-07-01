@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
+import ChartCard from '../../components/ChartCard';
 import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell } from 'lucide-react';
 
 const ManagerDashboard = () => {
@@ -389,27 +390,8 @@ const ManagerDashboard = () => {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold mb-4">Key Metrics</h2>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Patient Satisfaction</span>
-                    <span className="text-sm font-medium text-green-600">94%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Staff Retention</span>
-                    <span className="text-sm font-medium text-blue-600">92%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Cost Efficiency</span>
-                    <span className="text-sm font-medium text-green-600">87%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Quality Score</span>
-                    <span className="text-sm font-medium text-green-600">96%</span>
-                  </div>
-                </div>
-              </div>
+              {/* Calendar Card */}
+              <ChartCard userRole="manager" />
             </div>
           </div>
         );

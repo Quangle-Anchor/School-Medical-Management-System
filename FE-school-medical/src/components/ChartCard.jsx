@@ -1,22 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { healthEventAPI } from '../api/healthEventApi';
 
-// Sample health events data
-const healthEvents = {
-  '2025-06-05': [{ type: 'checkup', title: 'Annual Health Checkup' }],
-  '2025-06-12': [{ type: 'vaccination', title: 'COVID-19 Booster' }],
-  '2025-06-18': [{ type: 'treatment', title: 'Dental Cleaning' }],
-  '2025-06-25': [{ type: 'checkup', title: 'Eye Examination' }],
-  '2025-06-28': [{ type: 'vaccination', title: 'Flu Shot' }],
-  '2025-07-03': [{ type: 'checkup', title: 'Regular Checkup' }],
-  '2025-07-15': [{ type: 'treatment', title: 'Physical Therapy' }],
-};
-
-const ChartCard = ({ userRole = 'doctor' }) => {
+const ChartCard = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  
-  const isParentView = userRole === 'parent';
+  const [healthEvents, setHealthEvents] = useState({});
+  const [loading, setLoading] = useState(true);
 
   // Get current month and year
   const currentMonth = currentDate.getMonth();
@@ -27,6 +17,44 @@ const ChartCard = ({ userRole = 'doctor' }) => {
   const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
   const firstDayWeekday = firstDayOfMonth.getDay();
   const daysInMonth = lastDayOfMonth.getDate();
+
+  // Fetch health events when component mounts or month changes
+  useEffect(() => {
+    fetchHealthEvents();
+  }, [currentMonth, currentYear]);
+
+  const fetchHealthEvents = async () => {
+    try {
+      setLoading(true);
+      // Get events for the current month
+      const startDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
+      const endDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+      
+      const events = await healthEventAPI.getFutureEventsInRange(startDate, endDate);
+      
+      // Convert events array to date-keyed object for easy lookup
+      const eventsMap = {};
+      events.forEach(event => {
+        const dateKey = event.scheduleDate; // Already in YYYY-MM-DD format
+        if (!eventsMap[dateKey]) {
+          eventsMap[dateKey] = [];
+        }
+        eventsMap[dateKey].push({
+          type: event.category?.toLowerCase() || 'checkup',
+          title: event.title,
+          description: event.description,
+          id: event.eventId
+        });
+      });
+      
+      setHealthEvents(eventsMap);
+    } catch (error) {
+      console.error('Error fetching health events for calendar:', error);
+      setHealthEvents({});
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Days of the week
   const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -48,6 +76,22 @@ const ChartCard = ({ userRole = 'doctor' }) => {
   const getDateEvents = (day) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return healthEvents[dateStr] || [];
+  };
+
+  // Get event type color
+  const getEventColor = (type) => {
+    const colors = {
+      'vaccination': 'bg-blue-500',
+      'general checkup': 'bg-green-500', 
+      'dental': 'bg-purple-500',
+      'vision': 'bg-orange-500',
+      'physical': 'bg-red-500',
+      'mental health': 'bg-indigo-500',
+      'checkup': 'bg-green-500',
+      'treatment': 'bg-orange-500',
+      'default': 'bg-gray-500'
+    };
+    return colors[type] || colors.default;
   };
 
   // Check if date is today
@@ -97,16 +141,16 @@ const ChartCard = ({ userRole = 'doctor' }) => {
           </span>
           {hasEvents && (
             <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-1">
-              {events.map((event, idx) => (
+              {events.slice(0, 3).map((event, idx) => (
                 <div
                   key={idx}
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    event.type === 'checkup' ? 'bg-green-500' :
-                    event.type === 'vaccination' ? 'bg-blue-500' :
-                    'bg-orange-500'
-                  }`}
-                />
+                  className={`w-1.5 h-1.5 rounded-full ${getEventColor(event.type)}`}
+                  title={event.title}
+                ></div>
               ))}
+              {events.length > 3 && (
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-400" title={`+${events.length - 3} more`}></div>
+              )}
             </div>
           )}
         </div>
@@ -116,24 +160,6 @@ const ChartCard = ({ userRole = 'doctor' }) => {
     return days;
   };
 
-  // If not parent view, show original chart (simplified version)
-  if (!isParentView) {
-    return (
-      <div className="rounded-lg border border-border p-6 hover:shadow-md transition-shadow"
-       style={{
-        background: 'radial-gradient(at center, #E8FEFF, #FFFFFF)'
-      }}>
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-foreground">Patient Visits</h3>
-          <p className="text-sm text-muted-foreground">Monthly patient visits for this year</p>
-        </div>
-        <div className="h-80 flex items-center justify-center text-white">
-          <p>Chart view for medical staff</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow"
     style={{
@@ -142,7 +168,7 @@ const ChartCard = ({ userRole = 'doctor' }) => {
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-foreground">Calendar</h3>
         <p className="text-sm text-muted-foreground">
-          Health checkups and medical events for your child
+          Health events and medical appointments calendar
         </p>
       </div>
       

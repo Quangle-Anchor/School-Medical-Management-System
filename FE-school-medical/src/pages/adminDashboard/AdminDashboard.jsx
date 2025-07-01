@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
+import ChartCard from '../../components/ChartCard';
 import { Users, Settings, FileText, Bell, Activity, Stethoscope } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -240,27 +241,8 @@ const AdminDashboard = () => {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold mb-4">System Health</h2>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Database Performance</span>
-                    <span className="text-sm font-medium text-green-600">Excellent</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Server Uptime</span>
-                    <span className="text-sm font-medium text-green-600">99.9%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Memory Usage</span>
-                    <span className="text-sm font-medium text-yellow-600">75%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Disk Space</span>
-                    <span className="text-sm font-medium text-green-600">65%</span>
-                  </div>
-                </div>
-              </div>
+              {/* Calendar Card */}
+              <ChartCard userRole="admin" />
             </div>
           </div>
         );

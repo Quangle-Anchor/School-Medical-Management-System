@@ -3,6 +3,7 @@ import { User, Calendar, Phone, Mail, MapPin, Edit,
    Plus, Eye, Heart, FileText, Activity, X, Trash2 } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
 import AddStudentForm from './AddStudentForm';
+import AuthDebug from '../../components/AuthDebug'; // Add this for debugging
 
 
 const MyChildView = () => {
@@ -15,6 +16,8 @@ const MyChildView = () => {
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [showDebug, setShowDebug] = useState(false); // Add debug toggle state
+
   useEffect(() => {
     fetchStudents();
   }, []);const fetchStudents = async () => {
@@ -174,6 +177,23 @@ const MyChildView = () => {
 
   return (    <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
+        {/* Debug Toggle */}
+        <div className="mb-4">
+          <button
+            onClick={() => setShowDebug(!showDebug)}
+            className="px-3 py-1 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600"
+          >
+            {showDebug ? 'Hide Debug' : 'Show Debug Info'}
+          </button>
+        </div>
+
+        {/* Debug Panel */}
+        {showDebug && (
+          <div className="mb-6">
+            <AuthDebug />
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -520,6 +540,9 @@ const MyChildView = () => {
             isEditing={true}
           />
         )}
+
+        {/* Debugging Component - AuthDebug */}
+        {showDebug && <AuthDebug />}
       </div>
     </div>
   );

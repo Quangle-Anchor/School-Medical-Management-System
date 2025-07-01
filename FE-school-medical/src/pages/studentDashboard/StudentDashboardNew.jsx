@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
+import ChartCard from '../../components/ChartCard';
 import { Heart, Calendar, FileText, Bell, Activity, BookOpen } from 'lucide-react';
 
 const StudentDashboard = () => {
@@ -408,32 +409,8 @@ const StudentDashboard = () => {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold mb-4">Upcoming</h2>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Annual Health Checkup</p>
-                      <p className="text-xs text-gray-600">June 25, 2025 at 2:00 PM</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Tetanus Vaccination Due</p>
-                      <p className="text-xs text-gray-600">Next month</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Health Goal Review</p>
-                      <p className="text-xs text-gray-600">Weekly check-in</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Calendar Card */}
+              <ChartCard userRole="student" />
             </div>
           </div>
         );
