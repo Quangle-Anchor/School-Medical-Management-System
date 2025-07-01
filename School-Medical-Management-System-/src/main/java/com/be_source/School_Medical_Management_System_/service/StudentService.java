@@ -9,8 +9,8 @@ import java.util.List;
 public interface StudentService {
     Page<StudentResponse> getAllStudents(Pageable pageable);
     StudentResponse getStudentById(Long id);
-    List<StudentResponse> getStudentsByCurrentParent(String authHeader);
-    StudentResponse createStudent(StudentResponse dto, String authHeader);
+    List<StudentResponse> getStudentsByCurrentParent();
+    StudentResponse createStudent(StudentResponse dto);
     StudentResponse updateStudent(Long id, StudentResponse dto);
     void deleteStudent(Long id);
 }

@@ -21,19 +21,17 @@ public class MedicationRequestController {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping("/my")
-    public ResponseEntity<List<MedicationRequestResponse>> getMyRequests(
-            @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok(medicationRequestService.getMyRequests(authHeader));
+    public ResponseEntity<List<MedicationRequestResponse>> getMyRequests() {
+        return ResponseEntity.ok(medicationRequestService.getMyRequests());
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createMedicationRequest(
             @RequestPart("medicationRequest") String medicationRequestJson,
-            @RequestPart(value = "prescriptionFile", required = false) MultipartFile prescriptionFile,
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestPart(value = "prescriptionFile", required = false) MultipartFile prescriptionFile) {
         try {
             MedicationRequestRequest request = objectMapper.readValue(medicationRequestJson, MedicationRequestRequest.class);
-            medicationRequestService.create(request, prescriptionFile, authHeader);
+            medicationRequestService.create(request, prescriptionFile);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Invalid request data: " + e.getMessage());
@@ -44,11 +42,10 @@ public class MedicationRequestController {
     public ResponseEntity<?> updateMedicationRequest(
             @PathVariable Long id,
             @RequestPart("medicationRequest") String medicationRequestJson,
-            @RequestPart(value = "prescriptionFile", required = false) MultipartFile prescriptionFile,
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestPart(value = "prescriptionFile", required = false) MultipartFile prescriptionFile) {
         try {
             MedicationRequestRequest request = objectMapper.readValue(medicationRequestJson, MedicationRequestRequest.class);
-            MedicationRequestResponse updated = medicationRequestService.update(id, request, prescriptionFile, authHeader);
+            MedicationRequestResponse updated = medicationRequestService.update(id, request, prescriptionFile);
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Update failed: " + e.getMessage());
@@ -56,17 +53,15 @@ public class MedicationRequestController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteRequest(@PathVariable Long id,
-                                           @RequestHeader("Authorization") String authHeader) {
-        medicationRequestService.delete(id, authHeader);
+    public ResponseEntity<?> deleteRequest(@PathVariable Long id) {
+        medicationRequestService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/student/{studentId}/history")
     public ResponseEntity<List<MedicationRequestResponse>> getHistoryByStudent(
-            @PathVariable Long studentId,
-            @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok(medicationRequestService.getHistoryByStudent(studentId, authHeader));
+            @PathVariable Long studentId) {
+        return ResponseEntity.ok(medicationRequestService.getHistoryByStudent(studentId));
     }
 
     @GetMapping("/nurse/pending")

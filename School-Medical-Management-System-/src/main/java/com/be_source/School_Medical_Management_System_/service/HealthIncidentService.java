@@ -8,7 +8,7 @@ import java.util.List;
 public interface HealthIncidentService {
     List<HealthIncidentResponse> getAll();
     HealthIncidentResponse getById(Long id);
-    HealthIncidentResponse create(HealthIncidentRequest request, String authHeader);
+    HealthIncidentResponse create(HealthIncidentRequest request);
     HealthIncidentResponse update(Long id, HealthIncidentRequest request);
     void delete(Long id);
     List<HealthIncidentResponse> getByStudentId(Long studentId);

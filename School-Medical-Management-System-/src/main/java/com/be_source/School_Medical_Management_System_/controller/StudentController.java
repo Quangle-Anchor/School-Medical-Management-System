@@ -31,9 +31,8 @@ public class StudentController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<StudentResponse>> getMyStudents(
-            @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok(studentService.getStudentsByCurrentParent(authHeader));
+    public ResponseEntity<List<StudentResponse>> getMyStudents() {
+        return ResponseEntity.ok(studentService.getStudentsByCurrentParent());
     }
 
     @GetMapping("/{id}")
@@ -43,9 +42,8 @@ public class StudentController {
 
     @PostMapping
     public ResponseEntity<StudentResponse> createStudent(
-            @RequestBody StudentResponse student,
-            @RequestHeader("Authorization") String authHeader) {
-        StudentResponse created = studentService.createStudent(student, authHeader);
+            @RequestBody StudentResponse student) {
+        StudentResponse created = studentService.createStudent(student);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

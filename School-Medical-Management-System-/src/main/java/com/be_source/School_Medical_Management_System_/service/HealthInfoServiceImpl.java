@@ -86,8 +86,7 @@ public class HealthInfoServiceImpl implements HealthInfoService {
         entity.setAllergies(dto.getAllergies());
         entity.setNotes(dto.getNotes());
 
-
-        Long studentId = dto.getStudent() != null ? dto.getStudent().getStudentId() : null;
+        Long studentId = dto.getStudentId();
         if (studentId == null) {
             throw new RuntimeException("Student ID is missing in DTO");
         }
@@ -98,6 +97,7 @@ public class HealthInfoServiceImpl implements HealthInfoService {
 
         return entity;
     }
+
 
 
 }
