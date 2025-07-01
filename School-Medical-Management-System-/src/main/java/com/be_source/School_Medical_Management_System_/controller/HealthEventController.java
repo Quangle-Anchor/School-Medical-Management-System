@@ -41,4 +41,10 @@ public class HealthEventController {
         healthEventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/events/upcoming")
+    public ResponseEntity<List<HealthEventResponse>> getUpcomingEvents() {
+        List<HealthEventResponse> events = healthEventService.getUpcomingEvents();
+        return ResponseEntity.ok(events);
+    }
+
 }
