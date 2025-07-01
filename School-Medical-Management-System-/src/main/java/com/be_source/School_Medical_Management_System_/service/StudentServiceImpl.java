@@ -45,6 +45,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentResponse createStudent(StudentResponse dto) {
         Students student = toEntity(dto);
+        student.setStudentId(null);
         student.setParent(userUtilService.getCurrentUser());
         return toDto(studentRepository.save(student));
     }
