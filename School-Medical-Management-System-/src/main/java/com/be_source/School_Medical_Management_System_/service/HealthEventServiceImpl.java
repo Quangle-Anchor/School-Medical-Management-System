@@ -8,6 +8,7 @@ import com.be_source.School_Medical_Management_System_.repository.HealthEventRep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -70,11 +71,12 @@ public class HealthEventServiceImpl implements HealthEventService {
 
     @Override
     public List<HealthEventResponse> getUpcomingEvents() {
-        LocalDateTime now = LocalDateTime.now();
-        return healthEventRepository.findByScheduleDateAfter(now).stream()
+        LocalDate today = LocalDate.now();
+        return healthEventRepository.findByScheduleDateAfter(today).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
 
     private HealthEventResponse mapToResponse(HealthEvent event) {
         return HealthEventResponse.builder()
