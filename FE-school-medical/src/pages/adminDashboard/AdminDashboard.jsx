@@ -242,7 +242,7 @@ const AdminDashboard = () => {
               </div>
               
               {/* Calendar Card */}
-              <ChartCard userRole="admin" />
+              <ChartCard />
             </div>
           </div>
         );

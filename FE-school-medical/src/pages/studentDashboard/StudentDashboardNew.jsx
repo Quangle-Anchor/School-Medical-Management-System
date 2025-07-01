@@ -410,7 +410,7 @@ const StudentDashboard = () => {
               </div>
               
               {/* Calendar Card */}
-              <ChartCard userRole="student" />
+              <ChartCard />
             </div>
           </div>
         );

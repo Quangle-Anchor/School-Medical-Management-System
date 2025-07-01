@@ -159,12 +159,18 @@ export const healthEventAPI = {
     }
   },
 
-      // Get upcoming events (all future events)
+  // Get upcoming events (using backend endpoint)
   getUpcomingEvents: async () => {
     try {
-      return await healthEventAPI.getFutureEvents();
+      const response = await axiosInstance.get('/api/health-events/events/upcoming');
+      return response.data;
     } catch (error) {
       console.error('Error in getUpcomingEvents:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
       return [];
     }
   }

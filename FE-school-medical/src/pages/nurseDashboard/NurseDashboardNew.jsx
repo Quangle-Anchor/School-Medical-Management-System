@@ -10,6 +10,7 @@ import InventoryView from './InventoryView';
 import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell, Warehouse } from 'lucide-react';
 import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
 import { studentAPI } from '../../api/studentsApi';
+import { healthEventAPI } from '../../api/healthEventApi';
 
 const NurseDashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const NurseDashboard = () => {
   const [healthIncidents, setHealthIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
+  const [healthEvents, setHealthEvents] = useState([]);
   // Get current view from URL
   const getCurrentView = () => {
     const path = location.pathname;    
@@ -41,6 +43,7 @@ const NurseDashboard = () => {
   // Fetch health incidents on component mount
   useEffect(() => {
     fetchHealthIncidents();
+    fetchHealthEvents();
   }, []);
   // Fetch students on component mount  
   useEffect(() => {
@@ -64,7 +67,8 @@ const NurseDashboard = () => {
       console.log('Fetching students for nurse dashboard...');
       // Use getAllStudents to get all students in the database
       const studentsData = await studentAPI.getAllStudents();
-      console.log('Received students data:', studentsData, 'Type:', typeof studentsData, 'IsArray:', Array.isArray(studentsData));
+
+      
       setStudents(Array.isArray(studentsData) ? studentsData : []); // Ensure we always set an array
     } catch (error) {
       console.error('Error fetching students:', error);
@@ -85,6 +89,16 @@ const NurseDashboard = () => {
     }
   };
 
+  const fetchHealthEvents = async () => {
+    try {
+      const events = await healthEventAPI.getAllEvents(); // Get all events for nurse
+      setHealthEvents(events || []);
+    } catch (error) {
+      console.error('Error fetching health events:', error);
+      setHealthEvents([]);
+    }
+  };
+
   // Nurse dashboard data
   const nurseCardData = [
     {
@@ -95,9 +109,13 @@ const NurseDashboard = () => {
       icon: Users,
     },
     {
-      title: 'health-event',
-      value: '18',
-      change: '6 remaining today',
+      title: 'Health Events',
+      value: loading ? '...' : healthEvents.length.toString(),
+      change: `${healthEvents.filter(event => {
+        const today = new Date();
+        const eventDate = new Date(event.scheduleDate);
+        return eventDate.toDateString() === today.toDateString();
+      }).length} scheduled today`,
       changeType: 'neutral',
       icon: Calendar,
     },    {
@@ -117,39 +135,51 @@ const NurseDashboard = () => {
       case 'health-event':
         return (
           <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">health-event'</h1>
+            <h1 className="text-2xl font-bold mb-4">Health Events</h1>
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Today's Schedule</h2>
-              <p className="text-gray-600 mb-4">Manage today's health-event' and patient visits.</p>
-              <div className="space-y-3">
-                <div className="p-4 border-l-4 border-blue-500 bg-blue-50">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">9:00 AM - Health Checkup</h3>
-                      <p className="text-sm text-gray-600">Patient: John Smith</p>
-                    </div>
-                    <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">In Progress</span>
-                  </div>
+              <h2 className="text-lg font-semibold mb-4">All Scheduled Health Events</h2>
+              <p className="text-gray-600 mb-4">Manage all health events and appointments.</p>
+              {loading ? (
+                <div className="text-center py-4">Loading health events...</div>
+              ) : healthEvents.length === 0 ? (
+                <div className="text-center py-4 text-gray-600">No health events scheduled</div>
+              ) : (
+                <div className="space-y-3">
+                  {healthEvents.map((event, index) => {
+                    const eventDate = new Date(event.scheduleDate);
+                    const today = new Date();
+                    const isToday = eventDate.toDateString() === today.toDateString();
+                    const isPast = eventDate < today;
+                    const isFuture = eventDate > today;
+                    
+                    let statusColor = 'gray';
+                    let statusText = 'Scheduled';
+                    if (isPast) {
+                      statusColor = 'green';
+                      statusText = 'Completed';
+                    } else if (isToday) {
+                      statusColor = 'blue';
+                      statusText = 'Today';
+                    } else if (isFuture) {
+                      statusColor = 'yellow';
+                      statusText = 'Upcoming';
+                    }
+                    
+                    return (
+                      <div key={event.eventId || index} className={`p-4 border-l-4 border-${statusColor}-500 bg-${statusColor}-50`}>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-medium">{eventDate.toLocaleDateString()} - {event.eventName || 'Health Event'}</h3>
+                            <p className="text-sm text-gray-600">{event.description || 'No description available'}</p>
+                            <p className="text-xs text-gray-500">Location: {event.location || 'Not specified'}</p>
+                          </div>
+                          <span className={`px-2 py-1 bg-${statusColor}-600 text-white text-xs rounded`}>{statusText}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 border-l-4 border-green-500 bg-green-50">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">10:30 AM - Vaccination</h3>
-                      <p className="text-sm text-gray-600">Patient: Emma Johnson</p>
-                    </div>
-                    <span className="px-2 py-1 bg-green-600 text-white text-xs rounded">Completed</span>
-                  </div>
-                </div>
-                <div className="p-4 border-l-4 border-yellow-500 bg-yellow-50">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">2:00 PM - Follow-up</h3>
-                      <p className="text-sm text-gray-600">Patient: Michael Brown</p>
-                    </div>
-                    <span className="px-2 py-1 bg-yellow-600 text-white text-xs rounded">Upcoming</span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         );
@@ -275,6 +305,7 @@ const NurseDashboard = () => {
 
             {/* Patient Care Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ChartCard />
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-bold mb-4">Recent Patient Activities</h2>
                 <div className="space-y-3">
