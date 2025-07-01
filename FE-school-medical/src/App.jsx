@@ -17,6 +17,10 @@ import SignUp from "./pages/login/SignUp";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ForgotPassword from "./pages/forgotPassword/ForgotPassword";
+import ResetPassword from "./pages/forgotPassword/ResetPassword";
+import RecoverySuccess from "./pages/forgotPassword/RecoverySuccess";
+
 import backgroundImg from "./assets/img/back.png";
 
 function AppContent() {
@@ -67,17 +71,14 @@ function AppContent() {
     };  }, [lastScrollY, isNavbarVisible, isMouseNearTop, hideFooter]);
 
   return (
-    <div 
-      className="min-h-screen relative"
-    
-    >
+    <div className="min-h-screen relative">
       {/* Background overlay */}
       {/* <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div> */}
-      
+
       {/* Smart Navbar - always visible, but smart behavior only on non-login/signup pages */}
-      <div 
+      <div
         className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
-          (hideFooter || isNavbarVisible) ? 'translate-y-0' : '-translate-y-full'
+          hideFooter || isNavbarVisible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
         <Navbar />
@@ -85,71 +86,79 @@ function AppContent() {
 
       {/* Main content area with padding for navbar */}
       <div className="relative z-10 pt-16">
-        <Routes>        <Route path="/" element={<HomePage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/adminDashboard"
-          element={
-            <ProtectedRoute requiredRole="Admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/nurseDashboard/*"
-          element={
-            <ProtectedRoute requiredRole="Nurse">
-              <NurseDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/managerDashboard"
-          element={
-            <ProtectedRoute requiredRole="Manager">
-              <ManagerDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/parentDashboard/*"
-          element={
-            <ProtectedRoute requiredRole="Parent">
-              <ParentDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/studentDashboard"
-          element={
-            <ProtectedRoute requiredRole="Student">
-              <StudentDashboard />
-            </ProtectedRoute>
-          }
-        />
+        <Routes>
+          {" "}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/forgot-password/reset" element={<ResetPassword />} />
+          <Route
+            path="/forgot-password/success"
+            element={<RecoverySuccess />}
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/adminDashboard"
+            element={
+              <ProtectedRoute requiredRole="Admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/nurseDashboard/*"
+            element={
+              <ProtectedRoute requiredRole="Nurse">
+                <NurseDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/managerDashboard"
+            element={
+              <ProtectedRoute requiredRole="Manager">
+                <ManagerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parentDashboard/*"
+            element={
+              <ProtectedRoute requiredRole="Parent">
+                <ParentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/studentDashboard"
+            element={
+              <ProtectedRoute requiredRole="Student">
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-        
+
         {/* Footer - hidden on login/signup pages */}
         {!hideFooter && <Footer />}
       </div>
