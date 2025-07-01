@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { medicationAPI } from '../../api/medicationApi';
-import { Plus, Eye, Edit, Trash2, Clock, CheckCircle, XCircle, Pill, Calendar, User } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Clock, CheckCircle, XCircle, Pill, Calendar, User, FileText } from 'lucide-react';
 import MedicationRequestForm from '../../components/MedicationRequestForm';
+
+// Base URL for API - should match axiosInstance baseURL
+const API_BASE_URL = 'http://localhost:8080';
 
 const MyMedicationRequests = ({ onRequestAdded }) => {
   const [requests, setRequests] = useState([]);
@@ -11,6 +14,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
   const [editingRequest, setEditingRequest] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
   useEffect(() => {
     // Check if user is authenticated before fetching data
     const token = localStorage.getItem('token');
@@ -30,6 +34,51 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
     
     fetchMyRequests();
   }, []);
+
+  const handleViewPrescription = async (filename) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication required. Please login again.');
+        return;
+      }
+
+      // Make authenticated request to get the file
+      const response = await fetch(`${API_BASE_URL}/api/medications/prescription/${filename}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        // Get the blob data
+        const blob = await response.blob();
+        
+        // Create a URL for the blob and open it in a new tab
+        const url = window.URL.createObjectURL(blob);
+        const newTab = window.open(url, '_blank');
+        
+        // Clean up the URL after a short delay
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 1000);
+        
+        if (!newTab) {
+          alert('Please allow popups for this site to view prescription files.');
+        }
+      } else if (response.status === 401) {
+        setError('Session expired. Please login again.');
+      } else if (response.status === 403) {
+        setError('Access denied. You do not have permission to view this file.');
+      } else {
+        setError('Failed to load prescription file. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error viewing prescription:', error);
+      setError('Failed to load prescription file. Please try again.');
+    }
+  };
+
   const fetchMyRequests = async () => {
     try {
       setLoading(true);
@@ -140,6 +189,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="p-6">
@@ -217,6 +267,9 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                     Frequency
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Prescription
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -229,32 +282,32 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {requests.map((request) => (
-                  <tr key={request.requestId || request.request_id} className="hover:bg-gray-50">
+                  <tr key={request.requestId} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {request.student?.fullName || request.student?.full_name || 'Unknown Student'}
+                          {request.studentName || 'Unknown Student'}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {request.medicationName || request.medication_name}
+                          {request.medicationName}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{request.dosage}</div>
                       <div className="text-xs text-gray-500 space-y-1">
-                        {request.totalQuantity || request.total_quantity ? (
-                          <div>Total: {request.totalQuantity || request.total_quantity}</div>
+                        {request.totalQuantity ? (
+                          <div>Total: {request.totalQuantity}</div>
                         ) : null}
                         <div className="flex gap-2">
-                          {(request.morningQuantity || request.morning_quantity) ? (
-                            <span>M: {request.morningQuantity || request.morning_quantity}</span>
+                          {request.morningQuantity ? (
+                            <span>M: {request.morningQuantity}</span>
                           ) : null}
-                          {(request.noonQuantity || request.noon_quantity) ? (
-                            <span>A: {request.noonQuantity || request.noon_quantity}</span>
+                          {request.noonQuantity ? (
+                            <span>A: {request.noonQuantity}</span>
                           ) : null}
-                          {(request.eveningQuantity || request.evening_quantity) ? (
-                            <span>E: {request.eveningQuantity || request.evening_quantity}</span>
+                          {request.eveningQuantity ? (
+                            <span>E: {request.eveningQuantity}</span>
                           ) : null}
                         </div>
                       </div>
@@ -263,10 +316,23 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                       <div className="text-sm text-gray-900">{request.frequency}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(request.isConfirmed || request.is_confirmed, request.confirmedAt || request.confirmed_at)}
+                      {request.prescriptionFile ? (
+                        <button 
+                          onClick={() => handleViewPrescription(request.prescriptionFile)}
+                          className="text-blue-600 hover:text-blue-800 inline-flex items-center text-sm"
+                        >
+                          <FileText className="w-4 h-4 mr-1" />
+                          View
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-sm italic">None</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(request.isConfirmed, request.confirmedAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(request.createdAt || request.created_at)}
+                      {formatDate(request.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
@@ -277,7 +343,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </button>
-                        {!(request.isConfirmed || request.is_confirmed) && (
+                        {!request.isConfirmed && (
                           <>
                             <button
                               onClick={() => handleEditRequest(request)}
@@ -287,7 +353,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDeleteRequest(request.requestId || request.request_id)}
+                              onClick={() => handleDeleteRequest(request.requestId)}
                               className="text-red-600 hover:text-red-900 inline-flex items-center"
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
@@ -329,11 +395,11 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                 <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Student Name:</span>
-                    <span className="text-gray-900">{selectedRequest.student?.fullName || selectedRequest.student?.full_name || 'N/A'}</span>
+                    <span className="text-gray-900">{selectedRequest.studentName || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Student ID:</span>
-                    <span className="text-gray-900">{selectedRequest.student?.studentId || selectedRequest.student?.student_id || selectedRequest.studentId || selectedRequest.student_id || 'N/A'}</span>
+                    <span className="text-gray-900">{selectedRequest.studentId || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -347,7 +413,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                 <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Medication Name:</span>
-                    <span className="text-gray-900">{selectedRequest.medicationName || selectedRequest.medication_name}</span>
+                    <span className="text-gray-900">{selectedRequest.medicationName}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Dosage:</span>
@@ -361,18 +427,34 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                     <span className="font-medium text-gray-600">Total Quantity:</span>
                     <span className="text-gray-900">{selectedRequest.totalQuantity || selectedRequest.total_quantity || 'N/A'}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Prescription File:</span>
+                    <span className="text-gray-900">
+                      {selectedRequest.prescriptionFile ? (
+                        <button 
+                          onClick={() => handleViewPrescription(selectedRequest.prescriptionFile)}
+                          className="text-blue-600 hover:text-blue-800 underline inline-flex items-center"
+                        >
+                          <FileText className="w-4 h-4 mr-1" />
+                          View Prescription
+                        </button>
+                      ) : (
+                        <span className="text-gray-500 italic">No prescription file uploaded</span>
+                      )}
+                    </span>
+                  </div>
                   <div className="grid grid-cols-3 gap-4 mt-3">
                     <div className="text-center">
                       <span className="block text-sm font-medium text-gray-600">Morning</span>
-                      <span className="text-lg font-semibold text-blue-600">{selectedRequest.morningQuantity || selectedRequest.morning_quantity || 'N/A'}</span>
+                      <span className="text-lg font-semibold text-blue-600">{selectedRequest.morningQuantity || 'N/A'}</span>
                     </div>
                     <div className="text-center">
                       <span className="block text-sm font-medium text-gray-600">Afternoon</span>
-                      <span className="text-lg font-semibold text-orange-600">{selectedRequest.noonQuantity || selectedRequest.noon_quantity || 'N/A'}</span>
+                      <span className="text-lg font-semibold text-orange-600">{selectedRequest.noonQuantity || 'N/A'}</span>
                     </div>
                     <div className="text-center">
                       <span className="block text-sm font-medium text-gray-600">Evening</span>
-                      <span className="text-lg font-semibold text-purple-600">{selectedRequest.eveningQuantity || selectedRequest.evening_quantity || 'N/A'}</span>
+                      <span className="text-lg font-semibold text-purple-600">{selectedRequest.eveningQuantity || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -387,16 +469,16 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                 <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Status:</span>
-                    <span>{getStatusBadge(selectedRequest.isConfirmed || selectedRequest.is_confirmed, selectedRequest.confirmedAt || selectedRequest.confirmed_at)}</span>
+                    <span>{getStatusBadge(selectedRequest.isConfirmed, selectedRequest.confirmedAt)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Created:</span>
-                    <span className="text-gray-900">{formatDate(selectedRequest.createdAt || selectedRequest.created_at)}</span>
+                    <span className="text-gray-900">{formatDate(selectedRequest.createdAt)}</span>
                   </div>
-                  {(selectedRequest.confirmedAt || selectedRequest.confirmed_at) && (
+                  {selectedRequest.confirmedAt && (
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Confirmed:</span>
-                      <span className="text-gray-900">{formatDate(selectedRequest.confirmedAt || selectedRequest.confirmed_at)}</span>
+                      <span className="text-gray-900">{formatDate(selectedRequest.confirmedAt)}</span>
                     </div>
                   )}
                   {(selectedRequest.requestedBy || selectedRequest.requested_by) && (
@@ -416,7 +498,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
               >
                 Close
               </button>
-              {!(selectedRequest.isConfirmed || selectedRequest.is_confirmed) && (
+              {!selectedRequest.isConfirmed && (
                 <button
                   onClick={() => {
                     setShowDetailModal(false);
