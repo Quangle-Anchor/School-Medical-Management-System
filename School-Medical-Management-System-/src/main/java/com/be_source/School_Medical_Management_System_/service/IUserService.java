@@ -14,7 +14,7 @@ public interface IUserService {
     List<User> getAllUsers();
     Optional<User> getUserById(Long id);
     void deleteUser(Long id);
-    User getCurrentUser(String authHeader);
+    User getCurrentUser();
     UserProfileResponse updateProfile(String authHeader, UserProfileUpdateRequest request);
 
 }
