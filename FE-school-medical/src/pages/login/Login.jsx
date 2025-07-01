@@ -46,28 +46,28 @@ const LoginPage = () => {
       setError(err.response?.data || 'Login failed. Check credentials.');
     }
   };  return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{
         backgroundImage: `url(${backgroundImg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
       {/* Background overlay - removed backdrop-blur */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
-      
+
       {/* Glassmorphism container */}
       <div className="relative z-10 w-full max-w-md mx-4">
         <div className="backdrop-blur-lg bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-8">
           {/* Logo section */}
           <div className="text-center mb-8">
             <div className="inline-block p-3 bg-white/20 rounded-full backdrop-blur-sm mb-4">
-              <img 
-                alt="Logo" 
-                src={logo} 
-                className="h-16 w-16 rounded-full shadow-lg" 
+              <img
+                alt="Logo"
+                src={logo}
+                className="h-16 w-16 rounded-full shadow-lg"
               />
             </div>
             <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
@@ -85,18 +85,27 @@ const LoginPage = () => {
           )}
 
           {/* Form */}
-          <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-6">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+            className="space-y-6"
+          >
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-white/90 mb-2"
+              >
                 Email address
               </label>
-              <input 
-                id="email" 
-                name="email" 
-                type="email" 
-                required 
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
                 autoComplete="email"
-                value={email} 
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
                 placeholder="Enter your email"
@@ -104,16 +113,19 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-white/90 mb-2"
+              >
                 Password
               </label>
-              <input 
-                id="password" 
-                name="password" 
-                type="password" 
-                required 
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
                 autoComplete="current-password"
-                value={password} 
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
                 placeholder="Enter your password"
@@ -128,19 +140,25 @@ const LoginPage = () => {
                   type="checkbox"
                   className="h-4 w-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2"
                 />
-                <label htmlFor="remember-me" className="ml-2 text-sm text-white/80">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 text-sm text-white/80"
+                >
                   Remember me
                 </label>
               </div>
               <div className="text-sm">
-                <a href="#" className="text-blue-800 hover:text-blue-100 font-semibold transition-colors">
+                <Link
+                  to="/forgot-password"
+                  className="text-blue-600 hover:underline ml-2"
+                >
                   Forgot password?
-                </a>
+                </Link>
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 backdrop-blur-sm"
             >
               Sign In
@@ -149,8 +167,11 @@ const LoginPage = () => {
 
           <div className="mt-8 text-center">
             <p className="text-white/80 text-sm">
-              New here?{' '}
-              <Link to="/signup" className="text-blue-800 hover:text-blue-100 font-semibold transition-colors">
+              New here?{" "}
+              <Link
+                to="/signup"
+                className="text-blue-800 hover:text-blue-100 font-semibold transition-colors"
+              >
                 Create an account
               </Link>
             </p>
