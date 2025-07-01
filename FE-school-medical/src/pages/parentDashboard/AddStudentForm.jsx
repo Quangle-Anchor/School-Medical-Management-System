@@ -104,7 +104,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         savedStudent = await studentAPI.createStudent(studentData);
       }// Handle health info (for both create and update)
       const healthInfoData = {
-        student: { studentId: savedStudent.studentId },
+        studentId: savedStudent.studentId ,
         medicalConditions: formData.medicalConditions || null,
         allergies: formData.allergies || null,
         notes: formData.notes || null,
