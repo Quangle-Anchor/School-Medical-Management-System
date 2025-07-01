@@ -21,11 +21,12 @@ import {
 } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, activeMenu }) => {  // Different menu items based on user role
-  const getMenuItems = () => {    if (userRole === 'parent') {
+  const getMenuItems = () => {    
+    if (userRole === 'parent') {
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
         { id: 'my-child', icon: User, label: 'My Child' },
-        { id: 'appointments', icon: Calendar, label: 'Appointments' },
+        { id: 'health-event', icon: Calendar, label: 'Health Events' },
         { id: 'medical-records', icon: FileText, label: 'Medical Records' },
         { id: 'health-reports', icon: Heart, label: 'Health Reports' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
@@ -48,7 +49,7 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
         { id: 'students', icon: Users, label: 'Students' },
-        { id: 'appointments', icon: Calendar, label: 'Appointments' },
+        { id: 'health-events', icon: Calendar, label: 'Health Events' },
         { id: 'medical-records', icon: FileText, label: 'Medical Records' },
         { id: 'health-incidents', icon: AlertTriangle, label: 'Health Incidents' },
         { id: 'medication-requests', icon: Syringe, label: 'Medication Requests' },
@@ -75,16 +76,13 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
         { id: 'my-health', icon: Heart, label: 'My Health' },
-        { id: 'appointments', icon: Calendar, label: 'Appointments' },
+        { id: 'health-events', icon: Calendar, label: 'Health Events' },
         { id: 'health-records', icon: FileText, label: 'Health Records' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'health-tips', icon: BookOpen, label: 'Health Tips' },
         { id: 'settings', icon: Settings, label: 'Settings' },
       ];
     }
-    
-    // Log warning for unknown roles and return empty array
-    console.warn(`Unknown user role: ${userRole}`);
     return [];
   };  const handleLogout = () => {
     localStorage.removeItem('authToken');
