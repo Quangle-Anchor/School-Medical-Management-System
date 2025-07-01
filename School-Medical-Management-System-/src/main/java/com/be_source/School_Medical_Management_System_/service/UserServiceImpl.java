@@ -27,7 +27,8 @@ public class UserServiceImpl implements IUserService {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
     }
-
+    @Autowired
+    private UserUtilService userUtilService;
 
     @Override
     public User saveUser(User user) {
@@ -73,19 +74,15 @@ public class UserServiceImpl implements IUserService {
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
+
     @Override
-    public User getCurrentUser(String authHeader) {
-        if (authHeader.startsWith("Bearer ")) {
-            authHeader = authHeader.substring(7);
-        }
-        String email = jwtUtil.extractUsername(authHeader);
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    public User getCurrentUser() {
+        return userUtilService.getCurrentUser();
     }
 
     @Override
     public UserProfileResponse updateProfile(String token, UserProfileUpdateRequest request) {
-        User currentUser = getCurrentUser(token);
+        User currentUser = userUtilService.getCurrentUser();
 
         // Kiểm tra nếu email đã đổi và có email khác trùng
         if (!currentUser.getEmail().equals(request.getEmail())) {

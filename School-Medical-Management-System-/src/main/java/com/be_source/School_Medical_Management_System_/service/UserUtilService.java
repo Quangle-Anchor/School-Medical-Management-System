@@ -19,18 +19,8 @@ public class UserUtilService {
     @Autowired
     private UserRepository userRepository;
 
-    public User getCurrentUser(String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            String email = jwtUtil.extractUsername(token);
-            return userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        }
-        throw new RuntimeException("Authorization header invalid or missing");
-    }
-
-    public Long getCurrentUserId(String authHeader) {
-        return getCurrentUser(authHeader).getUserId();
+    public Long getCurrentUserId() {
+        return getCurrentUser().getUserId();
     }
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -17,8 +17,8 @@ public class UserController {
     private IUserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResponse> getProfile(@RequestHeader("Authorization") String authHeader) {
-        User user = userService.getCurrentUser(authHeader);
+    public ResponseEntity<UserProfileResponse> getProfile() {
+        User user = userService.getCurrentUser();
         return ResponseEntity.ok(UserMapper.toResponse(user));
     }
 
