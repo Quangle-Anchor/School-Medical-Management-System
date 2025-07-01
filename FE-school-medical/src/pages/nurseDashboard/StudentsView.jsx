@@ -86,17 +86,26 @@ const StudentsView = () => {
         const healthData = {};
         for (const student of response.data) {
           try {
-            const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(student.studentId);
+            // Handle both nested and flat student structures
+            const studentData = student.student || student;
+            const studentId = studentData.studentId;
+            
+            if (!studentId) {
+              console.warn('Student missing studentId:', studentData);
+              continue; // Skip this student
+            }
+            
+            const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(studentId);
             if (healthInfoResponse && healthInfoResponse.length > 0) {
               const health = healthInfoResponse[0];
-              healthData[student.studentId] = {
+              healthData[studentId] = {
                 medicalConditions: health.medicalConditions || 'None',
                 allergies: health.allergies || 'None',
                 notes: health.notes || '',
                 lastCheckup: health.updatedAt ? new Date(health.updatedAt).toLocaleDateString() : 'Not available'
               };
             } else {
-              healthData[student.studentId] = {
+              healthData[studentId] = {
                 medicalConditions: 'None',
                 allergies: 'None',
                 notes: '',
@@ -105,12 +114,15 @@ const StudentsView = () => {
             }
           } catch (error) {
             // Set default values if there's an error fetching health info
-            healthData[student.studentId] = {
-              medicalConditions: 'None',
-              allergies: 'None',
-              notes: '',
-              lastCheckup: 'Not available'
-            };
+            const studentId = (student.student?.studentId || student.studentId);
+            if (studentId) {
+              healthData[studentId] = {
+                medicalConditions: 'None',
+                allergies: 'None',
+                notes: '',
+                lastCheckup: 'Not available'
+              };
+            }
           }
         }
         setHealthInfo(healthData);
@@ -173,17 +185,22 @@ const StudentsView = () => {
 
   // Filter students based on search term and grade
   const filteredStudents = students.filter(student => {
-    const matchesSearch = student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.studentId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.className?.toLowerCase().includes(searchTerm.toLowerCase());
+    // Handle possible nested student object structure
+    const studentData = student.student || student;
     
-    const matchesGrade = filterGrade === '' || student.grade === filterGrade;
+    const matchesSearch = searchTerm === '' || (
+      (studentData.fullName && typeof studentData.fullName === 'string' && studentData.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (studentData.studentId && typeof studentData.studentId === 'string' && studentData.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (studentData.className && typeof studentData.className === 'string' && studentData.className.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+    
+    const matchesGrade = filterGrade === '' || studentData.grade === filterGrade;
     
     return matchesSearch && matchesGrade;
   });
 
   // Get unique grades for filter dropdown
-  const uniqueGrades = [...new Set(students.map(student => student.grade).filter(Boolean))].sort();
+  const uniqueGrades = [...new Set(students.map(student => (student.student?.grade || student.grade)).filter(Boolean))].sort();
 
   const handleViewPatient = (student) => {
     setSelectedPatient(student);
@@ -226,7 +243,8 @@ const StudentsView = () => {
     return age;
   };
   const handleEditPatient = (patient) => {
-    setEditingPatient(patient);
+    // Ensure we're working with the normalized student data format
+    setEditingPatient(getStudentData(patient));
     setShowAddForm(true); // Reuse the same form for editing
     setShowModal(false); // Close detail modal if open
   };
@@ -236,9 +254,10 @@ const StudentsView = () => {
       // Update local state
       if (editingPatient) {
         // Edit mode
-        setStudents(prev => prev.map(student => 
-          student.studentId === editingPatient.studentId ? updatedData : student
-        ));
+        setStudents(prev => prev.map(student => {
+          const studentData = getStudentData(student);
+          return studentData.studentId === editingPatient.studentId ? updatedData : student;
+        }));
       } else {
         // Add mode
         setStudents(prev => [...prev, updatedData]);
@@ -295,6 +314,11 @@ const StudentsView = () => {
   const cancelDeletePatient = () => {
     setShowDeleteModal(false);
     setPatientToDelete(null);
+  };
+
+  // Safely access student data (handles both flat and nested structures)
+  const getStudentData = (student) => {
+    return student?.student || student || {};
   };
 
   if (loading) {
