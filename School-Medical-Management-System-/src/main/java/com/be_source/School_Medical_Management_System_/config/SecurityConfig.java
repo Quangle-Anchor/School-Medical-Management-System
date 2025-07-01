@@ -71,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/parents/**","/api/medications/**").hasRole("PARENT")
                         .requestMatchers("/api/students/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
                         .requestMatchers("/api/health-info/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
+                        .requestMatchers("/api/medications/prescription/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
                         .requestMatchers("/api/medications/**").hasRole("PARENT")
                         .requestMatchers("/api/health-incidents/**").hasAnyRole("PRINCIPAL", "NURSE", "PARENT")
                         .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "PRINCIPAL", "NURSE", "PARENT")

@@ -38,14 +38,14 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
   useEffect(() => {
     if (isEditing && editingRequest) {
       setFormData({
-        studentId: editingRequest.student?.studentId || editingRequest.studentId || '',
-        medicationName: editingRequest.medicationName || editingRequest.medication_name || '',
+        studentId: editingRequest.studentId || '',
+        medicationName: editingRequest.medicationName || '',
         dosage: editingRequest.dosage || '',
         frequency: editingRequest.frequency || '',
-        totalQuantity: editingRequest.totalQuantity || editingRequest.total_quantity || '',
-        morningQuantity: editingRequest.morningQuantity || editingRequest.morning_quantity || '',
-        noonQuantity: editingRequest.noonQuantity || editingRequest.noon_quantity || '',
-        eveningQuantity: editingRequest.eveningQuantity || editingRequest.evening_quantity || '',
+        totalQuantity: editingRequest.totalQuantity || '',
+        morningQuantity: editingRequest.morningQuantity || '',
+        noonQuantity: editingRequest.noonQuantity || '',
+        eveningQuantity: editingRequest.eveningQuantity || '',
       });
     } else {
       setFormData({
@@ -131,16 +131,39 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
         return;
       }
 
+      // Validate studentId is a valid number
+      if (isNaN(parseInt(formData.studentId))) {
+        setError('Please select a valid student.');
+        setLoading(false);
+        return;
+      }
+
+      // Validate totalQuantity if provided
+      if (formData.totalQuantity && isNaN(parseInt(formData.totalQuantity))) {
+        setError('Total quantity must be a valid number.');
+        setLoading(false);
+        return;
+      }
+
       const medicationData = {
-        student: { studentId: formData.studentId },
+        studentId: parseInt(formData.studentId), // Convert to number
         medicationName: formData.medicationName,
         dosage: formData.dosage,
         frequency: formData.frequency,
-        totalQuantity: formData.totalQuantity || '',
-        morningQuantity: formData.morningQuantity || '',
-        noonQuantity: formData.noonQuantity || '',
-        eveningQuantity: formData.eveningQuantity || '',
+        totalQuantity: formData.totalQuantity ? parseInt(formData.totalQuantity) : null,
+        morningQuantity: formData.morningQuantity || null,
+        noonQuantity: formData.noonQuantity || null,
+        eveningQuantity: formData.eveningQuantity || null,
       };
+
+      // Remove null values to avoid sending them to backend
+      Object.keys(medicationData).forEach(key => {
+        if (medicationData[key] === null || medicationData[key] === '') {
+          delete medicationData[key];
+        }
+      });
+
+      console.log('Sending medication data:', medicationData);
 
       if (isEditing && editingRequest) {
         await medicationAPI.updateMedicationRequest(editingRequest.requestId, medicationData, prescriptionFile);
@@ -169,7 +192,10 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
       // Close modal
       onClose();
     } catch (err) {
-      if (err.message.includes('Authentication required') || err.message.includes('401')) {
+      console.error('Medication request error:', err);
+      if (err.response?.data) {
+        setError(`Server error: ${err.response.data}`);
+      } else if (err.message.includes('Authentication required') || err.message.includes('401')) {
         setError('Session expired. Please login again.');
       } else if (err.message.includes('403')) {
         setError('Access denied. Please check your permissions.');

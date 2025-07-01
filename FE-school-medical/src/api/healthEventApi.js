@@ -162,7 +162,7 @@ export const healthEventAPI = {
   // Get upcoming events (using backend endpoint)
   getUpcomingEvents: async () => {
     try {
-      const response = await axiosInstance.get('/api/health-events/events/upcoming');
+      const response = await axiosInstance.get('/api/health-events/upcoming');
       return response.data;
     } catch (error) {
       console.error('Error in getUpcomingEvents:', error);
