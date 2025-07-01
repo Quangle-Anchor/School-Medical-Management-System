@@ -391,7 +391,7 @@ const ManagerDashboard = () => {
               </div>
               
               {/* Calendar Card */}
-              <ChartCard userRole="manager" />
+              <ChartCard />
             </div>
           </div>
         );

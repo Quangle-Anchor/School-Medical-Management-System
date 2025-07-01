@@ -380,7 +380,7 @@ const ParentDashboardWrapper = () => {
             {/* Charts and Calendar Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Calendar Card */}
-              <ChartCard userRole="parent" />
+              <ChartCard />
               
               {/* Future Health Events */}
               <div className="bg-white rounded-lg border border-gray-200 p-6"
