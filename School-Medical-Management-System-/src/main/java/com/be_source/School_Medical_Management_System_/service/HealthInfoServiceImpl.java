@@ -86,10 +86,18 @@ public class HealthInfoServiceImpl implements HealthInfoService {
         entity.setAllergies(dto.getAllergies());
         entity.setNotes(dto.getNotes());
 
-        Students student = studentRepository.findById(dto.getStudentId())
+
+        Long studentId = dto.getStudent() != null ? dto.getStudent().getStudentId() : null;
+        if (studentId == null) {
+            throw new RuntimeException("Student ID is missing in DTO");
+        }
+
+        Students student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
         entity.setStudent(student);
 
         return entity;
     }
+
+
 }
