@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/health-events/**").hasAnyRole("PRINCIPAL")
                         .requestMatchers(HttpMethod.DELETE, "/api/health-events/**").hasAnyRole("PRINCIPAL")
 
+
                         //PHÂN QUYỀN CHO EventSignup
                         .requestMatchers(HttpMethod.POST, "/api/event-signups/**").hasRole("PARENT")
                         .requestMatchers(HttpMethod.GET, "/api/event-signups/my").hasRole("PARENT")
