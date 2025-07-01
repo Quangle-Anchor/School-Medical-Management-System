@@ -11,4 +11,6 @@ public interface HealthEventService {
     HealthEventResponse createEvent(HealthEventRequest request);
     HealthEventResponse updateEvent(Long id, HealthEventRequest request);
     void deleteEvent(Long id);
+    List<HealthEventResponse> getUpcomingEvents();
+
 }

@@ -79,4 +79,12 @@ public class HealthEventServiceImpl implements HealthEventService {
                 .createdBy(event.getCreatedBy().getFullName())
                 .build();
     }
+    @Override
+    public List<HealthEventResponse> getUpcomingEvents() {
+        LocalDateTime now = LocalDateTime.now();
+        return healthEventRepository.findByScheduleDateAfter(now).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
 }
