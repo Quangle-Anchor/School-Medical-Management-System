@@ -35,7 +35,7 @@ public class SecurityConfig {
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher("/api/auth/**", "/api/public/**","api/students/{id}", "api/students/{id}/health-info")
+                .securityMatcher("/api/auth/**", "/api/public/**")
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
