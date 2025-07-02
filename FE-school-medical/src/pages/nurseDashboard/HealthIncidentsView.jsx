@@ -61,7 +61,6 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
       }));
       
     } catch (error) {
-      console.error('Error enriching incident data:', error);
       // Return original data if enrichment fails
       return incidents.map(incident => ({
         ...incident,
@@ -87,24 +86,15 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
       }
       
       const response = await healthIncidentAPI.getAllHealthIncidents();
-      console.log('Health incidents response:', response);
       
       // Ensure we have the data in the correct format
       const rawData = Array.isArray(response) ? response : (response?.data || []);
-      console.log('Raw incident data before enrichment:', rawData);
       
       // Enrich incidents with additional student information
       const enrichedData = await enrichIncidentData(rawData);
-      console.log('Enriched incident data:', enrichedData);
-      
-      // Log a sample incident to see the data structure
-      if (enrichedData.length > 0) {
-        console.log('Sample enriched incident structure:', JSON.stringify(enrichedData[0], null, 2));
-      }
       
       setIncidents(enrichedData);
     } catch (err) {
-      console.error('Error fetching health incidents:', err);
       
       if (err.response?.status === 401) {
         setError('Session expired. Please login again.');
@@ -126,15 +116,12 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
       setError(null);
       
       const response = await healthIncidentAPI.getHealthIncidentsByStudent(studentId);
-      console.log('Student health incidents response:', response);
       
       // Ensure we have the data in the correct format
       const rawData = Array.isArray(response) ? response : (response?.data || []);
-      console.log('Raw student incident data:', rawData);
       
       // Enrich incidents with additional student information
       const enrichedData = await enrichIncidentData(rawData);
-      console.log('Enriched student incident data:', enrichedData);
       
       setIncidents(enrichedData);
     } catch (err) {
