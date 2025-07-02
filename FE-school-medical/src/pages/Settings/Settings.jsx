@@ -348,7 +348,7 @@ const Settings = () => {
                   </div>
                 )}
                 
-                {user.role === 'Manager' && (
+                {user.role === 'Principal' && (
                   <div className="p-4 bg-orange-50 rounded-lg">
                     <h3 className="font-medium text-orange-900 mb-2">Reporting & Analytics</h3>
                     <p className="text-sm text-orange-700">

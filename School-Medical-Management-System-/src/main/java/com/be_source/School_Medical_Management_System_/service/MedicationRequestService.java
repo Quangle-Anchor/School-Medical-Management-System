@@ -13,5 +13,6 @@ public interface MedicationRequestService {
     void delete(Long id);
     List<MedicationRequestResponse> getHistoryByStudent(Long studentId);
     List<MedicationRequestResponse> getUnconfirmedRequests();
+    List<MedicationRequestResponse> getAllRequests();
     void confirmRequest(Long id);
 }

@@ -77,6 +77,11 @@ public class MedicationRequestController {
         return ResponseEntity.ok(medicationRequestService.getUnconfirmedRequests());
     }
 
+    @GetMapping("/nurse/all")
+    public ResponseEntity<List<MedicationRequestResponse>> getAllRequests() {
+        return ResponseEntity.ok(medicationRequestService.getAllRequests());
+    }
+
     @PutMapping("/nurse/confirm/{id}")
     public ResponseEntity<?> confirmRequest(@PathVariable Long id) {
         medicationRequestService.confirmRequest(id);

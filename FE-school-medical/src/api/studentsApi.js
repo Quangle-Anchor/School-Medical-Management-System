@@ -12,7 +12,7 @@ export const studentAPI = {
     }
   },
 
-  // Get all students (admin/nurse/manager only)
+  // Get all students (admin/nurse/principal only)
   getAllStudents: async (page = 0, size = 10, sort = 'studentId,asc') => {
     try {
       const response = await axiosInstance.get(`/api/students?page=${page}&size=${size}&sort=${sort}`);

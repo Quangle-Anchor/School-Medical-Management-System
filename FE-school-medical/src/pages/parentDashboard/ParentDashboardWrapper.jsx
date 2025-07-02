@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/SideBar';
 import ChartCard from '../../components/ChartCard';
 import DashboardCard from '../../components/DashboardCard';
+import HealthEventsView from '../../components/HealthEventsView';
+import UpcomingHealthEventsCard from '../../components/UpcomingHealthEventsCard';
 import MyChildView from './MyChildView';
 import AddStudentForm from './AddStudentForm';
 import MyMedicationRequests from './MyMedicationRequests';
@@ -12,6 +14,7 @@ import { studentAPI } from '../../api/studentsApi';
 import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
 import { medicationAPI } from '../../api/medicationApi';
 import { healthEventAPI } from '../../api/healthEventApi';
+import { formatEventDate, getCategoryStyle, safeDisplay } from '../../utils/dashboardUtils';
 
 
 const ParentDashboardWrapper = () => {
@@ -23,7 +26,7 @@ const ParentDashboardWrapper = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [healthIncidentsCount, setHealthIncidentsCount] = useState(0);
   const [medicationRequestsCount, setMedicationRequestsCount] = useState(0);
-  const [futureHealthEvents, setFutureHealthEvents] = useState([]);
+  const [futureHealthEventsCount, setFutureHealthEventsCount] = useState(0);
 
   // Get current view from URL
   const getCurrentView = () => {
@@ -49,7 +52,7 @@ const ParentDashboardWrapper = () => {
   useEffect(() => {
     fetchStudents();
     fetchMedicationRequests();
-    fetchFutureHealthEvents();
+    fetchFutureHealthEventsCount();
   }, []);
 
   // Fetch health incidents after students are loaded
@@ -104,13 +107,13 @@ const ParentDashboardWrapper = () => {
     }
   };
 
-  const fetchFutureHealthEvents = async () => {
+  const fetchFutureHealthEventsCount = async () => {
     try {
       const events = await healthEventAPI.getUpcomingEvents(); // Get all upcoming events
-      setFutureHealthEvents(events || []);
+      setFutureHealthEventsCount(events ? events.length : 0);
     } catch (error) {
-      console.error('Error fetching future health events:', error);
-      setFutureHealthEvents([]);
+      console.error('Error fetching future health events count:', error);
+      setFutureHealthEventsCount(0);
     }
   };
   const handleStudentAdded = (newStudent) => {
@@ -171,7 +174,7 @@ const ParentDashboardWrapper = () => {
     },
     { 
       title: 'Upcoming Health Events', 
-      value: loading ? '...' : futureHealthEvents.length.toString(), 
+      value: loading ? '...' : futureHealthEventsCount.toString(), 
       change: 'Scheduled events',
       changeType: 'positive',
       icon: Calendar
@@ -195,33 +198,6 @@ const ParentDashboardWrapper = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Format date for display
-  const formatEventDate = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const diffTime = date.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Tomorrow';
-    if (diffDays < 7) return `In ${diffDays} days`;
-    if (diffDays < 30) return `In ${Math.ceil(diffDays / 7)} weeks`;
-    return date.toLocaleDateString();
-  };
-
-  // Get category icon and color
-  const getCategoryStyle = (category) => {
-    const styles = {
-      'Vaccination': { color: 'bg-blue-600', icon: '💉' },
-      'General Checkup': { color: 'bg-green-600', icon: '🩺' },
-      'Dental': { color: 'bg-purple-600', icon: '🦷' },
-      'Vision': { color: 'bg-orange-600', icon: '👁️' },
-      'Physical': { color: 'bg-red-600', icon: '🏃' },
-      'Mental Health': { color: 'bg-indigo-600', icon: '🧠' },
-      'default': { color: 'bg-gray-600', icon: '📅' }
-    };
-    return styles[category] || styles.default;
-  };
 // Content rendering in Siderbar
   const renderContent = () => {  
     switch (activeView) {
@@ -234,79 +210,7 @@ const ParentDashboardWrapper = () => {
           />
         );
       case 'health-event':
-        return (
-          <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-            {/* Header */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Health Events</h1>
-                  <p className="text-gray-600 mt-2">
-                    View upcoming health events and appointments for your children
-                  </p>
-                </div>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                  Filter Events
-                </button>
-              </div>
-            </div>
-
-            {/* Future Health Events List */}
-            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">Upcoming Health Events</h2>
-                <p className="text-sm text-gray-600 mt-1">Scheduled health events for your children</p>
-              </div>
-              
-              <div className="divide-y divide-gray-200">
-                {futureHealthEvents.length > 0 ? (
-                  futureHealthEvents.map((event, index) => {
-                    const categoryStyle = getCategoryStyle(event.category);
-                    return (
-                      <div key={index} className="p-6 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-start space-x-4">
-                          <div className={`w-12 h-12 ${categoryStyle.color} rounded-lg flex items-center justify-center text-white text-lg font-semibold`}>
-                            {categoryStyle.icon}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h3 className="text-lg font-medium text-gray-900">{event.title}</h3>
-                                <p className="text-sm text-gray-600 mt-1">{event.description}</p>
-                                <div className="flex items-center space-x-4 mt-2">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {event.category}
-                                  </span>
-                                  <span className="text-sm text-gray-500">
-                                    Created by {event.createdBy}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-lg font-semibold text-gray-900">
-                                  {formatEventDate(event.scheduleDate)}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {new Date(event.scheduleDate).toLocaleDateString()}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="p-12 text-center">
-                    <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No upcoming health events</h3>
-                    <p className="text-gray-600">Health events will appear here when they are scheduled by healthcare staff.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );      
+        return <HealthEventsView userRole="parent" />;      
 
         
         case 'medical-records':
@@ -380,55 +284,13 @@ const ParentDashboardWrapper = () => {
             {/* Charts and Calendar Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Calendar Card */}
-              <ChartCard />
+              <ChartCard userRole="parent" />
               
-              {/* Future Health Events */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6"
-                style={{
-        background: 'radial-gradient(at center, #E8FEFF, #FFFFFF)'
-      }}>
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Upcoming Health Events</h3>
-                  <p className="text-sm text-gray-600">
-                    Scheduled health events for your child
-                  </p>
-                </div>
-                <div className="space-y-4">
-                  {futureHealthEvents.length > 0 ? (
-                    futureHealthEvents.slice(0, 4).map((event, index) => {
-                      const categoryStyle = getCategoryStyle(event.category);
-                      return (
-                        <div key={index} className="flex items-center space-x-3 p-3 rounded-md hover:bg-white/20 transition-colors">
-                          <div className={`w-8 h-8 ${categoryStyle.color} rounded-full flex items-center justify-center text-white text-xs font-semibold`}>
-                            {categoryStyle.icon}
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">{event.title}</p>
-                            <p className="text-xs text-gray-600">{event.category}</p>
-                            <p className="text-xs text-gray-500">{formatEventDate(event.scheduleDate)}</p>
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="text-center py-8">
-                      <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-sm text-gray-500">No upcoming health events</p>
-                      <p className="text-xs text-gray-400">Health events will appear here when scheduled</p>
-                    </div>
-                  )}
-                  {futureHealthEvents.length > 4 && (
-                    <div className="text-center pt-2">
-                      <button 
-                        onClick={() => handleMenuClick('health-event')}
-                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        View all {futureHealthEvents.length} events →
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Upcoming Health Events */}
+              <UpcomingHealthEventsCard 
+                userRole="parent"
+                onViewAll={() => handleMenuClick('health-event')}
+              />
             </div>
           </div>
         );

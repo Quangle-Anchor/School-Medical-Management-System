@@ -40,9 +40,9 @@ export const inventoryAPI = {
     try {
       const { token, role } = checkAuth();
       
-      // Check if user has permission to add inventory (backend expects NURSE and PRINCIPAL, also allowing Manager and Admin)
-      if (!['Nurse', 'Principal', 'Manager', 'Admin'].includes(role)) {
-        throw new Error(`Role ${role} is not authorized to add inventory items. Allowed: Nurse, Principal, Manager, Admin`);
+      // Check if user has permission to add inventory (backend expects NURSE and PRINCIPAL, also allowing Admin)
+      if (!['Nurse', 'Principal', 'Admin'].includes(role)) {
+        throw new Error(`Role ${role} is not authorized to add inventory items. Allowed: Nurse, Principal, Admin`);
       }
       
       // Step 1: Create the medical item first
@@ -86,9 +86,9 @@ export const inventoryAPI = {
     try {
       const { token, role } = checkAuth();
       
-      // Check if user has permission to update inventory (allowing Nurse, Principal, Manager, and Admin)
-      if (!['Nurse', 'Principal', 'Manager', 'Admin'].includes(role)) {
-        throw new Error(`Only Nurse, Principal, Manager, Admin roles are authorized to update inventory items. Your role: ${role}`);
+      // Check if user has permission to update inventory (allowing Nurse, Principal, and Admin)
+      if (!['Nurse', 'Principal', 'Admin'].includes(role)) {
+        throw new Error(`Only Nurse, Principal, Admin roles are authorized to update inventory items. Your role: ${role}`);
       }
       
       // Get current inventory to find the itemId
@@ -142,9 +142,9 @@ export const inventoryAPI = {
     try {
       const { token, role } = checkAuth();
       
-      // Check if user has permission to delete inventory (allowing Nurse, Principal, Manager, and Admin)
-      if (!['Nurse', 'Principal', 'Manager', 'Admin'].includes(role)) {
-        throw new Error(`Role ${role} is not authorized to delete inventory items. Allowed: Nurse, Principal, Manager, Admin`);
+      // Check if user has permission to delete inventory (allowing Nurse, Principal, and Admin)
+      if (!['Nurse', 'Principal', 'Admin'].includes(role)) {
+        throw new Error(`Role ${role} is not authorized to delete inventory items. Allowed: Nurse, Principal, Admin`);
       }
       
       const response = await axiosInstance.delete(`/api/inventory/${id}`);

@@ -29,11 +29,13 @@ const StudentsView = () => {
       setError('No authentication token found. Please login.');
       setLoading(false);
       return;
-    }      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager' && role !== 'Principal') {
-        setError('Access denied. Only nurses, admins, managers, and principals can view all students.');
-        setLoading(false);
-        return;
-      }
+    }
+    
+    if (role !== 'Nurse' && role !== 'Admin' && role !== 'Principal') {
+      setError('Access denied. Only nurses, admins, and principals can view all students.');
+      setLoading(false);
+      return;
+    }
     
     fetchAllStudents();
   }, []);
@@ -51,7 +53,7 @@ const StudentsView = () => {
         return;
       }
       
-      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager' && role !== 'Principal') {
+      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Principal') {
         setError('Access denied. You do not have permission to view all students.');
         return;
       }
@@ -59,15 +61,24 @@ const StudentsView = () => {
       let response;
       try {
         // First, try the standard endpoint
-        response = await studentAPI.getAllStudents();        } catch (firstError) {
+        response = await studentAPI.getAllStudents();
+      } catch (firstError) {
         if (role === 'Nurse') {
           try {
             // Try nurse-specific endpoint
             response = await studentAPI.getAllStudentsForNurse();
+            // Convert array response to page-like structure for consistency
+            if (Array.isArray(response)) {
+              response = { content: response, totalElements: response.length };
+            }
           } catch (secondError) {
             try {
               // Try getMyStudents as last resort
               response = await studentAPI.getMyStudents();
+              // Convert array response to page-like structure for consistency
+              if (Array.isArray(response)) {
+                response = { content: response, totalElements: response.length };
+              }
             } catch (thirdError) {
               // If all fail, throw the original error
               throw firstError;
@@ -79,80 +90,57 @@ const StudentsView = () => {
         }
       }
       
-      if (response && response.data) {
-        setStudents(response.data);
-        
-        // Fetch health info for each student
-        const healthData = {};
-        for (const student of response.data) {
-          try {
-            // Handle both nested and flat student structures
-            const studentData = student.student || student;
-            const studentId = studentData.studentId;
-            
-            if (!studentId) {
-              console.warn('Student missing studentId:', studentData);
-              continue; // Skip this student
-            }
-            
-            const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(studentId);
-            if (healthInfoResponse && healthInfoResponse.length > 0) {
-              const health = healthInfoResponse[0];
-              healthData[studentId] = {
-                medicalConditions: health.medicalConditions || 'None',
-                allergies: health.allergies || 'None',
-                notes: health.notes || '',
-                lastCheckup: health.updatedAt ? new Date(health.updatedAt).toLocaleDateString() : 'Not available'
-              };
-            } else {
-              healthData[studentId] = {
-                medicalConditions: 'None',
-                allergies: 'None',
-                notes: '',
-                lastCheckup: 'Not available'
-              };
-            }
-          } catch (error) {
-            // Set default values if there's an error fetching health info
-            const studentId = (student.student?.studentId || student.studentId);
-            if (studentId) {
-              healthData[studentId] = {
-                medicalConditions: 'None',
-                allergies: 'None',
-                notes: '',
-                lastCheckup: 'Not available'
-              };
-            }
+      // Handle the response structure properly
+      let studentsData = [];
+      if (response && response.content) {
+        // Paginated response
+        studentsData = response.content;
+      } else if (Array.isArray(response)) {
+        // Direct array response
+        studentsData = response;
+      } else {
+        console.warn('Unexpected response structure:', response);
+        studentsData = [];
+      }
+      
+      console.log('Students data:', studentsData);
+      setStudents(studentsData);
+      
+      // Fetch health info for each student
+      const healthData = {};
+      for (const student of studentsData) {
+        try {
+          // Handle both nested and flat student structures
+          const studentData = student.student || student;
+          const studentId = studentData.studentId;
+          
+          if (!studentId) {
+            console.warn('Student missing studentId:', studentData);
+            continue; // Skip this student
           }
-        }
-        setHealthInfo(healthData);
-      } else if (response && Array.isArray(response)) {
-        setStudents(response);
-        
-        // Fetch health info for each student
-        const healthData = {};
-        for (const student of response) {
-          try {
-            const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(student.studentId);
-            if (healthInfoResponse && healthInfoResponse.length > 0) {
-              const health = healthInfoResponse[0];
-              healthData[student.studentId] = {
-                medicalConditions: health.medicalConditions || 'None',
-                allergies: health.allergies || 'None',
-                notes: health.notes || '',
-                lastCheckup: health.updatedAt ? new Date(health.updatedAt).toLocaleDateString() : 'Not available'
-              };
-            } else {
-              healthData[student.studentId] = {
-                medicalConditions: 'None',
-                allergies: 'None',
-                notes: '',
-                lastCheckup: 'Not available'
-              };
-            }
-          } catch (error) {
-            // Set default values if there's an error fetching health info
-            healthData[student.studentId] = {
+          
+          const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(studentId);
+          if (healthInfoResponse && healthInfoResponse.length > 0) {
+            const health = healthInfoResponse[0];
+            healthData[studentId] = {
+              medicalConditions: health.medicalConditions || 'None',
+              allergies: health.allergies || 'None',
+              notes: health.notes || '',
+              lastCheckup: health.updatedAt ? new Date(health.updatedAt).toLocaleDateString() : 'Not available'
+            };
+          } else {
+            healthData[studentId] = {
+              medicalConditions: 'None',
+              allergies: 'None',
+              notes: '',
+              lastCheckup: 'Not available'
+            };
+          }
+        } catch (error) {
+          // Set default values if there's an error fetching health info
+          const studentId = (student.student?.studentId || student.studentId);
+          if (studentId) {
+            healthData[studentId] = {
               medicalConditions: 'None',
               allergies: 'None',
               notes: '',
@@ -160,12 +148,8 @@ const StudentsView = () => {
             };
           }
         }
-        setHealthInfo(healthData);
-      } else {
-        // Unexpected API response format, use empty array
-        setStudents([]);
-        setHealthInfo({});
       }
+      setHealthInfo(healthData);
     } catch (err) {
       if (err.message.includes('Authentication required') || err.message.includes('401')) {
         setError('Session expired. Please login again.');
@@ -194,14 +178,10 @@ const StudentsView = () => {
       (studentData.className && typeof studentData.className === 'string' && studentData.className.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     
-    const matchesGrade = filterGrade === '' || studentData.grade === filterGrade;
-    
-    return matchesSearch && matchesGrade;
+    return matchesSearch; // && matchesGrade;
   });
 
-  // Get unique grades for filter dropdown
-  const uniqueGrades = [...new Set(students.map(student => (student.student?.grade || student.grade)).filter(Boolean))].sort();
-
+ 
   const handleViewPatient = (student) => {
     setSelectedPatient(student);
     setShowModal(true);
@@ -393,21 +373,6 @@ const StudentsView = () => {
             />
           </div>
 
-          {/* Grade Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <select
-              value={filterGrade}
-              onChange={(e) => setFilterGrade(e.target.value)}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[150px]"
-            >
-              <option value="">All Grades</option>
-              {uniqueGrades.map(grade => (
-                <option key={grade} value={grade}>Grade {grade}</option>
-              ))}
-            </select>
-          </div>
-
           {/* Results Count */}
           <div className="flex items-center text-sm text-gray-600">
             Showing {filteredStudents.length} of {students.length} patients
@@ -425,7 +390,7 @@ const StudentsView = () => {
                   Patient Info
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Academic Info
+                  Class Info
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Health Status
@@ -450,69 +415,73 @@ const StudentsView = () => {
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((student, index) => (
-                  <tr key={student.studentId || `student-${index}`} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-blue-800">
-                              {student.fullName?.charAt(0) || 'N'}
-                            </span>
+                filteredStudents.map((student, index) => {
+                  const studentData = getStudentData(student);
+                  return (
+                    <tr key={studentData.studentId || `student-${index}`} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-sm font-medium text-blue-800">
+                                {studentData.fullName?.charAt(0) || 'N'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {studentData.fullName || 'Unknown'}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              ID: {studentData.studentId || 'N/A'}
+                            </div>
                           </div>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {student.fullName || 'Unknown'}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            ID: {student.studentId || 'N/A'}
-                          </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {studentData.className || 'N/A'}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {student.className || 'N/A'}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Grade {student.grade || 'N/A'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getHealthStatusColor(student.healthStatus)}`}>
-                        {student.healthStatus || 'Unknown'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(student.updatedAt)}
-                    </td>                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleViewPatient(student)}
-                          className="text-blue-600 hover:text-blue-900 inline-flex items-center"
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleEditPatient(student)}
-                          className="text-green-600 hover:text-green-900 inline-flex items-center"
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeletePatient(student)}
-                          className="text-red-600 hover:text-red-900 inline-flex items-center"
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                        {/* Remove grade display since we're removing the grade field */}
+                        {/* <div className="text-sm text-gray-500">
+                          Grade {studentData.grade || 'N/A'}
+                        </div> */}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getHealthStatusColor(studentData.healthStatus)}`}>
+                          {studentData.healthStatus || 'Unknown'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(studentData.updatedAt)}
+                      </td>                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleViewPatient(studentData)}
+                            className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleEditPatient(studentData)}
+                            className="text-green-600 hover:text-green-900 inline-flex items-center"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeletePatient(studentData)}
+                            className="text-red-600 hover:text-red-900 inline-flex items-center"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -521,140 +490,148 @@ const StudentsView = () => {
       {showModal && selectedPatient && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">{selectedPatient.fullName}</h2>
-              <button
-                onClick={closeModal}
-                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            {(() => {
+              const patientData = getStudentData(selectedPatient);
+              return (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">{patientData.fullName || 'Unknown'}</h2>
+                    <button
+                      onClick={closeModal}
+                      className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Personal Information */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg border-b pb-2 flex items-center">
-                  <User className="w-5 h-5 mr-2" />
-                  Personal Information
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Full Name:</span>
-                    <span className="text-gray-900">{selectedPatient.fullName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Date of Birth:</span>
-                    <span className="text-gray-900">{formatDate(selectedPatient.dateOfBirth)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Age:</span>
-                    <span className="text-gray-900">{calculateAge(selectedPatient.dateOfBirth)} years</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Gender:</span>
-                    <span className="text-gray-900">{selectedPatient.gender || 'Not specified'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Student ID:</span>
-                    <span className="text-gray-900">{selectedPatient.studentId}</span>
-                  </div>
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Personal Information */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-lg border-b pb-2 flex items-center">
+                        <User className="w-5 h-5 mr-2" />
+                        Personal Information
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Full Name:</span>
+                          <span className="text-gray-900">{patientData.fullName || 'Not specified'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Date of Birth:</span>
+                          <span className="text-gray-900">{formatDate(patientData.dateOfBirth)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Age:</span>
+                          <span className="text-gray-900">{calculateAge(patientData.dateOfBirth)} years</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Gender:</span>
+                          <span className="text-gray-900">{patientData.gender || 'Not specified'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Student ID:</span>
+                          <span className="text-gray-900">{patientData.studentId || 'N/A'}</span>
+                        </div>
+                      </div>
 
-                {/* Academic Information */}
-                <h3 className="font-semibold text-lg border-b pb-2 mt-6 flex items-center">
-                  <FileText className="w-5 h-5 mr-2" />
-                  Academic Information
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Class:</span>
-                    <span className="text-gray-900">{selectedPatient.className || 'Not assigned'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Grade:</span>
-                    <span className="text-gray-900">Grade {selectedPatient.grade || 'N/A'}</span>
-                  </div>
-                </div>
-              </div>
+                      {/* Class Information */}
+                      <h3 className="font-semibold text-lg border-b pb-2 mt-6 flex items-center">
+                        <FileText className="w-5 h-5 mr-2" />
+                        Class Information
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Class:</span>
+                          <span className="text-gray-900">{patientData.className || 'Not assigned'}</span>
+                        </div>
 
-              {/* Health Information */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg border-b pb-2 flex items-center">
-                  <Heart className="w-5 h-5 mr-2" />
-                  Health Information
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Health Status:</span>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getHealthStatusColor(selectedPatient.healthStatus)}`}>
-                      {selectedPatient.healthStatus || 'Unknown'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Blood Type:</span>
-                    <span className="text-gray-900">{selectedPatient.bloodType || 'Not specified'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Height:</span>
-                    <span className="text-gray-900">{selectedPatient.heightCm ? `${selectedPatient.heightCm} cm` : 'Not specified'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Weight:</span>
-                    <span className="text-gray-900">{selectedPatient.weightKg ? `${selectedPatient.weightKg} kg` : 'Not specified'}</span>
-                  </div>                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Medical Conditions:</span>
-                    <span className="text-gray-900">{healthInfo[selectedPatient.studentId]?.medicalConditions || selectedPatient.medicalConditions || 'None reported'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Allergies:</span>
-                    <span className="text-gray-900">{healthInfo[selectedPatient.studentId]?.allergies || selectedPatient.allergies || 'None reported'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Last Checkup:</span>
-                    <span className="text-gray-900">{healthInfo[selectedPatient.studentId]?.lastCheckup || 'Not available'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Last Updated:</span>
-                    <span className="text-gray-900">{formatDate(selectedPatient.updatedAt)}</span>
-                  </div>
-                </div>                {/* Additional Health Notes */}
-                {healthInfo[selectedPatient.studentId]?.notes && (
-                  <div className="mt-4">
-                    <h4 className="font-medium text-gray-700 mb-2">Additional Notes:</h4>
-                    <div className="p-3 bg-gray-50 rounded-md border">
-                      <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                        {healthInfo[selectedPatient.studentId].notes}
-                      </p>
+                      </div>
+                    </div>
+
+                    {/* Health Information */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-lg border-b pb-2 flex items-center">
+                        <Heart className="w-5 h-5 mr-2" />
+                        Health Information
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Health Status:</span>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getHealthStatusColor(patientData.healthStatus)}`}>
+                            {patientData.healthStatus || 'Unknown'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Blood Type:</span>
+                          <span className="text-gray-900">{patientData.bloodType || 'Not specified'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Height:</span>
+                          <span className="text-gray-900">{patientData.heightCm ? `${patientData.heightCm} cm` : 'Not specified'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Weight:</span>
+                          <span className="text-gray-900">{patientData.weightKg ? `${patientData.weightKg} kg` : 'Not specified'}</span>
+                        </div>                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Medical Conditions:</span>
+                          <span className="text-gray-900">{healthInfo[patientData.studentId]?.medicalConditions || patientData.medicalConditions || 'None reported'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Allergies:</span>
+                          <span className="text-gray-900">{healthInfo[patientData.studentId]?.allergies || patientData.allergies || 'None reported'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Last Checkup:</span>
+                          <span className="text-gray-900">{healthInfo[patientData.studentId]?.lastCheckup || 'Not available'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Last Updated:</span>
+                          <span className="text-gray-900">{formatDate(patientData.updatedAt)}</span>
+                        </div>
+                      </div>
+
+                      {/* Additional Health Notes */}
+                      {healthInfo[patientData.studentId]?.notes && (
+                        <div className="mt-4">
+                          <h4 className="font-medium text-gray-700 mb-2">Additional Notes:</h4>
+                          <div className="p-3 bg-gray-50 rounded-md border">
+                            <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                              {healthInfo[patientData.studentId].notes}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
-              </div>
-            </div>            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  closeModal();
-                  handleDeletePatient(selectedPatient);
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Patient
-              </button>
-              <button
-                onClick={() => handleEditPatient(selectedPatient)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Information
-              </button>
-            </div>
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      onClick={closeModal}
+                      className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={() => {
+                        closeModal();
+                        handleDeletePatient(patientData);
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Patient
+                    </button>
+                    <button
+                      onClick={() => handleEditPatient(patientData)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Information
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}      {/* Add/Edit Patient Form Modal */}
@@ -672,60 +649,67 @@ const StudentsView = () => {
       {showDeleteModal && patientToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Confirm Deletion</h3>
-              <button
-                onClick={cancelDeletePatient}
-                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-                disabled={deleting}
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="mb-6">
-              <div className="flex items-center mb-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                  <Trash2 className="w-5 h-5 text-red-600" />
-                </div>
-                <div className="ml-4">
-                  <h4 className="text-sm font-medium text-gray-900">Delete Patient</h4>
-                  <p className="text-sm text-gray-500">This action cannot be undone</p>
-                </div>
-              </div>
-              
-              <p className="text-sm text-gray-700">
-                Are you sure you want to delete <strong>{patientToDelete.fullName}</strong> (ID: {patientToDelete.studentId})?
-                This will permanently remove all patient data and health records.
-              </p>
-            </div>
-            
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={cancelDeletePatient}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                disabled={deleting}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDeletePatient}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center"
-                disabled={deleting}
-              >
-                {deleting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Patient
-                  </>
-                )}
-              </button>
-            </div>
+            {(() => {
+              const patientData = getStudentData(patientToDelete);
+              return (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Confirm Deletion</h3>
+                    <button
+                      onClick={cancelDeletePatient}
+                      className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                      disabled={deleting}
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <div className="flex items-center mb-4">
+                      <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                        <Trash2 className="w-5 h-5 text-red-600" />
+                      </div>
+                      <div className="ml-4">
+                        <h4 className="text-sm font-medium text-gray-900">Delete Patient</h4>
+                        <p className="text-sm text-gray-500">This action cannot be undone</p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-700">
+                      Are you sure you want to delete <strong>{patientData.fullName || 'Unknown'}</strong> (ID: {patientData.studentId || 'N/A'})?
+                      This will permanently remove all patient data and health records.
+                    </p>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      onClick={cancelDeletePatient}
+                      className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                      disabled={deleting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmDeletePatient}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center"
+                      disabled={deleting}
+                    >
+                      {deleting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Patient
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

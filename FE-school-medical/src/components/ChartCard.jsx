@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { healthEventAPI } from '../api/healthEventApi';
 
-const ChartCard = () => {
+const ChartCard = ({ userRole = 'parent' }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [healthEvents, setHealthEvents] = useState({});
@@ -21,7 +21,7 @@ const ChartCard = () => {
   // Fetch health events when component mounts or month changes
   useEffect(() => {
     fetchHealthEvents();
-  }, [currentMonth, currentYear]);
+  }, [currentMonth, currentYear, userRole]);
 
   const fetchHealthEvents = async () => {
     try {
@@ -30,7 +30,14 @@ const ChartCard = () => {
       const startDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
       const endDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
       
-      const events = await healthEventAPI.getFutureEventsInRange(startDate, endDate);
+      // Use appropriate API method based on user role
+      let events = [];
+      if (userRole === 'parent') {
+        events = await healthEventAPI.getFutureEventsInRange(startDate, endDate);
+      } else {
+        // For nurse, principal, admin - get all events
+        events = await healthEventAPI.getAllEventsInRange(startDate, endDate);
+      }
       
       // Convert events array to date-keyed object for easy lookup
       const eventsMap = {};
@@ -41,7 +48,7 @@ const ChartCard = () => {
         }
         eventsMap[dateKey].push({
           type: event.category?.toLowerCase() || 'checkup',
-          title: event.title,
+          title: event.title || event.eventName,
           description: event.description,
           id: event.eventId
         });
@@ -168,7 +175,10 @@ const ChartCard = () => {
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-foreground">Calendar</h3>
         <p className="text-sm text-muted-foreground">
-          Health events and medical appointments calendar
+          {userRole === 'parent' ? 'Health events and medical appointments calendar' :
+           userRole === 'nurse' ? 'Health events and medical appointments calendar' :
+           userRole === 'principal' ? 'Health events and medical appointments calendar' :
+           'Health events and medical appointments calendar'}
         </p>
       </div>
       

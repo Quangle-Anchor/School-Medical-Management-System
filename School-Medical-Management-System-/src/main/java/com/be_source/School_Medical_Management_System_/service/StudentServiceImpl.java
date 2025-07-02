@@ -61,6 +61,7 @@ public class StudentServiceImpl implements StudentService {
         existing.setBloodType(dto.getBloodType());
         existing.setHeightCm(dto.getHeightCm());
         existing.setWeightKg(dto.getWeightKg());
+        existing.setHealthStatus(dto.getHealthStatus());
         return toDto(studentRepository.save(existing));
     }
 
@@ -81,6 +82,8 @@ public class StudentServiceImpl implements StudentService {
         dto.setBloodType(s.getBloodType());
         dto.setHeightCm(s.getHeightCm());
         dto.setWeightKg(s.getWeightKg());
+        dto.setHealthStatus(s.getHealthStatus());
+        dto.setUpdatedAt(s.getUpdatedAt());
         return dto;
     }
 
@@ -94,6 +97,8 @@ public class StudentServiceImpl implements StudentService {
         s.setBloodType(dto.getBloodType());
         s.setHeightCm(dto.getHeightCm());
         s.setWeightKg(dto.getWeightKg());
+        s.setHealthStatus(dto.getHealthStatus());
+        // Note: updatedAt is managed by @UpdateTimestamp
         return s;
     }
 }

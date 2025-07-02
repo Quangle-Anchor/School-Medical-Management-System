@@ -1,5 +1,5 @@
 import AdminDashboard from "./pages/adminDashboard/AdminDashboard";
-import ManagerDashboard from "./pages/managerDashboard/ManagerDashboard";
+import PrincipalDashboard from "./pages/principalDashboard/PrincipalDashboard";
 import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
 import StudentDashboard from "./pages/studentDashboard/StudentDashboardNew";
@@ -132,10 +132,10 @@ function AppContent() {
             }
           />
           <Route
-            path="/managerDashboard"
+            path="/principalDashboard"
             element={
-              <ProtectedRoute requiredRole="Manager">
-                <ManagerDashboard />
+              <ProtectedRoute requiredRole="Principal">
+                <PrincipalDashboard />
               </ProtectedRoute>
             }
           />

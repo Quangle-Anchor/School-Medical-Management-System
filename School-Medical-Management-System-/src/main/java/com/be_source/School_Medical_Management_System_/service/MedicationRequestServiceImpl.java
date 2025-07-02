@@ -125,6 +125,13 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
     }
 
     @Override
+    public List<MedicationRequestResponse> getAllRequests() {
+        return medicationRequestRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void confirmRequest(Long id) {
         MedicationRequest request = medicationRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Medication request not found"));
@@ -159,7 +166,10 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         return MedicationRequestResponse.builder()
                 .requestId(entity.getRequestId())
                 .studentId(entity.getStudent().getStudentId())
-                .studentName(entity.getStudent().getFullName()) // sửa theo entity thực tế
+                .studentName(entity.getStudent().getFullName())
+                .studentClass(entity.getStudent().getClassName())
+                .parentName(entity.getRequestedBy().getFullName())
+                .parentEmail(entity.getRequestedBy().getEmail())
                 .medicationName(entity.getMedicationName())
                 .dosage(entity.getDosage())
                 .frequency(entity.getFrequency())
