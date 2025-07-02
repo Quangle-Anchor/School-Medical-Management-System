@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
 import ChartCard from '../../components/ChartCard';
+import UpcomingHealthEventsCard from '../../components/UpcomingHealthEventsCard';
 import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell } from 'lucide-react';
+import { healthEventAPI } from '../../api/healthEventApi';
+import { formatEventDate, getCategoryStyle, safeDisplay } from '../../utils/dashboardUtils';
 
-const ManagerDashboard = () => {
+const PrincipalDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -16,8 +19,8 @@ const ManagerDashboard = () => {
     setActiveView(menuId);
   };
 
-  // Manager dashboard data
-  const managerCardData = [
+  // Principal dashboard data
+  const principalCardData = [
     {
       title: 'Total Staff',
       value: '156',
@@ -239,7 +242,7 @@ const ManagerDashboard = () => {
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Reports</h1>
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Management Reports</h2>
+              <h2 className="text-lg font-semibold mb-4">Principal Reports</h2>
               <p className="text-gray-600 mb-4">Generate and review operational and performance reports.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 border rounded-lg">
@@ -314,8 +317,8 @@ const ManagerDashboard = () => {
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Settings</h1>
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Manager Settings</h2>
-              <p className="text-gray-600 mb-4">Configure management preferences and system settings.</p>
+              <h2 className="text-lg font-semibold mb-4">Principal Settings</h2>
+              <p className="text-gray-600 mb-4">Configure principal preferences and system settings.</p>
               <div className="space-y-4">
                 <div className="p-4 border rounded-lg">
                   <h3 className="font-medium">Department Configuration</h3>
@@ -342,10 +345,10 @@ const ManagerDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">
-                    Manager Dashboard
+                    Principal Dashboard
                   </h1>
                   <p className="text-gray-600 mt-2">
-                    Welcome back! Here's your operational overview and management insights.
+                    Welcome back! Here's your operational overview and administrative insights.
                   </p>
                 </div>
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
@@ -356,14 +359,17 @@ const ManagerDashboard = () => {
 
             {/* Dashboard Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {managerCardData.map((card, index) => (
+              {principalCardData.map((card, index) => (
                 <DashboardCard key={index} {...card} />
               ))}
             </div>
 
-            {/* Management Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow p-6">
+            {/* Principal Overview */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="bg-white rounded-lg shadow p-6"
+                style={{
+                  background: 'radial-gradient(at center, #E8FEFF, #FFFFFF)'
+                }}>
                 <h2 className="text-xl font-bold mb-4">Department Performance</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-3 border rounded-lg">
@@ -391,7 +397,10 @@ const ManagerDashboard = () => {
               </div>
               
               {/* Calendar Card */}
-              <ChartCard />
+              <ChartCard userRole="principal" />
+
+              {/* Upcoming Health Events Section */}
+              <UpcomingHealthEventsCard userRole="principal" />
             </div>
           </div>
         );
@@ -403,7 +412,7 @@ const ManagerDashboard = () => {
       <Sidebar 
         isCollapsed={sidebarCollapsed} 
         onToggle={toggleSidebar} 
-        userRole="manager"
+        userRole="principal"
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
@@ -415,4 +424,4 @@ const ManagerDashboard = () => {
   );
 };
 
-export default ManagerDashboard;
+export default PrincipalDashboard;

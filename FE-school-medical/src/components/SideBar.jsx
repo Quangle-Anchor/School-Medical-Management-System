@@ -54,12 +54,12 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
         { id: 'health-incidents', icon: AlertTriangle, label: 'Health Incidents' },
         { id: 'medication-requests', icon: Syringe, label: 'Medication Requests' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
-        { id: 'inventory', icon: Warehouse, label: 'inventory' },
+        { id: 'inventory', icon: Warehouse, label: 'Inventory' },
         { id: 'settings', icon: Settings, label: 'Settings' },
       ];
     }
     
-    if (userRole === 'manager') {
+    if (userRole === 'principal') {
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
         { id: 'staff-management', icon: Users, label: 'Staff Management' },

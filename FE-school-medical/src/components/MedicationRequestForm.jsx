@@ -97,6 +97,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
   };
 
   const handleFileChange = (e) => {
+    e.preventDefault(); // Prevent any default behavior
     const file = e.target.files[0];
     if (file) {
       // Validate file type and size
@@ -397,13 +398,16 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
               <label className="block text-sm font-medium mb-1">
                 Upload Prescription (Optional)
               </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                <div className="space-y-1 text-center">
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"
+                   onClick={(e) => e.preventDefault()}>
+                <div className="space-y-1 text-center"
+                     onClick={(e) => e.stopPropagation()}>
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
                   <div className="flex text-sm text-gray-600">
                     <label
                       htmlFor="prescription-upload"
                       className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                      onClick={(e) => e.stopPropagation()} // Prevent event bubbling
                     >
                       <span>Upload a file</span>
                       <input
@@ -413,6 +417,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
                         className="sr-only"
                         accept="image/jpeg,image/png,image/jpg,application/pdf"
                         onChange={handleFileChange}
+                        onClick={(e) => e.stopPropagation()} // Prevent event bubbling
                       />
                     </label>
                     <p className="pl-1">or drag and drop</p>

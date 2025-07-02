@@ -3,6 +3,7 @@ package com.be_source.School_Medical_Management_System_.response;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class StudentResponse {
@@ -14,4 +15,6 @@ public class StudentResponse {
     private String bloodType;
     private Integer heightCm;
     private Integer weightKg;
+    private String healthStatus;
+    private LocalDateTime updatedAt;
 }

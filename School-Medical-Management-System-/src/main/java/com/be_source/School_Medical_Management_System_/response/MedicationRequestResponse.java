@@ -11,6 +11,9 @@ public class MedicationRequestResponse {
     private Long requestId;
     private Long studentId;
     private String studentName;
+    private String studentClass;
+    private String parentName;
+    private String parentEmail;
     private String medicationName;
     private String dosage;
     private String frequency;

@@ -142,6 +142,36 @@ export const healthEventAPI = {
     }
   },
 
+  // Get all health events in a date range (filter on frontend)
+  getAllEventsInRange: async (startDate, endDate) => {
+    try {
+      const response = await axiosInstance.get('/api/health-events');
+      const allEvents = response.data;
+      
+      // Filter events within the date range (includes past events)
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      const eventsInRange = allEvents.filter(event => {
+        const eventDate = new Date(event.scheduleDate);
+        return eventDate >= start && eventDate <= end;
+      });
+      
+      // Sort by date
+      eventsInRange.sort((a, b) => new Date(a.scheduleDate) - new Date(b.scheduleDate));
+      
+      return eventsInRange;
+    } catch (error) {
+      console.error('Error in getAllEventsInRange:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      return [];
+    }
+  },
+
   // Get events for calendar (next 30 days)
   getCalendarEvents: async () => {
     try {

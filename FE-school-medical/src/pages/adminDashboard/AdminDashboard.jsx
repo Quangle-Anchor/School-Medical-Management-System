@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
 import ChartCard from '../../components/ChartCard';
-import { Users, Settings, FileText, Bell, Activity, Stethoscope } from 'lucide-react';
+import UpcomingHealthEventsCard from '../../components/UpcomingHealthEventsCard';
+import { Users, Settings, FileText, Bell, Activity, Stethoscope, Calendar } from 'lucide-react';
+import { healthEventAPI } from '../../api/healthEventApi';
+import { formatEventDate, getCategoryStyle, safeDisplay } from '../../utils/dashboardUtils';
 
 const AdminDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -213,8 +216,11 @@ const AdminDashboard = () => {
             </div>
 
             {/* System Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="bg-white rounded-lg shadow p-6"
+                style={{
+                  background: 'radial-gradient(at center, #E8FEFF, #FFFFFF)'
+                }}>
                 <h2 className="text-xl font-bold mb-4">Recent System Activities</h2>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
@@ -242,7 +248,10 @@ const AdminDashboard = () => {
               </div>
               
               {/* Calendar Card */}
-              <ChartCard />
+              <ChartCard userRole="admin" />
+
+              {/* Upcoming Health Events Section */}
+              <UpcomingHealthEventsCard userRole="admin" />
             </div>
           </div>
         );

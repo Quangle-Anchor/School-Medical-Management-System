@@ -32,8 +32,7 @@ const LoginPage = () => {
       
       // Redirect based on role
       const roleDashboardMap = {
-        Manager: '/managerDashboard',
-        Principal: '/managerDashboard', // Principal uses the same dashboard as Manager
+        Principal: '/principalDashboard',
         Admin: '/adminDashboard',
         Nurse: '/nurseDashboard',
         Parent: '/parentDashboard',

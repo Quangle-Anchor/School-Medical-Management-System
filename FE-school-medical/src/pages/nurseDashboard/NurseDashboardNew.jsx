@@ -3,14 +3,18 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
 import ChartCard from '../../components/ChartCard';
+import HealthEventsView from '../../components/HealthEventsView';
+import UpcomingHealthEventsCard from '../../components/UpcomingHealthEventsCard';
 import StudentsView from './StudentsView';
 import NurseMedicationRequests from './NurseMedicationRequests';
 import HealthIncidentsView from './HealthIncidentsView';
 import InventoryView from './InventoryView';
-import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell, Warehouse } from 'lucide-react';
+import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell, Warehouse, Pill } from 'lucide-react';
 import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
 import { studentAPI } from '../../api/studentsApi';
 import { healthEventAPI } from '../../api/healthEventApi';
+import { medicationAPI } from '../../api/medicationApi';
+import { formatEventDate, getCategoryStyle, safeDisplay } from '../../utils/dashboardUtils';
 
 const NurseDashboard = () => {
   const navigate = useNavigate();
@@ -20,17 +24,23 @@ const NurseDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const [healthEvents, setHealthEvents] = useState([]);
+  const [medicationRequests, setMedicationRequests] = useState([]);
+  const [pendingMedicationRequests, setPendingMedicationRequests] = useState([]);
   // Get current view from URL
   const getCurrentView = () => {
-    const path = location.pathname;    
-    if (path.includes('/students')) return 'students';
-    if (path.includes('/health-event')) return 'health-even';
-    if (path.includes('/medical-records')) return 'medical-records';
-    if (path.includes('/health-incidents')) return 'health-incidents';
-    if (path.includes('/medication-requests')) return 'medication-requests';
-    if (path.includes('/notifications')) return 'notifications';
-    if (path.includes('/inventory')) return 'inventory';
-    if (path.includes('/settings')) return 'settings';
+    const path = location.pathname;
+    console.log('Current path:', path); // Debug log
+    
+    // More precise matching to avoid conflicts
+    if (path === '/nurseDashboard/students') return 'students';
+    if (path === '/nurseDashboard/health-events') return 'health-events';
+    if (path === '/nurseDashboard/medical-records') return 'medical-records';
+    if (path === '/nurseDashboard/health-incidents') return 'health-incidents';
+    if (path === '/nurseDashboard/medication-requests') return 'medication-requests';
+    if (path === '/nurseDashboard/notifications') return 'notifications';
+    if (path === '/nurseDashboard/inventory') return 'inventory';
+    if (path === '/nurseDashboard/settings') return 'settings';
+    
     return 'dashboard';
   };
   const [activeView, setActiveView] = useState(getCurrentView());
@@ -40,41 +50,64 @@ const NurseDashboard = () => {
     setActiveView(getCurrentView());
   }, [location.pathname]);
 
-  // Fetch health incidents on component mount
+  // Fetch all data on component mount
   useEffect(() => {
-    fetchHealthIncidents();
-    fetchHealthEvents();
-  }, []);
-  // Fetch students on component mount  
-  useEffect(() => {
-    fetchStudents();
+    const fetchAllData = async () => {
+      setLoading(true);
+      console.log('Starting to fetch all data...');
+      
+      try {
+        await Promise.all([
+          fetchStudents(),
+          fetchHealthIncidents(),
+          fetchHealthEvents(),
+          fetchMedicationRequests()
+        ]);
+        console.log('All data fetched successfully');
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAllData();
   }, []);
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
   const handleMenuClick = (menuId) => {
+    console.log('Menu clicked:', menuId); // Debug log
     if (menuId === 'dashboard') {
       navigate('/nurseDashboard');
     } else {
       navigate(`/nurseDashboard/${menuId}`);
     }
-    setActiveView(menuId);
+    // Don't manually set activeView here, let the useEffect handle it based on URL
   };
 
   const fetchStudents = async () => {
     try {
-      console.log('Fetching students for nurse dashboard...');
-      // Use getAllStudents to get all students in the database
-      const studentsData = await studentAPI.getAllStudents();
-
-      
-      setStudents(Array.isArray(studentsData) ? studentsData : []); // Ensure we always set an array
+      // For nurses, we want to get all students, but we need to handle the paginated response
+   
+      const studentsData = await studentAPI.getAllStudents(0, 1000); // Get a large page to include all students
+    
+      // Handle paginated response - extract content array
+      if (studentsData && studentsData.content && Array.isArray(studentsData.content)) {
+     
+        setStudents(studentsData.content);
+      } else if (Array.isArray(studentsData)) {
+        // Fallback in case the API returns an array directly
+ 
+        setStudents(studentsData);
+      } else {
+  
+        setStudents([]); // Set empty array if no content
+      }
     } catch (error) {
-      console.error('Error fetching students:', error);
+   
       setStudents([]); // Set empty array on error
-    } finally {
-      setLoading(false);
     }
   };
   const fetchHealthIncidents = async () => {
@@ -82,10 +115,8 @@ const NurseDashboard = () => {
       const incidents = await healthIncidentAPI.getAllHealthIncidents();
       setHealthIncidents(incidents || []); // Ensure we always set an array
     } catch (error) {
-      console.error('Error fetching health incidents:', error);
+ 
       setHealthIncidents([]); // Set empty array on error
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -96,6 +127,22 @@ const NurseDashboard = () => {
     } catch (error) {
       console.error('Error fetching health events:', error);
       setHealthEvents([]);
+    }
+  };
+
+  const fetchMedicationRequests = async () => {
+    try {
+      // Fetch all medication requests
+      const allRequests = await medicationAPI.getAllRequests();
+      setMedicationRequests(Array.isArray(allRequests) ? allRequests : []);
+      
+      // Fetch pending medication requests
+      const pendingRequests = await medicationAPI.getPendingRequests();
+      setPendingMedicationRequests(Array.isArray(pendingRequests) ? pendingRequests : []);
+    } catch (error) {
+      console.error('Error fetching medication requests:', error);
+      setMedicationRequests([]);
+      setPendingMedicationRequests([]);
     }
   };
 
@@ -118,12 +165,20 @@ const NurseDashboard = () => {
       }).length} scheduled today`,
       changeType: 'neutral',
       icon: Calendar,
-    },    {
+    },    
+    {
       title: 'Health Incidents',
       value: loading ? '...' : healthIncidents.length.toString(),
       change: 'Total recorded incidents',
       changeType: healthIncidents.length > 5 ? 'negative' : 'neutral',
       icon: Heart,
+    },
+    {
+      title: 'Pending Medication Requests',
+      value: loading ? '...' : pendingMedicationRequests.length.toString(),
+      change: 'Awaiting confirmation',
+      changeType: pendingMedicationRequests.length > 5 ? 'negative' : 'neutral',
+      icon: Bell,
     },
   ];
 
@@ -132,57 +187,8 @@ const NurseDashboard = () => {
       case 'students':
         return <StudentsView />;
      
-      case 'health-event':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Health Events</h1>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">All Scheduled Health Events</h2>
-              <p className="text-gray-600 mb-4">Manage all health events and appointments.</p>
-              {loading ? (
-                <div className="text-center py-4">Loading health events...</div>
-              ) : healthEvents.length === 0 ? (
-                <div className="text-center py-4 text-gray-600">No health events scheduled</div>
-              ) : (
-                <div className="space-y-3">
-                  {healthEvents.map((event, index) => {
-                    const eventDate = new Date(event.scheduleDate);
-                    const today = new Date();
-                    const isToday = eventDate.toDateString() === today.toDateString();
-                    const isPast = eventDate < today;
-                    const isFuture = eventDate > today;
-                    
-                    let statusColor = 'gray';
-                    let statusText = 'Scheduled';
-                    if (isPast) {
-                      statusColor = 'green';
-                      statusText = 'Completed';
-                    } else if (isToday) {
-                      statusColor = 'blue';
-                      statusText = 'Today';
-                    } else if (isFuture) {
-                      statusColor = 'yellow';
-                      statusText = 'Upcoming';
-                    }
-                    
-                    return (
-                      <div key={event.eventId || index} className={`p-4 border-l-4 border-${statusColor}-500 bg-${statusColor}-50`}>
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="font-medium">{eventDate.toLocaleDateString()} - {event.eventName || 'Health Event'}</h3>
-                            <p className="text-sm text-gray-600">{event.description || 'No description available'}</p>
-                            <p className="text-xs text-gray-500">Location: {event.location || 'Not specified'}</p>
-                          </div>
-                          <span className={`px-2 py-1 bg-${statusColor}-600 text-white text-xs rounded`}>{statusText}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        );
+      case 'health-events':
+        return <HealthEventsView userRole="nurse" />;
          
       case 'medication-requests':
         return <NurseMedicationRequests />;
@@ -302,39 +308,15 @@ const NurseDashboard = () => {
                 <DashboardCard key={index} {...card} />
               ))}
             </div>
-
-            {/* Patient Care Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ChartCard />
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold mb-4">Recent Patient Activities</h2>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Health checkup completed - John Smith</p>
-                      <p className="text-xs text-gray-600">10 minutes ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Medication administered - Emma Johnson</p>
-                      <p className="text-xs text-gray-600">25 minutes ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Vital signs recorded - Michael Brown</p>
-                      <p className="text-xs text-gray-600">45 minutes ago</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Calendar Card */}
               <ChartCard userRole="nurse" />
+            
+              {/* Upcoming Health Events Section */}
+              <UpcomingHealthEventsCard 
+                userRole="nurse"
+                onViewAll={() => handleMenuClick('health-events')}
+              />
             </div>
           </div>
         );

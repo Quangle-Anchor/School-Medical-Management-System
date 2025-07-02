@@ -83,6 +83,16 @@ const medicationAPI = {
     }
   },
 
+  // Nurse: Get all medication requests (both pending and confirmed)
+  getAllRequests: async () => {
+    try {
+      const response = await axiosInstance.get('/api/medications/nurse/all');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Nurse: Confirm medication request
   confirmMedicationRequest: async (id) => {
     try {

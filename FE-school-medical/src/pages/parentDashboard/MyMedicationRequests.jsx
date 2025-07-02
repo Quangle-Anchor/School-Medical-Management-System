@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { medicationAPI } from '../../api/medicationApi';
-import { Plus, Eye, Edit, Trash2, Clock, CheckCircle, XCircle, Pill, Calendar, User, FileText } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Clock, CheckCircle, XCircle, Pill, Calendar, User, FileText, RefreshCw } from 'lucide-react';
 import MedicationRequestForm from '../../components/MedicationRequestForm';
 
 // Base URL for API - should match axiosInstance baseURL
@@ -228,13 +228,24 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">My Medication Requests</h1>
           <p className="text-gray-600">Manage medication requests for your children</p>
         </div>
-        <button
-          onClick={handleCreateRequest}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          New Request
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchMyRequests}
+            disabled={loading}
+            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors disabled:opacity-50"
+            title="Refresh to check for status updates"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+          <button
+            onClick={handleCreateRequest}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Request
+          </button>
+        </div>
       </div>
 
       {/* Requests List */}
@@ -329,7 +340,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(request.isConfirmed, request.confirmedAt)}
+                      {getStatusBadge(request.isConfirmed || request.confirmed, request.confirmedAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(request.createdAt)}
@@ -343,7 +354,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </button>
-                        {!request.isConfirmed && (
+                        {!request.isConfirmed && !request.confirmed && (
                           <>
                             <button
                               onClick={() => handleEditRequest(request)}
@@ -469,7 +480,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                 <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Status:</span>
-                    <span>{getStatusBadge(selectedRequest.isConfirmed, selectedRequest.confirmedAt)}</span>
+                    <span>{getStatusBadge(selectedRequest.isConfirmed || selectedRequest.confirmed, selectedRequest.confirmedAt)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Created:</span>
@@ -498,7 +509,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
               >
                 Close
               </button>
-              {!selectedRequest.isConfirmed && (
+              {!selectedRequest.isConfirmed && !selectedRequest.confirmed && (
                 <button
                   onClick={() => {
                     setShowDetailModal(false);

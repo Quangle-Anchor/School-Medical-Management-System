@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { healthIncidentAPI } from '../../api/healthIncidentApi';
+import { studentAPI } from '../../api/studentsApi';
 import { Plus, Eye, Edit, Trash2, Calendar, AlertTriangle, User, Search, Filter, FileText, X } from 'lucide-react';
 import HealthIncidentForm from '../../components/HealthIncidentForm';
 
 const HealthIncidentsView = ({ isParentView = false, students = [], parentLoading = false }) => {
+  // Ensure students is always an array to prevent map errors
+  const safeStudents = Array.isArray(students) ? students : [];
+  
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,26 +19,56 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
   const [dateFilter, setDateFilter] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // Helper function to transform incident data to ensure consistent structure
-  const transformIncidentData = (incidents) => {
-    if (!Array.isArray(incidents)) {
+  // Helper function to enrich incident data with additional student information
+  const enrichIncidentData = async (incidents) => {
+    if (!Array.isArray(incidents) || incidents.length === 0) {
       return [];
     }
     
-    return incidents.map(incident => {
-      // Ensure student information is available at the top level if it's nested
-      if (incident.student && typeof incident.student === 'object') {
-        return {
-          ...incident,
-          studentName: incident.student.fullName,
-          studentId: incident.student.studentId,
-          className: incident.student.className,
-          grade: incident.student.grade
-        };
+    try {
+      // Get unique student IDs from incidents
+      const studentIds = [...new Set(incidents.map(incident => incident.studentId).filter(Boolean))];
+      
+      // Fetch student details for all unique student IDs
+      const studentDetailsMap = new Map();
+      
+      for (const studentId of studentIds) {
+        try {
+          // First check if we have the student in safeStudents (for parent view)
+          const existingStudent = safeStudents.find(s => s.studentId === studentId);
+          if (existingStudent) {
+            studentDetailsMap.set(studentId, existingStudent);
+          } else {
+            // Fetch from API
+            const studentDetails = await studentAPI.getStudentById(studentId);
+            studentDetailsMap.set(studentId, studentDetails);
+          }
+        } catch (error) {
+          // Continue with other students even if one fails
+        }
       }
       
-      return incident;
-    });
+      // Enrich incidents with student details
+      return incidents.map(incident => ({
+        ...incident,
+        // Keep original data from backend
+        studentName: incident.studentName,
+        studentId: incident.studentId,
+        createdBy: incident.createdBy, // This is already the full name from User
+        // Add enriched data
+        className: studentDetailsMap.get(incident.studentId)?.className || null,
+        studentDetails: studentDetailsMap.get(incident.studentId) || null
+      }));
+      
+    } catch (error) {
+      console.error('Error enriching incident data:', error);
+      // Return original data if enrichment fails
+      return incidents.map(incident => ({
+        ...incident,
+        className: null,
+        studentDetails: null
+      }));
+    }
   };
 
   // Define callback functions first to avoid hoisting issues
@@ -57,10 +91,18 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
       
       // Ensure we have the data in the correct format
       const rawData = Array.isArray(response) ? response : (response?.data || []);
-      const incidentData = transformIncidentData(rawData);
-      console.log('Processed incident data:', incidentData);
+      console.log('Raw incident data before enrichment:', rawData);
       
-      setIncidents(incidentData);
+      // Enrich incidents with additional student information
+      const enrichedData = await enrichIncidentData(rawData);
+      console.log('Enriched incident data:', enrichedData);
+      
+      // Log a sample incident to see the data structure
+      if (enrichedData.length > 0) {
+        console.log('Sample enriched incident structure:', JSON.stringify(enrichedData[0], null, 2));
+      }
+      
+      setIncidents(enrichedData);
     } catch (err) {
       console.error('Error fetching health incidents:', err);
       
@@ -87,10 +129,14 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
       console.log('Student health incidents response:', response);
       
       // Ensure we have the data in the correct format
-      const incidentData = Array.isArray(response) ? response : (response?.data || []);
-      console.log('Processed student incident data:', incidentData);
+      const rawData = Array.isArray(response) ? response : (response?.data || []);
+      console.log('Raw student incident data:', rawData);
       
-      setIncidents(incidentData);
+      // Enrich incidents with additional student information
+      const enrichedData = await enrichIncidentData(rawData);
+      console.log('Enriched student incident data:', enrichedData);
+      
+      setIncidents(enrichedData);
     } catch (err) {
       if (err.message.includes('401') || err.message.includes('Authentication')) {
         setError('Session expired. Please login again.');
@@ -128,9 +174,9 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
         return; // Don't set error while parent is still loading
       }
       
-      if (students.length === 1) {
-        setSelectedStudent(students[0]);
-      } else if (students.length === 0) {
+      if (safeStudents.length === 1) {
+        setSelectedStudent(safeStudents[0]);
+      } else if (safeStudents.length === 0) {
         setError('No children registered. Please add your child\'s information first.');
         setLoading(false);
         return;
@@ -139,13 +185,13 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
       }
     } else {
       // Nurse view logic
-      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Manager' && role !== 'Principal') {
-        setError('Access denied. Only nurses, admins, managers, and principals can view health incidents.');
+      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Principal') {
+        setError('Access denied. Only nurses, admins, and principals can view health incidents.');
         setLoading(false);
         return;
       }
     }
-  }, [isParentView, students.length, parentLoading]);
+  }, [isParentView, safeStudents.length, parentLoading]);
 
   // Separate effect for nurse data fetching to prevent loops
   useEffect(() => {
@@ -156,15 +202,15 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
 
   // Handle students data changes in parent view
   useEffect(() => {
-    if (isParentView && !parentLoading && students.length > 0) {
-      if (students.length === 1) {
-        setSelectedStudent(students[0]);
+    if (isParentView && !parentLoading && safeStudents.length > 0) {
+      if (safeStudents.length === 1) {
+        setSelectedStudent(safeStudents[0]);
         setLoading(false);
       } else {
         setLoading(false);
       }
     }
-  }, [students, parentLoading, isParentView]);
+  }, [safeStudents, parentLoading, isParentView]);
 
   // Fetch incidents when student is selected (parent view)
   useEffect(() => {
@@ -227,8 +273,8 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
 
   // Filter incidents based on search term and date
   const filteredIncidents = incidents.filter(incident => {
-    const studentName = incident.student?.fullName || incident.studentName || '';
-    const studentId = incident.student?.studentId || incident.studentId || '';
+    const studentName = incident.studentName || '';
+    const studentId = String(incident.studentId || '');
     const description = incident.description || '';
     
     const matchesSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -372,7 +418,6 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
               >
                 <div className="font-medium">{student.fullName}</div>
                 <div className="text-sm text-gray-600">ID: {student.studentId}</div>
-                <div className="text-sm text-gray-600">Grade: {student.grade || 'N/A'}</div>
               </button>
             ))}
           </div>
@@ -384,7 +429,7 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
           <h3 className="text-lg font-medium mb-2">Health Incidents for {selectedStudent.fullName}</h3>
           <div className="text-sm text-gray-600">
-            Student ID: {selectedStudent.studentId} | Grade: {selectedStudent.grade || 'N/A'} | Class: {selectedStudent.className || 'N/A'}
+            Student ID: {selectedStudent.studentId} | Class: {selectedStudent.className || 'N/A'}
           </div>
         </div>
       )}
@@ -470,16 +515,19 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
                             <span className="text-sm font-medium text-orange-800">
-                              {(incident.student?.fullName || incident.studentName || 'U')?.charAt(0)}
+                              {(incident.studentName || 'U')?.charAt(0)}
                             </span>
                           </div>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {incident.student?.fullName || incident.studentName || 'Unknown Student'}
+                            {incident.studentName || 'Unknown Student'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            ID: {incident.student?.studentId || incident.studentId || 'N/A'}
+                            ID: {incident.studentId || 'N/A'}
+                            {incident.className && (
+                              <span> • Class: {incident.className}</span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -497,7 +545,9 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{incident.createdBy?.fullName || 'Unknown'}</div>
+                      <div className="text-sm text-gray-900">
+                        {incident.createdBy || 'System'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDateTime(incident.createdAt)}
@@ -566,19 +616,15 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-sm font-medium text-gray-600">Name:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.student?.fullName || selectedIncident.studentName || 'Unknown Student'}</p>
+                    <p className="text-sm text-gray-900">{selectedIncident.studentName || 'Unknown Student'}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-600">Student ID:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.student?.studentId || selectedIncident.studentId || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedIncident.studentId || 'N/A'}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-600">Class:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.student?.className || selectedIncident.className || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Grade:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.student?.grade || selectedIncident.grade || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">{selectedIncident.className || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -617,7 +663,7 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-sm font-medium text-gray-600">Recorded By:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.createdBy?.fullName || 'Unknown'}</p>
+                    <p className="text-sm text-gray-900">{selectedIncident.createdBy || 'System'}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-600">Created At:</span>
