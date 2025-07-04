@@ -1,63 +1,176 @@
 import React, { useState } from "react";
-import { fakeForgotPasswordApi } from "./fakeForgotPasswordApi";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { forgotPasswordApi } from "./forgotPasswordApi";
+import logo from "../../assets/img/1.png";
+import backgroundImg from "../../assets/img/back.png";
 
 const ResetPassword = () => {
+  const [otp, setOtp] = useState("");
   const [pw1, setPw1] = useState("");
   const [pw2, setPw2] = useState("");
+  const [showPw1, setShowPw1] = useState(false);
+  const [showPw2, setShowPw2] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState("");
+  const location = useLocation();
   const navigate = useNavigate();
+  const email = location.state?.email;
+
+  if (!email) {
+    navigate("/forgot-password");
+    return null;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setResendMsg("");
+    // Validate OTP
+    if (!otp.trim()) {
+      setError("Vui lòng nhập mã OTP.");
+      return;
+    }
+    // Validate password
+    if (pw1.length < 8) {
+      setError("Mật khẩu phải có ít nhất 8 ký tự.");
+      return;
+    }
+    if (!/\d/.test(pw1) || !/[a-zA-Z]/.test(pw1)) {
+      setError("Mật khẩu phải chứa cả chữ và số.");
+      return;
+    }
     if (pw1 !== pw2) {
-      setError("Passwords do not match!");
+      setError("Mật khẩu xác nhận không khớp.");
       return;
     }
     setLoading(true);
     try {
-      await fakeForgotPasswordApi.resetPassword(pw1);
+      await forgotPasswordApi.resetPassword(email, otp, pw1);
       navigate("/forgot-password/success");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Có lỗi xảy ra, vui lòng thử lại.");
     }
     setLoading(false);
   };
 
+  const handleResendOtp = async (e) => {
+    e.preventDefault();
+    setError("");
+    setResendMsg("");
+    try {
+      await forgotPasswordApi.sendOtp(email);
+      setResendMsg("Mã OTP mới đã được gửi đến email của bạn.");
+        } catch {
+      setError("Không thể gửi lại mã OTP. Vui lòng thử lại sau.");
+    }
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <form
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
-        onSubmit={handleSubmit}
-      >
-        <h2 className="text-xl font-bold text-center mb-4">Password Change</h2>
-        <input
-          type="password"
-          placeholder="Set new Password"
-          className="w-full border px-3 py-2 rounded mb-2"
-          value={pw1}
-          onChange={(e) => setPw1(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Confirm new Password"
-          className="w-full border px-3 py-2 rounded mb-2"
-          value={pw2}
-          onChange={(e) => setPw2(e.target.value)}
-          required
-        />
-        {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded font-semibold"
-          disabled={loading}
-        >
-          {loading ? "Changing..." : "Change password"}
-        </button>
-      </form>
+    <div
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{
+        backgroundImage: `url(${backgroundImg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="backdrop-blur-lg bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-8">
+          <div className="text-center mb-8">
+            <div className="inline-block p-3 bg-white/20 rounded-full backdrop-blur-sm mb-4">
+              <img
+                alt="Logo"
+                src={logo}
+                className="h-16 w-16 rounded-full shadow-lg"
+              />
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-2">
+              Reset password
+            </h2>
+            <p className="text-white/80">
+              Vui lòng nhập mã OTP mà chúng tôi đã gửi cho bạn qua Email
+            </p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <input
+              type="text"
+              placeholder="Enter OTP"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+            />
+            <div className="mb-2">
+              <a
+                href="#"
+                className="font-semibold underline text-blue-800 hover:text-blue-100 transition-colors"
+                onClick={handleResendOtp}
+              >
+                Gửi lại mã OTP
+              </a>
+              {resendMsg && (
+                <div className="w-full py-3 px-4 mt-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg text-center">
+                  {resendMsg}
+                </div>
+              )}
+            </div>
+            <div className="relative mb-2">
+              <input
+                type={showPw1 ? "text" : "password"}
+                placeholder="Mật khẩu mới"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none"
+                value={pw1}
+                onChange={(e) => setPw1(e.target.value)}
+                required
+              />
+              <span
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-300"
+                onClick={() => setShowPw1((v) => !v)}
+                tabIndex={0}
+              >
+                {showPw1 ? "🙈" : "👁️"}
+              </span>
+            </div>
+            <div className="relative mb-2">
+              <input
+                type={showPw2 ? "text" : "password"}
+                placeholder="Xác nhận mật khẩu"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none"
+                value={pw2}
+                onChange={(e) => setPw2(e.target.value)}
+                required
+              />
+              <span
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-300"
+                onClick={() => setShowPw2((v) => !v)}
+                tabIndex={0}
+              >
+                {showPw2 ? "🙈" : "👁️"}
+              </span>
+            </div>
+            {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
+            <button
+              type="submit"
+              className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 backdrop-blur-sm"
+              disabled={loading}
+            >
+              {loading ? "Đang gửi..." : "Gửi"}
+            </button>
+            <div className="text-center mt-4 text-white/80">
+              Muốn quay trở lại?{" "}
+              <span
+                className="text-blue-800 hover:text-blue-100 font-semibold transition-colors cursor-pointer"
+                onClick={() => navigate("/login")}
+              >
+                Đăng nhập
+              </span>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };

@@ -17,6 +17,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ForgotPassword from "./pages/forgotPassword/ForgotPassword";
+import VerifyOtp from "./pages/forgotPassword/VerifyOtp";
 import ResetPassword from "./pages/forgotPassword/ResetPassword";
 import RecoverySuccess from "./pages/forgotPassword/RecoverySuccess";
 
@@ -90,10 +91,11 @@ function AppContent() {
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<Contact />} />         
+          <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/forgot-password/verify-otp" element={<VerifyOtp />} />
           <Route path="/forgot-password/reset" element={<ResetPassword />} />
           <Route
             path="/forgot-password/success"

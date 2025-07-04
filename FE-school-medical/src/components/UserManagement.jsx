@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { userApi } from "../api/userApi";
 
 const emptyUser = {
-  username: "",
-  email: "",
   fullName: "",
+  email: "",
+  phone: "",
+  username: "",
   role: "parent",
 };
 
@@ -67,10 +68,10 @@ const UserManagement = ({ viewOnly = false }) => {
           onSubmit={handleSubmit}
         >
           <input
-            name="username"
-            value={form.username}
+            name="fullName"
+            value={form.fullName}
             onChange={handleChange}
-            placeholder="Username"
+            placeholder="Full Name"
             className="border p-2 rounded"
             required
           />
@@ -78,15 +79,23 @@ const UserManagement = ({ viewOnly = false }) => {
             name="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="Email"
+            placeholder="Email Address"
             className="border p-2 rounded"
             required
           />
           <input
-            name="fullName"
-            value={form.fullName}
+            name="phone"
+            value={form.phone}
             onChange={handleChange}
-            placeholder="Full Name"
+            placeholder="Phone Number"
+            className="border p-2 rounded"
+            required
+          />
+          <input
+            name="username"
+            value={form.username}
+            onChange={handleChange}
+            placeholder="Username"
             className="border p-2 rounded"
             required
           />
@@ -125,9 +134,10 @@ const UserManagement = ({ viewOnly = false }) => {
         <table className="min-w-full bg-white border">
           <thead>
             <tr>
-              <th className="border px-2 py-1">Username</th>
-              <th className="border px-2 py-1">Email</th>
               <th className="border px-2 py-1">Full Name</th>
+              <th className="border px-2 py-1">Email Address</th>
+              <th className="border px-2 py-1">Phone Number</th>
+              <th className="border px-2 py-1">Username</th>
               <th className="border px-2 py-1">Role</th>
               {/* Ẩn cột Actions nếu chỉ xem */}
               {!viewOnly && <th className="border px-2 py-1">Actions</th>}
@@ -136,9 +146,10 @@ const UserManagement = ({ viewOnly = false }) => {
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
-                <td className="border px-2 py-1">{u.username}</td>
-                <td className="border px-2 py-1">{u.email}</td>
                 <td className="border px-2 py-1">{u.fullName}</td>
+                <td className="border px-2 py-1">{u.email}</td>
+                <td className="border px-2 py-1">{u.phone}</td>
+                <td className="border px-2 py-1">{u.username}</td>
                 <td className="border px-2 py-1">{u.role}</td>
                 {/* Ẩn nút Sửa/Xóa nếu chỉ xem */}
                 {!viewOnly && (
