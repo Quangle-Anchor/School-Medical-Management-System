@@ -1,49 +1,22 @@
-// src/pages/AboutPage.jsx
 import React from "react";
+import {
+  Heart,
+  School,
+  User,
+  Users,
+  BookOpen,
+} from "lucide-react";
 
-const docs = [
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/2991/2991108.png",
-    title: "School Nutrition",
-    desc: "Guidelines for creating balanced menus and appropriate nutrition plans for students at all levels.",
-  },
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/3062/3062634.png",
-    title: "Disease Prevention",
-    desc: "Information, recommendations, and materials for preventing infectious diseases in the school environment.",
-  },
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-    title: "Mental Health",
-    desc: "Resources on mental health care, stress management, and life skills development for students.",
-  },
-];
-
-const blogs = [
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/3132/3132693.png",
-    title: "Parent Stories",
-    desc: "Real-life experiences in managing children’s health, nutrition, and disease prevention at home and at school.",
-  },
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/3132/3132687.png",
-    title: "Teacher Insights",
-    desc: "Stories, lessons, and extracurricular activities that promote student wellbeing and life skills.",
-  },
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/3132/3132679.png",
-    title: "Expert Advice",
-    desc: "Articles and videos from healthcare and psychology experts on various school health topics.",
-  },
-];
 
 export default function AboutPage() {
   return (
-    <main className="container mx-auto px-4 py-12 space-y-16">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 ">
       {/* Header */}
-      <section className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-blue-700">About Us</h1>
-        <p className="text-gray-800 max-w-2xl mx-auto">
+      <section className="text-center space-y-6 animate-fade-in">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-blue-900 tracking-tight">
+          About Us
+        </h1>
+        <p className="text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
           Our School Health Management software is a modern solution designed to
           help educational institutions comprehensively manage student
           healthcare. The application connects the school health office,
@@ -52,62 +25,219 @@ export default function AboutPage() {
         </p>
       </section>
 
-      {/* Resources Section */}
-      <section className="space-y-8">
-        <h2 className="text-2xl font-semibold text-center text-blue-600">
-          School Health Resources
-        </h2>
-        <div className="grid grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {docs.map((doc, idx) => (
-            <div
-              key={idx}
-              className="bg-blue-50 rounded-xl p-6 flex flex-col items-center text-center shadow"
-            >
-              <img
-                src={doc.icon}
-                alt={doc.title}
-                className="w-20 h-20 mb-4 bg-white rounded-full p-2"
-              />
-              <h3 className="text-lg font-medium text-blue-700 mb-2">
-                {doc.title}
-              </h3>
-              <p className="text-gray-700">{doc.desc}</p>
+      {/* Mission & Vision */}
+      <section className=" py-16 px-4 bg-transparent">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12">
+            <div className="bg-white shadow-xl rounded-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+              <div className="p-8">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Heart className="w-8 h-8 text-blue-600" />
+                </div>
+                <h2 className="text-3xl text-center text-blue-800 font-bold mb-4">
+                  Mission
+                </h2>
+                <p className="text-gray-600 text-base leading-relaxed text-center">
+                  To create a safe, healthy, and holistic learning environment
+                  for students through professional and modern school health
+                  programs. We are committed to partnering with schools and
+                  families to care for students' physical and mental well-being.
+                </p>
+              </div>
             </div>
-          ))}
+            <div className="bg-white shadow-xl rounded-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+              <div className="p-8">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <School className="w-8 h-8 text-green-600" />
+                </div>
+                <h2 className="text-3xl text-center text-blue-800 font-bold mb-4">
+                  Vision
+                </h2>
+                <p className="text-gray-600 text-base leading-relaxed text-center">
+                  To become a leading unit in school health in Vietnam, trusted
+                  by educators, parents, and students. We aim to build a young
+                  generation that is healthy, confident, and equipped with the
+                  knowledge to care for themselves.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Blog Section */}
-      <section className="space-y-8">
-        <h2 className="text-2xl font-semibold text-center text-blue-600">
-          Experience Sharing Blog
-        </h2>
-        <div className="grid grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {blogs.map((blog, idx) => (
-            <div
-              key={idx}
-              className="bg-blue-50 rounded-xl p-6 flex flex-col items-center text-center shadow"
-            >
-              <img
-                src={blog.icon}
-                alt={blog.title}
-                className="w-12 h-12 mb-4"
-              />
-              <h3 className="text-lg font-medium text-blue-700 mb-2">
-                {blog.title}
+      {/* Core Values */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+            Core Values
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center transform transition-transform duration-300 hover:scale-105">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <User className="w-10 h-10 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                Professionalism
               </h3>
-              <p className="text-gray-700">{blog.desc}</p>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Our team consists of experienced healthcare professionals,
+                well-trained and continuously updated with the latest knowledge
+                in school health.
+              </p>
             </div>
-          ))}
+            <div className="text-center transform transition-transform duration-300 hover:scale-105">
+              <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Heart className="w-10 h-10 text-pink-600" />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                Dedication
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                We always put students' health and well-being first, serving
+                with sincerity and high responsibility.
+              </p>
+            </div>
+            <div className="text-center transform transition-transform duration-300 hover:scale-105">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="w-10 h-10 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                Collaboration
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                We work closely with schools, families, and the community to
+                create a comprehensive health care network for students.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Services Detail */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+            Our Services
+          </h2>
+          <div className="space-y-8">
+            <div className="bg-white shadow-xl border-l-4 border-l-blue-500 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+              <div className="p-8">
+                <div className="flex items-center mb-4">
+                  <BookOpen className="w-6 h-6 mr-3 text-blue-700" />
+                  <h3 className="text-2xl text-blue-800 font-semibold">
+                    School Nutrition Program
+                  </h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Services include:
+                    </h4>
+                    <ul className="text-gray-600 space-y-1 text-sm">
+                      <li>• Designing balanced menus for each age group</li>
+                      <li>
+                        • Nutrition counseling for students with special needs
+                      </li>
+                      <li>• Training for school kitchen staff</li>
+                      <li>• Food quality inspection</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Benefits:
+                    </h4>
+                    <ul className="text-gray-600 space-y-1 text-sm">
+                      <li>• Ensures students' comprehensive development</li>
+                      <li>• Enhances immunity and learning ability</li>
+                      <li>• Prevents nutrition-related diseases</li>
+                      <li>• Builds healthy eating habits</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white shadow-xl border-l-4 border-l-pink-500 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+              <div className="p-8">
+                <div className="flex items-center mb-4">
+                  <Heart className="w-6 h-6 mr-3 text-pink-600" />
+                  <h3 className="text-2xl text-blue-800 font-semibold">
+                    Disease Prevention
+                  </h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Services include:
+                    </h4>
+                    <ul className="text-gray-600 space-y-1 text-sm">
+                      <li>• Developing disease prevention plans</li>
+                      <li>• Organizing vaccination programs</li>
+                      <li>• Daily health monitoring for students</li>
+                      <li>• Consulting on school environmental hygiene</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Benefits:
+                    </h4>
+                    <ul className="text-gray-600 space-y-1 text-sm">
+                      <li>• Minimizes the risk of disease outbreaks</li>
+                      <li>• Protects the health of the school community</li>
+                      <li>
+                        • Raises disease prevention awareness among students
+                      </li>
+                      <li>• Ensures a safe learning environment</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white shadow-xl border-l-4 border-l-green-500 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+              <div className="p-8">
+                <div className="flex items-center mb-4">
+                  <Users className="w-6 h-6 mr-3 text-green-600" />
+                  <h3 className="text-2xl text-blue-800 font-semibold">
+                    Mental Health Care
+                  </h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Services include:
+                    </h4>
+                    <ul className="text-gray-600 space-y-1 text-sm">
+                      <li>• Psychological counseling for students</li>
+                      <li>• Life skills development programs</li>
+                      <li>• Teacher training on mental health</li>
+                      <li>• Family support in child-rearing</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Benefits:
+                    </h4>
+                    <ul className="text-gray-600 space-y-1 text-sm">
+                      <li>• Develops positive personality</li>
+                      <li>• Improves social adaptability</li>
+                      <li>• Reduces stress and academic pressure</li>
+                      <li>• Builds confidence and self-esteem</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Footer CTA */}
-      <section className="text-center">
-        <p className="text-xl font-semibold text-blue-700">
+      <section className="text-center py-16 px-4 bg-white">
+        <p className="text-2xl font-semibold text-blue-800 animate-pulse">
           Let’s work together to build a safe and modern learning environment!
         </p>
       </section>
     </main>
   );
 }
+
+

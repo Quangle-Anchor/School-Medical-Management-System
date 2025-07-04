@@ -61,7 +61,7 @@ const ResetPassword = () => {
     try {
       await forgotPasswordApi.sendOtp(email);
       setResendMsg("Mã OTP mới đã được gửi đến email của bạn.");
-        } catch {
+    } catch {
       setError("Không thể gửi lại mã OTP. Vui lòng thử lại sau.");
     }
   };
