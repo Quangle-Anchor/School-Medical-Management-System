@@ -3,7 +3,7 @@ package com.be_source.School_Medical_Management_System_.config;
 import com.be_source.School_Medical_Management_System_.security.JwtAuthenticationFilter;
 import com.be_source.School_Medical_Management_System_.security.JwtUtil;
 import com.be_source.School_Medical_Management_System_.security.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,68 +20,116 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final CorsConfigurationSource corsConfigurationSource;
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
+    // Public API
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/api/auth/**", "/api/public/**", "/api/password-recovery/**"
+    };
 
-    @Autowired
-    private CorsConfigurationSource corsConfigurationSource;    // Public FilterChain cho login, register
+    // ADMIN role APIs
+    private static final String[] ADMIN_ENDPOINTS = {
+            "/api/admin/users/**"
+    };
+
+    // PRINCIPAL role APIs
+    private static final String[] PRINCIPAL_ENDPOINTS = {
+            "/api/principal/**",
+            "/api/health-events/**",
+            "/api/event-signups/**"
+    };
+
+    // NURSE role APIs
+    private static final String[] NURSE_ENDPOINTS = {
+            "/api/nurse/**",
+            "/api/nurse/medications/**",
+            "/api/medications/nurse/**",
+            "/api/event-signups/event/**",
+            "/api/medical-items/**",
+            "/api/inventory/**"
+    };
+
+    // PARENT role APIs
+    private static final String[] PARENT_ENDPOINTS = {
+            "/api/parents/**",
+            "/api/medications/**",
+            "/api/event-signups/**"
+    };
+
+    // SHARED/COMMON accessible APIs
+    private static final String[] SHARED_ENDPOINTS_4ROLE = {
+            "/api/students/**",
+            "/api/health-info/**",
+            "/api/medications/prescription/**",
+            "/api/health-incidents/**",
+            "/api/users/**"
+    };
+    private static final String[] SHARED_ENDPOINTS_3ROLE = {
+            "/api/inventory/**",
+            "/api/medical-items/**"
+    };
+
+    // Public filter chain
     @Bean
     @Order(1)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .securityMatcher("/api/auth/**", "/api/public/**","/api/password-recovery/**")
+                .securityMatcher(PUBLIC_ENDPOINTS)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
 
-    // Protected FilterChain cho các API cần bảo vệ
+    // Protected filter chain
     @Bean
     @Order(2)
     public SecurityFilterChain protectedSecurityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
-                        // PHÂN QUYỀN RIÊNG CHO health-events:
-                        // Cho phép tất cả role GET (xem)
-                        .requestMatchers(HttpMethod.GET, "/api/health-events/**").hasAnyRole("ADMIN", "PRINCIPAL", "PARENT", "NURSE")
-                        // Chỉ cho Principal và Nurse thêm, sửa, xoá
-                        .requestMatchers(HttpMethod.POST, "/api/health-events/**").hasAnyRole("PRINCIPAL")
-                        .requestMatchers(HttpMethod.PUT, "/api/health-events/**").hasAnyRole("PRINCIPAL")
-                        .requestMatchers(HttpMethod.DELETE, "/api/health-events/**").hasAnyRole("PRINCIPAL")
 
-                        //PHÂN QUYỀN CHO EventSignup
+                        // --- Health Event ---
+                        .requestMatchers(HttpMethod.GET, "/api/health-events/**").hasAnyRole("ADMIN", "PRINCIPAL", "PARENT", "NURSE")
+                        .requestMatchers(HttpMethod.POST, "/api/health-events/**").hasRole("PRINCIPAL")
+                        .requestMatchers(HttpMethod.PUT, "/api/health-events/**").hasRole("PRINCIPAL")
+                        .requestMatchers(HttpMethod.DELETE, "/api/health-events/**").hasRole("PRINCIPAL")
+
+                        // --- Event Signups ---
                         .requestMatchers(HttpMethod.POST, "/api/event-signups/**").hasRole("PARENT")
                         .requestMatchers(HttpMethod.GET, "/api/event-signups/my").hasRole("PARENT")
                         .requestMatchers(HttpMethod.GET, "/api/event-signups/event/**").hasAnyRole("NURSE", "PRINCIPAL")
                         .requestMatchers(HttpMethod.PUT, "/api/event-signups/**").hasAnyRole("NURSE", "PRINCIPAL")
 
-                        //PHÂN QUYỀN CHO Inventory va MedicalItem
-                        .requestMatchers("/api/inventory/**").hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
-                        .requestMatchers("/api/medical-items/**").hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
+                        // --- Inventory & Medical Items ---
+                        .requestMatchers(SHARED_ENDPOINTS_3ROLE).hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
 
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/principal/**").hasRole("PRINCIPAL")
-                        .requestMatchers("/api/nurse/**","/api/nurse/medications/**","/api/medications/nurse/**").hasRole("NURSE")
-                        .requestMatchers("/api/parents/**","/api/medications/**").hasRole("PARENT")
-                        .requestMatchers("/api/students/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
-                        .requestMatchers("/api/health-info/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
-                        .requestMatchers("/api/medications/prescription/**").hasAnyRole("PARENT", "ADMIN", "PRINCIPAL", "NURSE")
-                        .requestMatchers("/api/medications/**").hasRole("PARENT")
-                        .requestMatchers("/api/health-incidents/**").hasAnyRole("PRINCIPAL", "NURSE", "PARENT")
-                        .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "PRINCIPAL", "NURSE", "PARENT")
+                        // --- Admin APIs ---
+                        .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
+
+                        // --- Principal APIs ---
+                        .requestMatchers(PRINCIPAL_ENDPOINTS).hasRole("PRINCIPAL")
+
+                        // --- Nurse APIs ---
+                        .requestMatchers(NURSE_ENDPOINTS).hasRole("NURSE")
+
+                        // --- Parent APIs ---
+                        .requestMatchers(PARENT_ENDPOINTS).hasRole("PARENT")
+
+                        // --- Common APIs ---
+                        .requestMatchers(SHARED_ENDPOINTS_4ROLE).hasAnyRole("ADMIN", "PRINCIPAL", "NURSE", "PARENT")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
-    // Tạo JwtAuthenticationFilter từ constructor
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtUtil, userDetailsService);
