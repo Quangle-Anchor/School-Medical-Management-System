@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { forgotPasswordApi } from "./forgotPasswordApi";
+import { forgotPasswordApi } from "../../api/forgotPasswordApi";
 import logo from "../../assets/img/1.png";
 import backgroundImg from "../../assets/img/back.png";
 
@@ -8,6 +8,18 @@ const VerifyOtp = () => {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState("");
+  const handleResendOtp = async (e) => {
+    e.preventDefault();
+    setError("");
+    setResendMsg("");
+    try {
+      await forgotPasswordApi.sendOtp(email);
+      setResendMsg("Mã OTP mới đã được gửi đến email của bạn.");
+    } catch (err) {
+      setError("Không thể gửi lại mã OTP. Vui lòng thử lại sau.");
+    }
+  };
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email;
@@ -23,7 +35,8 @@ const VerifyOtp = () => {
     setLoading(true);
     try {
       await forgotPasswordApi.verifyOtp(email, otp);
-      navigate("/forgot-password/reset", { state: { email } });
+      // Truyền cả email và otp sang trang reset để dùng cho đổi mật khẩu
+      navigate("/forgot-password/reset", { state: { email, otp } });
     } catch (err) {
       setError(err.message);
     }
@@ -65,6 +78,20 @@ const VerifyOtp = () => {
               onChange={(e) => setOtp(e.target.value)}
               required
             />
+            <div className="mb-2">
+              <a
+                href="#"
+                className="font-semibold underline text-blue-800 hover:text-blue-100 transition-colors"
+                onClick={handleResendOtp}
+              >
+                Gửi lại mã OTP
+              </a>
+              {resendMsg && (
+                <div className="w-full py-3 px-4 mt-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg text-center">
+                  {resendMsg}
+                </div>
+              )}
+            </div>
             {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
             <button
               type="submit"

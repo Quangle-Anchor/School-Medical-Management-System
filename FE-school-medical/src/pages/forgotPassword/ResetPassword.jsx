@@ -1,23 +1,22 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { forgotPasswordApi } from "./forgotPasswordApi";
+import { forgotPasswordApi } from "../../api/forgotPasswordApi";
 import logo from "../../assets/img/1.png";
 import backgroundImg from "../../assets/img/back.png";
 
 const ResetPassword = () => {
-  const [otp, setOtp] = useState("");
   const [pw1, setPw1] = useState("");
   const [pw2, setPw2] = useState("");
   const [showPw1, setShowPw1] = useState(false);
   const [showPw2, setShowPw2] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resendMsg, setResendMsg] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email;
+  const otp = location.state?.otp;
 
-  if (!email) {
+  if (!email || !otp) {
     navigate("/forgot-password");
     return null;
   }
@@ -25,12 +24,6 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setResendMsg("");
-    // Validate OTP
-    if (!otp.trim()) {
-      setError("Vui lòng nhập mã OTP.");
-      return;
-    }
     // Validate password
     if (pw1.length < 8) {
       setError("Mật khẩu phải có ít nhất 8 ký tự.");
@@ -46,24 +39,12 @@ const ResetPassword = () => {
     }
     setLoading(true);
     try {
-      await forgotPasswordApi.resetPassword(email, otp, pw1);
+      await forgotPasswordApi.resetPassword(email, otp, pw1, pw2);
       navigate("/forgot-password/success");
     } catch (err) {
       setError(err.message || "Có lỗi xảy ra, vui lòng thử lại.");
     }
     setLoading(false);
-  };
-
-  const handleResendOtp = async (e) => {
-    e.preventDefault();
-    setError("");
-    setResendMsg("");
-    try {
-      await forgotPasswordApi.sendOtp(email);
-      setResendMsg("Mã OTP mới đã được gửi đến email của bạn.");
-    } catch {
-      setError("Không thể gửi lại mã OTP. Vui lòng thử lại sau.");
-    }
   };
 
   return (
@@ -95,28 +76,6 @@ const ResetPassword = () => {
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-            />
-            <div className="mb-2">
-              <a
-                href="#"
-                className="font-semibold underline text-blue-800 hover:text-blue-100 transition-colors"
-                onClick={handleResendOtp}
-              >
-                Gửi lại mã OTP
-              </a>
-              {resendMsg && (
-                <div className="w-full py-3 px-4 mt-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg text-center">
-                  {resendMsg}
-                </div>
-              )}
-            </div>
             <div className="relative mb-2">
               <input
                 type={showPw1 ? "text" : "password"}
