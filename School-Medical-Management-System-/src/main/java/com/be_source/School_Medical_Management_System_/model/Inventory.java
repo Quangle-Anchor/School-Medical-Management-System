@@ -19,6 +19,7 @@ public class Inventory {
 
     private Integer totalQuantity;
 
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @ManyToOne
