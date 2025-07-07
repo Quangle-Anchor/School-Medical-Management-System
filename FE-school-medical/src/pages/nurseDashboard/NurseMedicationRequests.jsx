@@ -166,6 +166,58 @@ const NurseMedicationRequests = () => {
     }
   };
 
+  const handleViewPrescription = async (prescriptionFileUrl) => {
+    try {
+      if (!prescriptionFileUrl) {
+        setError('No prescription file available.');
+        return;
+      }
+
+      // Check if it's a Cloudinary URL (cloud-based storage)
+      if (prescriptionFileUrl.startsWith('http://') || prescriptionFileUrl.startsWith('https://')) {
+        // Direct URL - open in new tab
+        const newTab = window.open(prescriptionFileUrl, '_blank');
+        
+        if (!newTab) {
+          alert('Please allow popups for this site to view prescription files.');
+        }
+        return;
+      }
+
+      // Legacy support for filename-based storage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication required. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8080/api/medications/prescription/${prescriptionFileUrl}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const newTab = window.open(url, '_blank');
+        
+        // Clean up the URL after a short delay
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 1000);
+        
+        if (!newTab) {
+          alert('Please allow popups for this site to view prescription files.');
+        }
+      } else {
+        alert('Failed to load prescription file');
+      }
+    } catch (error) {
+      alert('Error loading prescription file');
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -535,24 +587,7 @@ const NurseMedicationRequests = () => {
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Prescription:</span>
                       <button
-                        onClick={async () => {
-                          try {
-                            const response = await fetch(`http://localhost:8080/api/medications/prescription/${selectedRequest.prescriptionFile}`, {
-                              headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                              }
-                            });
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              window.open(url, '_blank');
-                            } else {
-                              alert('Failed to load prescription file');
-                            }
-                          } catch (error) {
-                            alert('Error loading prescription file');
-                          }
-                        }}
+                        onClick={() => handleViewPrescription(selectedRequest.prescriptionFile)}
                         className="text-blue-600 hover:text-blue-800 inline-flex items-center"
                       >
                         <Download className="w-4 h-4 mr-1" />
