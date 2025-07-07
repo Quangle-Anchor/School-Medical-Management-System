@@ -1,5 +1,6 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
+import com.be_source.School_Medical_Management_System_.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

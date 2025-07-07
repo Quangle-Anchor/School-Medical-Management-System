@@ -1,4 +1,4 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.model.Role;
 import com.be_source.School_Medical_Management_System_.model.User;
@@ -8,6 +8,7 @@ import com.be_source.School_Medical_Management_System_.request.LoginRequest;
 import com.be_source.School_Medical_Management_System_.request.SignupRequest;
 import com.be_source.School_Medical_Management_System_.response.AuthResponse;
 import com.be_source.School_Medical_Management_System_.security.JwtUtil;
+import com.be_source.School_Medical_Management_System_.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

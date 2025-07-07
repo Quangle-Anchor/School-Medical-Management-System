@@ -1,9 +1,10 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.response.StudentResponse;
 import com.be_source.School_Medical_Management_System_.model.Students;
 import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
 import com.be_source.School_Medical_Management_System_.model.User;
+import com.be_source.School_Medical_Management_System_.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
