@@ -34,12 +34,10 @@ const NurseDashboard = () => {
     // More precise matching to avoid conflicts
     if (path === '/nurseDashboard/students') return 'students';
     if (path === '/nurseDashboard/health-events') return 'health-events';
-    if (path === '/nurseDashboard/medical-records') return 'medical-records';
     if (path === '/nurseDashboard/health-incidents') return 'health-incidents';
     if (path === '/nurseDashboard/medication-requests') return 'medication-requests';
     if (path === '/nurseDashboard/notifications') return 'notifications';
     if (path === '/nurseDashboard/inventory') return 'inventory';
-    if (path === '/nurseDashboard/settings') return 'settings';
     
     return 'dashboard';
   };
@@ -193,36 +191,6 @@ const NurseDashboard = () => {
       case 'medication-requests':
         return <NurseMedicationRequests />;
       
-      
-      case 'medical-records':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Medical Records</h1>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Patient Records</h2>
-              <p className="text-gray-600 mb-4">Access and update patient medical records and history.</p>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 border rounded-lg text-center">
-                    <h3 className="font-medium">Records Updated</h3>
-                    <p className="text-2xl font-bold text-blue-600">15</p>
-                    <p className="text-sm text-gray-600">Today</p>
-                  </div>
-                  <div className="p-4 border rounded-lg text-center">
-                    <h3 className="font-medium">Pending Reviews</h3>
-                    <p className="text-2xl font-bold text-yellow-600">8</p>
-                    <p className="text-sm text-gray-600">Requiring attention</p>
-                  </div>
-                  <div className="p-4 border rounded-lg text-center">
-                    <h3 className="font-medium">Total Records</h3>
-                    <p className="text-2xl font-bold text-green-600">1,247</p>
-                    <p className="text-sm text-gray-600">In system</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>        );
-      
       case 'health-incidents':
         return <HealthIncidentsView />;
       
@@ -257,31 +225,6 @@ const NurseDashboard = () => {
       case 'inventory':
         return <InventoryView />;
 
-      case 'settings':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Settings</h1>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Nurse Settings</h2>
-              <p className="text-gray-600 mb-4">Configure your preferences and account settings.</p>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium">Notification Preferences</h3>
-                  <p className="text-sm text-gray-600">Manage alert settings and notification types</p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium">Shift Schedule</h3>
-                  <p className="text-sm text-gray-600">View and update your work schedule</p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium">Profile Information</h3>
-                  <p className="text-sm text-gray-600">Update your professional profile and credentials</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      
       default:
         return (
           <div className="p-6 space-y-6 bg-gray-50 min-h-full">
@@ -296,9 +239,6 @@ const NurseDashboard = () => {
                     Welcome back! Here's your patient care overview and daily tasks.
                   </p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                  Emergency Protocol
-                </button>
               </div>
             </div>
 

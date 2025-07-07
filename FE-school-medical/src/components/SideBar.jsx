@@ -28,11 +28,9 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
         { id: 'my-child', icon: User, label: 'My Child' },
         { id: 'health-event', icon: Calendar, label: 'Health Events' },
         { id: 'medical-records', icon: FileText, label: 'Medical Records' },
-        { id: 'health-reports', icon: Heart, label: 'Health Reports' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'medical-request', icon: Syringe, label: 'Medical Request' },
-        { id: 'settings', icon: Settings, label: 'Settings' },
       ];
     }
     
@@ -50,12 +48,10 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
         { id: 'students', icon: Users, label: 'Students' },
         { id: 'health-events', icon: Calendar, label: 'Health Events' },
-        { id: 'medical-records', icon: FileText, label: 'Medical Records' },
         { id: 'health-incidents', icon: AlertTriangle, label: 'Health Incidents' },
         { id: 'medication-requests', icon: Syringe, label: 'Medication Requests' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'inventory', icon: Warehouse, label: 'Inventory' },
-        { id: 'settings', icon: Settings, label: 'Settings' },
       ];
     }
     

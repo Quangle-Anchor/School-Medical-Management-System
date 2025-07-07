@@ -30,15 +30,14 @@ const ParentDashboardWrapper = () => {
 
   // Get current view from URL
   const getCurrentView = () => {
-    const path = location.pathname;    if (path.includes('/my-child')) return 'my-child';
+    const path = location.pathname;
+    if (path.includes('/my-child')) return 'my-child';
     if (path.includes('/health-event')) return 'health-event';
     if (path.includes('/medical-records')) return 'medical-records';
-    if (path.includes('/health-reports')) return 'health-reports';
     if (path.includes('/medication-requests')) return 'medication-requests';
     if (path.includes('/notifications')) return 'notifications';
     if (path.includes('/messages')) return 'messages';
     if (path.includes('/medical-request')) return 'medical-request';
-    if (path.includes('/settings')) return 'settings';
     return 'dashboard';
   };
 
@@ -142,9 +141,6 @@ const ParentDashboardWrapper = () => {
       case 'medical-records':
         navigate('/parentDashboard/medical-records');
         break;
-      case 'health-reports':
-        navigate('/parentDashboard/health-reports');
-        break;
       case 'notifications':
         navigate('/parentDashboard/notifications');
         break;
@@ -153,9 +149,6 @@ const ParentDashboardWrapper = () => {
         break;
       case 'medical-request':
         navigate('/parentDashboard/medical-request');
-        break;
-      case 'settings':
-        navigate('/parentDashboard/settings');
         break;
       default:
         navigate('/parentDashboard');
@@ -215,13 +208,6 @@ const ParentDashboardWrapper = () => {
         
         case 'medical-records':
         return <HealthIncidentsView isParentView={true} students={students} parentLoading={loading} />;
-      case 'health-reports':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Health Reports</h1>
-            <p>Health reports content coming soon...</p>
-          </div>
-        );
       case 'notifications':
         return (
           <div className="p-6">
@@ -241,15 +227,7 @@ const ParentDashboardWrapper = () => {
         return <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />;
 
       case 'medication-requests':
-        return <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />;
-
-      case 'settings':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Settings</h1>
-            <p>Settings content coming soon...</p>
-          </div>
-        );   
+        return <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />;   
       default:
         return (
           <div className="p-6 space-y-6 bg-gray-50 min-h-screen">

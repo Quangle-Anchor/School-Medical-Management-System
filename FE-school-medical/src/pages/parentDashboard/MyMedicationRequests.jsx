@@ -35,8 +35,25 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
     fetchMyRequests();
   }, []);
 
-  const handleViewPrescription = async (filename) => {
+  const handleViewPrescription = async (prescriptionFileUrl) => {
     try {
+      if (!prescriptionFileUrl) {
+        setError('No prescription file available.');
+        return;
+      }
+
+      // Check if it's a Cloudinary URL (cloud-based storage)
+      if (prescriptionFileUrl.startsWith('http://') || prescriptionFileUrl.startsWith('https://')) {
+        // Direct URL - open in new tab
+        const newTab = window.open(prescriptionFileUrl, '_blank');
+        
+        if (!newTab) {
+          alert('Please allow popups for this site to view prescription files.');
+        }
+        return;
+      }
+
+      // Legacy support for filename-based storage
       const token = localStorage.getItem('token');
       if (!token) {
         setError('Authentication required. Please login again.');
@@ -44,7 +61,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
       }
 
       // Make authenticated request to get the file
-      const response = await fetch(`${API_BASE_URL}/api/medications/prescription/${filename}`, {
+      const response = await fetch(`${API_BASE_URL}/api/medications/prescription/${prescriptionFileUrl}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
