@@ -4,28 +4,19 @@ import com.be_source.School_Medical_Management_System_.request.MedicationRequest
 import com.be_source.School_Medical_Management_System_.response.MedicationRequestResponse;
 import com.be_source.School_Medical_Management_System_.service.MedicationRequestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/medications")
+@RequiredArgsConstructor
 public class MedicationRequestController {
 
-    @Autowired
-    private MedicationRequestService medicationRequestService;
-
-    @Value("${medication.upload.prescription.path}")
-    private String prescriptionUploadPath;
-
+    private final MedicationRequestService medicationRequestService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping("/my")
@@ -67,8 +58,7 @@ public class MedicationRequestController {
     }
 
     @GetMapping("/student/{studentId}/history")
-    public ResponseEntity<List<MedicationRequestResponse>> getHistoryByStudent(
-            @PathVariable Long studentId) {
+    public ResponseEntity<List<MedicationRequestResponse>> getHistoryByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(medicationRequestService.getHistoryByStudent(studentId));
     }
 
@@ -87,82 +77,5 @@ public class MedicationRequestController {
         medicationRequestService.confirmRequest(id);
         return ResponseEntity.ok("Request confirmed successfully.");
     }
-
-    @GetMapping("/prescription/{filename:.+}")
-    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
-        try {
-            Path currentDir = Paths.get(System.getProperty("user.dir"));
-            Path uploadDir = currentDir.resolve("src/main/resources/static").resolve(prescriptionUploadPath);
-            Path file = uploadDir.resolve(filename);
-            
-            Resource resource = null;
-            String actualFilename = filename;
-            
-            // First try the exact filename
-            if (java.nio.file.Files.exists(file)) {
-                resource = new UrlResource(file.toUri());
-            } else {
-                // If file doesn't exist, try common extensions
-                String[] extensions = {".jpg", ".jpeg", ".png", ".pdf", ".gif", ".bmp"};
-                for (String ext : extensions) {
-                    Path fileWithExt = uploadDir.resolve(filename + ext);
-                    if (java.nio.file.Files.exists(fileWithExt)) {
-                        resource = new UrlResource(fileWithExt.toUri());
-                        actualFilename = filename + ext;
-                        break;
-                    }
-                }
-            }
-            
-            if (resource != null && resource.exists() && resource.isReadable()) {
-                // Determine content type for inline viewing
-                String contentType = "application/octet-stream";
-                if (actualFilename.toLowerCase().endsWith(".pdf")) {
-                    contentType = "application/pdf";
-                } else if (actualFilename.toLowerCase().endsWith(".jpg") || actualFilename.toLowerCase().endsWith(".jpeg")) {
-                    contentType = "image/jpeg";
-                } else if (actualFilename.toLowerCase().endsWith(".png")) {
-                    contentType = "image/png";
-                } else if (actualFilename.toLowerCase().endsWith(".gif")) {
-                    contentType = "image/gif";
-                } else if (actualFilename.toLowerCase().endsWith(".bmp")) {
-                    contentType = "image/bmp";
-                }
-                
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + actualFilename + "\"")
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/prescription/list")
-    public ResponseEntity<?> listPrescriptionFiles() {
-        try {
-            Path currentDir = Paths.get(System.getProperty("user.dir"));
-            Path uploadDir = currentDir.resolve("src/main/resources/static").resolve(prescriptionUploadPath);
-            
-            if (!java.nio.file.Files.exists(uploadDir)) {
-                return ResponseEntity.ok("Upload directory does not exist: " + uploadDir);
-            }
-            
-            java.util.List<String> files = java.nio.file.Files.list(uploadDir)
-                    .map(path -> path.getFileName().toString())
-                    .collect(java.util.stream.Collectors.toList());
-            
-            return ResponseEntity.ok(java.util.Map.of(
-                "uploadDirectory", uploadDir.toString(),
-                "files", files,
-                "totalFiles", files.size()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error listing files: " + e.getMessage());
-        }
-    }
 }
+

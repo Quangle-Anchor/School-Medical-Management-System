@@ -20,19 +20,17 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+
 public class MedicationRequestServiceImpl implements MedicationRequestService {
 
     @Autowired
     private MedicationRequestRepository medicationRequestRepository;
-
     @Autowired
     private StudentRepository studentRepository;
-
     @Autowired
     private UserUtilService userUtilService;
-
-    @Value("${medication.upload.prescription.path}")
-    private String prescriptionUploadPath;
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     @Override
     public List<MedicationRequestResponse> getMyRequests() {
@@ -62,7 +60,8 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         entity.setEveningQuantity(request.getEveningQuantity());
 
         if (file != null && !file.isEmpty()) {
-            entity.setPrescriptionFile(uploadFile(file));
+            String fileUrl = cloudinaryService.uploadFile(file);
+            entity.setPrescriptionFile(fileUrl);
         }
 
         medicationRequestRepository.save(entity);
@@ -85,7 +84,8 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         existing.setEveningQuantity(request.getEveningQuantity());
 
         if (file != null && !file.isEmpty()) {
-            existing.setPrescriptionFile(uploadFile(file));
+            String fileUrl = cloudinaryService.uploadFile(file);
+            existing.setPrescriptionFile(fileUrl);
         }
 
         existing.setIsConfirmed(false);
@@ -99,18 +99,20 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         User parent = userUtilService.getCurrentUser();
         MedicationRequest existing = medicationRequestRepository.findByRequestIdAndRequestedBy(id, parent)
                 .orElseThrow(() -> new RuntimeException("Not found or not authorized"));
+
+        // Xoá file trên Cloudinary nếu tồn tại
+        if (existing.getPrescriptionFile() != null) {
+            cloudinaryService.deleteFileByUrl(existing.getPrescriptionFile());
+        }
+
         medicationRequestRepository.delete(existing);
     }
+
 
     @Override
     public List<MedicationRequestResponse> getHistoryByStudent(Long studentId) {
         User parent = userUtilService.getCurrentUser();
-        Students student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        if (!student.getParent().getUserId().equals(parent.getUserId())) {
-            throw new RuntimeException("Access denied: You can only view your own child's history.");
-        }
+        Students student = validateOwnership(studentId, parent);
 
         return medicationRequestRepository.findByStudentOrderByCreatedAtDesc(student).stream()
                 .map(this::mapToResponse)
@@ -138,19 +140,6 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         request.setIsConfirmed(true);
         request.setConfirmedAt(LocalDateTime.now());
         medicationRequestRepository.save(request);
-    }
-
-    private String uploadFile(MultipartFile file) {
-        try {
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path uploadDir = Paths.get("src/main/resources/static", prescriptionUploadPath);
-            if (!Files.exists(uploadDir)) Files.createDirectories(uploadDir);
-            Path destinationPath = uploadDir.resolve(fileName);
-            Files.copy(file.getInputStream(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
-            return fileName;
-        } catch (IOException e) {
-            throw new RuntimeException("Error uploading prescription file", e);
-        }
     }
 
     private Students validateOwnership(Long studentId, User parent) {

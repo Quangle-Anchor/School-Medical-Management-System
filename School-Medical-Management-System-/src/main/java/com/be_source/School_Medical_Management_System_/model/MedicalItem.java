@@ -33,5 +33,6 @@ public class MedicalItem {
 
     private String unit;
 
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }
