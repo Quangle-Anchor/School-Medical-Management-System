@@ -35,7 +35,6 @@ const VerifyOtp = () => {
     setLoading(true);
     try {
       await forgotPasswordApi.verifyOtp(email, otp);
-      // Truyền cả email và otp sang trang reset để dùng cho đổi mật khẩu
       navigate("/forgot-password/reset", { state: { email, otp } });
     } catch (err) {
       setError(err.message);
