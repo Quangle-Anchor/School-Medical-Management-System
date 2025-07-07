@@ -1,4 +1,4 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.request.MedicationRequestRequest;
 import com.be_source.School_Medical_Management_System_.response.MedicationRequestResponse;
@@ -7,16 +7,13 @@ import com.be_source.School_Medical_Management_System_.model.Students;
 import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.MedicationRequestRepository;
 import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
+import com.be_source.School_Medical_Management_System_.service.MedicationRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service

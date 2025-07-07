@@ -1,10 +1,11 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.request.HealthEventRequest;
 import com.be_source.School_Medical_Management_System_.response.HealthEventResponse;
 import com.be_source.School_Medical_Management_System_.model.HealthEvent;
 import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.HealthEventRepository;
+import com.be_source.School_Medical_Management_System_.service.HealthEventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

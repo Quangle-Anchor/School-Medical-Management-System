@@ -1,17 +1,17 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.model.PasswordRecovery;
 import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.PasswordRecoveryRepository;
 import com.be_source.School_Medical_Management_System_.repository.UserRepository;
+import com.be_source.School_Medical_Management_System_.service.EmailService;
+import com.be_source.School_Medical_Management_System_.service.PasswordRecoveryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 

@@ -1,4 +1,4 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.request.InventoryRequest;
 import com.be_source.School_Medical_Management_System_.response.InventoryResponse;
@@ -7,6 +7,7 @@ import com.be_source.School_Medical_Management_System_.model.Inventory;
 import com.be_source.School_Medical_Management_System_.model.MedicalItem;
 import com.be_source.School_Medical_Management_System_.repository.InventoryRepository;
 import com.be_source.School_Medical_Management_System_.repository.MedicalItemRepository;
+import com.be_source.School_Medical_Management_System_.service.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,9 +1,10 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.request.MedicalItemRequest;
 import com.be_source.School_Medical_Management_System_.response.MedicalItemResponse;
 import com.be_source.School_Medical_Management_System_.model.MedicalItem;
 import com.be_source.School_Medical_Management_System_.repository.MedicalItemRepository;
+import com.be_source.School_Medical_Management_System_.service.MedicalItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.model.MedicationSchedule;
 import com.be_source.School_Medical_Management_System_.repository.MedicationScheduleRepository;

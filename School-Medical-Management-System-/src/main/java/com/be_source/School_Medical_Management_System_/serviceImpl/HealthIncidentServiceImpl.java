@@ -1,4 +1,4 @@
-package com.be_source.School_Medical_Management_System_.service;
+package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.request.HealthIncidentRequest;
 import com.be_source.School_Medical_Management_System_.response.HealthIncidentResponse;
@@ -7,6 +7,7 @@ import com.be_source.School_Medical_Management_System_.model.Students;
 import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.HealthIncidentRepository;
 import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
+import com.be_source.School_Medical_Management_System_.service.HealthIncidentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
