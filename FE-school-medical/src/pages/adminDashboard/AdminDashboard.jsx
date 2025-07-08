@@ -4,12 +4,11 @@ import DashboardCard from "../../components/DashboardCard";
 import ChartCard from "../../components/ChartCard";
 import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard";
 import { Users, Settings, FileText, Bell, Activity } from "lucide-react";
-import UserManagement from "../../components/UserManagement";
+import UserManagement from "./UserManagement";
 
 const AdminDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeView, setActiveView] = useState("dashboard");
-  const [userTab, setUserTab] = useState("manage"); // 'manage' hoặc 'view'
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -58,56 +57,14 @@ const AdminDashboard = () => {
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">User Management</h1>
             <div className="bg-white rounded-lg shadow p-6">
-              {/* Tabs */}
-              <div className="flex border-b mb-6">
-                <button
-                  className={`px-4 py-2 font-semibold ${
-                    userTab === "manage"
-                      ? "border-b-2 border-blue-600 text-blue-600"
-                      : "text-gray-500"
-                  }`}
-                  onClick={() => setUserTab("manage")}
-                >
-                  Manage User
-                </button>
-                <button
-                  className={`ml-4 px-4 py-2 font-semibold ${
-                    userTab === "view"
-                      ? "border-b-2 border-blue-600 text-blue-600"
-                      : "text-gray-500"
-                  }`}
-                  onClick={() => setUserTab("view")}
-                >
-                  View User
-                </button>
-              </div>
-
-              {/* Tab Content */}
-              {userTab === "manage" && (
-                <div>
-                  <h2 className="text-lg font-semibold mb-4 text-red-600">
-                    Manage User
-                  </h2>
-                  <p className="text-red-600 mb-4">
-                    This use case allows manager to add, delete, update the user
-                    and assign their role
-                  </p>
-                  <UserManagement />
-                </div>
-              )}
-
-              {userTab === "view" && (
-                <div>
-                  <h2 className="text-lg font-semibold mb-4 text-red-600">
-                    View User
-                  </h2>
-                  <p className="text-red-600 mb-4">
-                    This use case allows the Manager to view all user accounts.
-                  </p>
-                  {/* You can reuse UserManagement in view-only mode or create a UserList component */}
-                  <UserManagement viewOnly />
-                </div>
-              )}
+              <h2 className="text-lg font-semibold mb-4 text-red-600">
+                Manage User
+              </h2>
+              <p className="text-red-600 mb-4">
+                This use case allows manager to add, delete, update the user
+                and assign their role
+              </p>
+              <UserManagement />
             </div>
           </div>
         );
