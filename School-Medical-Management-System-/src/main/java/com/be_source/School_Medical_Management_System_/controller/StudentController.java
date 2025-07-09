@@ -59,4 +59,10 @@ public class StudentController {
         studentService.deleteStudent(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/code/{studentCode}")
+    public ResponseEntity<StudentResponse> getStudentByCode(@PathVariable String studentCode) {
+        return ResponseEntity.ok(studentService.getStudentByCode(studentCode));
+    }
+
 }

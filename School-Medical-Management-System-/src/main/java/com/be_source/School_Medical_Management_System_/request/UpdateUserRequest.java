@@ -6,7 +6,6 @@ import lombok.Data;
 
 @Data
 public class UpdateUserRequest {
-    @NotBlank
     @Email
     private String email;
 
@@ -14,6 +13,5 @@ public class UpdateUserRequest {
 
     private String fullName;
 
-    @NotBlank
     private String roleName;
 }
