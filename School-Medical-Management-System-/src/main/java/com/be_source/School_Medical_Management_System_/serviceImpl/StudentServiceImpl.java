@@ -1,5 +1,6 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
+import com.be_source.School_Medical_Management_System_.response.HealthInfoResponse;
 import com.be_source.School_Medical_Management_System_.response.StudentResponse;
 import com.be_source.School_Medical_Management_System_.model.Students;
 import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
@@ -71,11 +72,20 @@ public class StudentServiceImpl implements StudentService {
         studentRepository.deleteById(id);
     }
 
+    @Override
+    public StudentResponse getStudentByCode(String studentCode) {
+        Students student = studentRepository.findByStudentCode(studentCode)
+                .orElseThrow(() -> new NoSuchElementException("Student not found with code: " + studentCode));
+        return toDto(student);
+    }
+
+
     // ============================ Mapping ============================
 
     private StudentResponse toDto(Students s) {
         StudentResponse dto = new StudentResponse();
         dto.setStudentId(s.getStudentId());
+        dto.setStudentCode(s.getStudentCode());
         dto.setFullName(s.getFullName());
         dto.setDateOfBirth(s.getDateOfBirth());
         dto.setClassName(s.getClassName());
@@ -85,8 +95,24 @@ public class StudentServiceImpl implements StudentService {
         dto.setWeightKg(s.getWeightKg());
         dto.setHealthStatus(s.getHealthStatus());
         dto.setUpdatedAt(s.getUpdatedAt());
+
+        // Convert list<Health_Info> to list<HealthInfoResponse>
+        if (s.getHealthInfoList() != null) {
+            List<HealthInfoResponse> healthDtos = s.getHealthInfoList().stream().map(hi -> {
+                HealthInfoResponse h = new HealthInfoResponse();
+                h.setHealthInfoId(hi.getHealthInfoId());
+                h.setMedicalConditions(hi.getMedicalConditions());
+                h.setAllergies(hi.getAllergies());
+                h.setNotes(hi.getNotes());
+                h.setUpdatedAt(hi.getUpdatedAt());
+                return h;
+            }).collect(Collectors.toList());
+            dto.setHealthInfoList(healthDtos);
+        }
+
         return dto;
     }
+
 
     private Students toEntity(StudentResponse dto) {
         Students s = new Students();

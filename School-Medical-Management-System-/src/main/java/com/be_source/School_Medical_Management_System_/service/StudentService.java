@@ -13,4 +13,5 @@ public interface StudentService {
     StudentResponse createStudent(StudentResponse dto);
     StudentResponse updateStudent(Long id, StudentResponse dto);
     void deleteStudent(Long id);
+    StudentResponse getStudentByCode(String studentCode);
 }

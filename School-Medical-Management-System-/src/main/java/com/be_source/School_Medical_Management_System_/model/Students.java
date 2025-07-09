@@ -1,4 +1,3 @@
-
 package com.be_source.School_Medical_Management_System_.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -7,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,6 +37,9 @@ public class Students {
 
     private String healthStatus;
 
+    @Column(unique = true, updatable = false)
+    private String studentCode;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
@@ -48,5 +51,4 @@ public class Students {
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Health_Info> healthInfoList;
-
 }

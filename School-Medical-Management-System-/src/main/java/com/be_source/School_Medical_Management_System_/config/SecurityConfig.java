@@ -29,7 +29,10 @@ public class SecurityConfig {
 
     // Public API
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/api/auth/**", "/api/public/**", "/api/password-recovery/**"
+            "/api/auth/**",
+            "/api/public/**",
+            "/api/password-recovery/**",
+            "/api/students/code/**"
     };
 
     // ADMIN role APIs
@@ -122,6 +125,10 @@ public class SecurityConfig {
 
                         // --- Common APIs ---
                         .requestMatchers(SHARED_ENDPOINTS_4ROLE).hasAnyRole("ADMIN", "PRINCIPAL", "NURSE", "PARENT")
+                        .requestMatchers(HttpMethod.GET, "/api/notifications/my").hasRole("PARENT")
+                        .requestMatchers("/api/notifications/**").hasAnyRole("PRINCIPAL", "NURSE")
+
+
 
                         .anyRequest().authenticated()
                 )
