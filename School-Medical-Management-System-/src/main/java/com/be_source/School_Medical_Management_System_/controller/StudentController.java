@@ -35,6 +35,18 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudentsByCurrentParent());
     }
 
+    // Cái này là search Student của Quang
+    @GetMapping("/search")
+    public ResponseEntity<List<StudentResponse>> searchStudentsByCode(@RequestParam String keyword) {
+        return ResponseEntity.ok(studentService.searchStudentsByCode(keyword));
+    }
+
+    // Cái này chức năng View Student-Info của Hoàng
+    @GetMapping("/code/{studentCode}")
+    public ResponseEntity<StudentResponse> getStudentByCode(@PathVariable String studentCode) {
+        return ResponseEntity.ok(studentService.getStudentByCode(studentCode));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<StudentResponse> getStudentById(@PathVariable Long id) {
         return ResponseEntity.ok(studentService.getStudentById(id));
@@ -60,9 +72,5 @@ public class StudentController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/code/{studentCode}")
-    public ResponseEntity<StudentResponse> getStudentByCode(@PathVariable String studentCode) {
-        return ResponseEntity.ok(studentService.getStudentByCode(studentCode));
-    }
 
 }

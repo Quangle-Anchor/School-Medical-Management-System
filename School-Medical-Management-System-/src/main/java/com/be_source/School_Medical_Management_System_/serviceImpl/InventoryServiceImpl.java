@@ -29,11 +29,19 @@ public class InventoryServiceImpl implements InventoryService {
         MedicalItem item = medicalItemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        Inventory inventory = Inventory.builder()
-                .medicalItem(item)
-                .totalQuantity(request.getTotalQuantity())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        // Kiểm tra xem đã có item này trong kho chưa
+        Inventory inventory = inventoryRepository.findByMedicalItem(item).orElse(null);
+
+        if (inventory == null) {
+            inventory = Inventory.builder()
+                    .medicalItem(item)
+                    .totalQuantity(request.getTotalQuantity())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+        } else {
+            inventory.setTotalQuantity(inventory.getTotalQuantity() + request.getTotalQuantity());
+            inventory.setUpdatedAt(LocalDateTime.now());
+        }
 
         return toResponse(inventoryRepository.save(inventory));
     }
@@ -43,15 +51,19 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory existing = inventoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Inventory not found"));
 
-        MedicalItem item = medicalItemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+        int quantityToSubtract = request.getTotalQuantity();
+        int current = existing.getTotalQuantity();
 
-        existing.setMedicalItem(item);
-        existing.setTotalQuantity(request.getTotalQuantity());
+        if (quantityToSubtract > current) {
+            throw new RuntimeException("Không đủ số lượng trong kho để xuất");
+        }
+
+        existing.setTotalQuantity(current - quantityToSubtract);
         existing.setUpdatedAt(LocalDateTime.now());
 
         return toResponse(inventoryRepository.save(existing));
     }
+
 
     @Override
     public void delete(Long id) {
@@ -64,6 +76,7 @@ public class InventoryServiceImpl implements InventoryService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
     @Override
     public List<InventoryResponse> searchByItemName(String keyword) {
         List<Inventory> inventories = inventoryRepository.searchByItemName(keyword);

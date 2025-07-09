@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface StudentRepository extends JpaRepository<Students, Long> {
     List<Students> findByParent(User parent);
     Optional<Students> findByStudentCode(String studentCode);
+    List<Students> findByStudentCodeContainingIgnoreCase(String keyword);
 }

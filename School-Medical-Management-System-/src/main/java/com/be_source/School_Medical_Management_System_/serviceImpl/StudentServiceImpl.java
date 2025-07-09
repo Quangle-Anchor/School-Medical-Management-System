@@ -78,6 +78,12 @@ public class StudentServiceImpl implements StudentService {
                 .orElseThrow(() -> new NoSuchElementException("Student not found with code: " + studentCode));
         return toDto(student);
     }
+    @Override
+    public List<StudentResponse> searchStudentsByCode(String keyword) {
+        return studentRepository.findByStudentCodeContainingIgnoreCase(keyword).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
 
 
     // ============================ Mapping ============================

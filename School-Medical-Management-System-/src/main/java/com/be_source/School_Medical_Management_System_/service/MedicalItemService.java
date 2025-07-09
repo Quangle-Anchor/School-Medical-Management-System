@@ -11,4 +11,6 @@ public interface MedicalItemService {
     void delete(Long id);
     List<MedicalItemResponse> getAll();
     MedicalItemResponse getById(Long id);
+    List<MedicalItemResponse> search(String keyword);
+
 }

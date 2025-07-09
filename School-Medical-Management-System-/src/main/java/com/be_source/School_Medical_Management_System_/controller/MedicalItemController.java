@@ -50,4 +50,10 @@ public class MedicalItemController {
     public ResponseEntity<MedicalItemResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(medicalItemService.getById(id));
     }
+    @GetMapping("/search")
+    public ResponseEntity<List<MedicalItemResponse>> searchMedicalItems(
+            @RequestParam("keyword") String keyword) {
+        return ResponseEntity.ok(medicalItemService.search(keyword));
+    }
+
 }

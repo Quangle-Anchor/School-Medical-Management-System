@@ -66,6 +66,14 @@ public class MedicalItemServiceImpl implements MedicalItemService {
                 .map(this::toResponse)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
     }
+    @Override
+    public List<MedicalItemResponse> search(String keyword) {
+        List<MedicalItem> results = medicalItemRepository.searchByKeyword(keyword);
+        return results.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
 
     private MedicalItemResponse toResponse(MedicalItem item) {
         return MedicalItemResponse.builder()
