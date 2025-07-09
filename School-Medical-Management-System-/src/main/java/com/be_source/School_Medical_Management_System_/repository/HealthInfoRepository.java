@@ -10,5 +10,4 @@ import java.util.List;
 @Repository
 public interface HealthInfoRepository extends JpaRepository<Health_Info, Long> {
     List<Health_Info> findByStudentStudentId(Long studentId);
-    void deleteByStudent(Students student);
 }
