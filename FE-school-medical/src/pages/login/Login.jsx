@@ -9,9 +9,28 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
-  const handleLogin = async () => {
-    try {      const data = await authApi.login(email, password);
+  
+  // Completely separate function from form submission
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault(); // Always prevent default form submission
+    setIsLoggingIn(true);
+    
+    // Form validation
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
+    
+    try {
+      const data = await authApi.login(email, password);
+      
+      if (!data || !data.token) {
+        setError('Invalid response from server. Please try again.');
+        return;
+      }
+      
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role);
       localStorage.setItem('email', data.email);
@@ -20,7 +39,7 @@ const LoginPage = () => {
       if (data.userId) {
         localStorage.setItem('userId', data.userId.toString());
       }
-        // Store fullname if available (for profile display)
+      // Store fullname if available (for profile display)
       if (data.fullName) {
         localStorage.setItem('fullname', data.fullName);
       }
@@ -42,9 +61,30 @@ const LoginPage = () => {
       navigate(dashboardPath, { replace: true }); // Use replace to avoid back button issue
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.response?.data || 'Login failed. Check credentials.');
+      // Better error handling
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Login failed. Please check your credentials and try again.');
+      }
+    } finally {
+      setIsLoggingIn(false);
     }
-  };  return (
+  };
+  
+  // Prevent form submission on Enter key
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleLogin();
+    }
+  };
+  
+  return (
     <div
       className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{
@@ -75,22 +115,16 @@ const LoginPage = () => {
 
           {/* Error Alert */}
           {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl backdrop-blur-sm">
+            <div className="mb-6 p-4 bg-red-500/30 border border-red-500/50 rounded-xl backdrop-blur-sm animate-pulse">
               <div className="flex items-center">
-                <div className="text-red-300 mr-2">⚠️</div>
-                <span className="text-red-100 text-sm">{error}</span>
+                <div className="text-red-300 mr-2 font-bold">⚠️</div>
+                <span className="text-red-100 text-sm font-medium">{error}</span>
               </div>
             </div>
           )}
 
           {/* Form */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleLogin();
-            }}
-            className="space-y-6"
-          >
+          <div className="space-y-6">
             <div>
               <label
                 htmlFor="email"
@@ -106,6 +140,7 @@ const LoginPage = () => {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={preventEnterSubmit}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
                 placeholder="Enter your email"
               />
@@ -126,6 +161,7 @@ const LoginPage = () => {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={preventEnterSubmit}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
                 placeholder="Enter your password"
               />
@@ -157,12 +193,14 @@ const LoginPage = () => {
             </div>
 
             <button
-              type="submit"
+              type="button"
+              onClick={handleLogin}
+              disabled={isLoggingIn}
               className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 backdrop-blur-sm"
             >
-              Sign In
+              {isLoggingIn ? 'Signing in...' : 'Sign In'}
             </button>
-          </form>
+          </div>
 
           <div className="mt-8 text-center">
             <p className="text-white/80 text-sm">

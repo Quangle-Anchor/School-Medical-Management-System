@@ -279,28 +279,28 @@ const AuthNavbar = () => {
                   leave="transition ease-in duration-75"
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
-                >                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right backdrop-blur-lg bg-white/10 rounded-3xl shadow-2xl focus:outline-none border border-white/20">
-                    <div className="p-2">                      <div className="px-3 py-2 border-b border-white/20">
-                        <p className="text-sm font-medium text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">{user?.name}</p>
-                        <p className="text-sm text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">{user?.email}</p>
+                >                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right bg-white rounded-3xl shadow-2xl focus:outline-none border border-gray-200">
+                    <div className="p-2">                      <div className="px-3 py-2 border-b border-gray-200">
+                        <p className="text-sm font-medium text-gray-800">{user?.name}</p>
+                        <p className="text-sm text-gray-600">{user?.email}</p>
                         {user?.username && (
-                          <p className="text-xs text-transparent bg-gradient-to-r from-gray-400 to-gray-500 bg-clip-text">@{user.username}</p>
+                          <p className="text-xs text-gray-500">@{user.username}</p>
                         )}
                         {user?.phone && (
-                          <p className="text-xs text-transparent bg-gradient-to-r from-gray-400 to-gray-500 bg-clip-text">{user.phone}</p>
+                          <p className="text-xs text-gray-500">{user.phone}</p>
                         )}
-                        <span className="inline-block mt-1 text-xs bg-white/10 px-2 py-1 rounded-full backdrop-blur-sm border border-white/20 text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">
+                        <span className="inline-block mt-1 text-xs bg-blue-100 px-2 py-1 rounded-full border border-blue-200 text-blue-700">
                           {user?.role}
                         </span>
                       </div><Menu.Item>
                         {({ active }) => (
                           <Link
                             to="/profile"                            className={classNames(
-                              active ? 'bg-white/15 backdrop-blur-sm' : 'hover:bg-white/5',
+                              active ? 'bg-blue-50' : 'hover:bg-gray-50',
                               'group flex items-center px-3 py-2 text-sm rounded-xl mt-2 transition-all duration-300'
                             )}                          >
-                            <UserIcon className="mr-3 h-4 w-4 text-blue-400" />
-                            <span className="text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">Profile</span>
+                            <UserIcon className="mr-3 h-4 w-4 text-blue-500" />
+                            <span className="text-gray-800">Profile</span>
                           </Link>
                         )}
                       </Menu.Item>
@@ -308,11 +308,11 @@ const AuthNavbar = () => {
                         {({ active }) => (
                           <Link
                             to="/settings"                            className={classNames(
-                              active ? 'bg-white/15 backdrop-blur-sm' : 'hover:bg-white/5',
+                              active ? 'bg-blue-50' : 'hover:bg-gray-50',
                               'group flex items-center px-3 py-2 text-sm rounded-xl transition-all duration-300'
                             )}                          >
-                            <Cog6ToothIcon className="mr-3 h-4 w-4 text-purple-400" />
-                            <span className="text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">Settings</span>
+                            <Cog6ToothIcon className="mr-3 h-4 w-4 text-blue-500" />
+                            <span className="text-gray-800">Settings</span>
                           </Link>
                         )}
                       </Menu.Item>
@@ -320,11 +320,11 @@ const AuthNavbar = () => {
                         {({ active }) => (
                           <button
                             onClick={handleLogout}                            className={classNames(
-                              active ? 'bg-red-500/20 backdrop-blur-sm' : 'hover:bg-red-500/10',
+                              active ? 'bg-red-50' : 'hover:bg-red-50',
                               'group flex items-center w-full px-3 py-2 text-sm rounded-xl transition-all duration-300'
                             )}                          >
-                            <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4 text-red-400" />
-                            <span className="text-transparent bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text">Sign out</span>
+                            <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4 text-red-500" />
+                            <span className="text-red-600">Sign out</span>
                           </button>
                         )}
                       </Menu.Item>

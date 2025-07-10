@@ -212,25 +212,39 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
     }
   };
 
+  // Stop scrolling on the body when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Cleanup function to restore scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto my-4 shadow-xl">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
             {isEditing ? 'Edit Medication Request' : 'New Medication Request'}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex items-center">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 flex items-center">
             <AlertCircle className="w-5 h-5 mr-2" />
             {error}
           </div>
@@ -238,7 +252,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Student Selection */}
-          <div className="border rounded-lg p-4">
+          <div className="border rounded-xl p-4">
             <h3 className="font-semibold mb-3 flex items-center">
               <User className="w-4 h-4 mr-2" />
               Student Information
@@ -272,7 +286,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
           </div>
 
           {/* Medication Information */}
-          <div className="border rounded-lg p-4">
+          <div className="border rounded-xl p-4">
             <h3 className="font-semibold mb-3 flex items-center">
               <Pill className="w-4 h-4 mr-2" />
               Medication Details
@@ -324,7 +338,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
           </div>
 
           {/* Quantity Information */}
-          <div className="border rounded-lg p-4">
+          <div className="border rounded-xl p-4">
             <h3 className="font-semibold mb-3 flex items-center">
               <Clock className="w-4 h-4 mr-2" />
               Quantity Details
@@ -389,7 +403,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
           </div>
 
           {/* Prescription File Upload */}
-          <div className="border rounded-lg p-4">
+          <div className="border rounded-xl p-4">
             <h3 className="font-semibold mb-3 flex items-center">
               <FileText className="w-4 h-4 mr-2" />
               Prescription Document
@@ -398,7 +412,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
               <label className="block text-sm font-medium mb-1">
                 Upload Prescription (Optional)
               </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl"
                    onClick={(e) => e.preventDefault()}>
                 <div className="space-y-1 text-center"
                      onClick={(e) => e.stopPropagation()}>
@@ -442,7 +456,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
               disabled={loading}
             >
               Cancel
@@ -450,7 +464,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center"
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center"
             >
               {loading ? (
                 <>

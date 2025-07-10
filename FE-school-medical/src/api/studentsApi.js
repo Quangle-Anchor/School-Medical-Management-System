@@ -125,10 +125,13 @@ export const studentAPI = {
   // Create health info
   createHealthInfo: async (healthInfoData) => {
     try {
+      console.log('Creating health info with data:', healthInfoData);
       const response = await axiosInstance.post('/api/health-info', healthInfoData);
+      console.log('Health info creation response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error in createHealthInfo:', error);
+      console.error('Error response:', error.response?.data);
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
@@ -141,10 +144,13 @@ export const studentAPI = {
   // Update health info
   updateHealthInfo: async (id, healthInfoData) => {
     try {
+      console.log(`Updating health info ${id} with data:`, healthInfoData);
       const response = await axiosInstance.put(`/api/health-info/${id}`, healthInfoData);
+      console.log('Health info update response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error in updateHealthInfo:', error);
+      console.error('Error response:', error.response?.data);
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
@@ -157,10 +163,13 @@ export const studentAPI = {
   // Get health info by student ID
   getHealthInfoByStudentId: async (studentId) => {
     try {
+      console.log(`Fetching health info for student ${studentId}`);
       const response = await axiosInstance.get(`/api/health-info/student/${studentId}`);
+      console.log('Health info fetch response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error in getHealthInfoByStudentId:', error);
+      console.error('Error response:', error.response?.data);
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
