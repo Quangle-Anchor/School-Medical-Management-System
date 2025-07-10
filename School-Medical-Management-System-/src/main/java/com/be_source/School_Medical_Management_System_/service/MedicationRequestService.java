@@ -15,4 +15,5 @@ public interface MedicationRequestService {
     List<MedicationRequestResponse> getUnconfirmedRequests();
     List<MedicationRequestResponse> getAllRequests();
     void confirmRequest(Long id);
+    void unconfirmRequest(Long id, String reason);
 }

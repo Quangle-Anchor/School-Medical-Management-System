@@ -1,5 +1,6 @@
 package com.be_source.School_Medical_Management_System_.response;
 
+import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -24,7 +25,8 @@ public class MedicationRequestResponse {
     private String eveningQuantity;
 
     private String prescriptionFile;
-    private boolean isConfirmed;
+    private ConfirmationStatus confirmationStatus;
+    private String unconfirmReason;
     private LocalDateTime createdAt;
     private LocalDateTime confirmedAt;
 }
