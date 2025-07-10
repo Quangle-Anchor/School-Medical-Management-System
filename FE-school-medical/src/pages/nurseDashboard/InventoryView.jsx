@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   PlusIcon, 
   MagnifyingGlassIcon, 
@@ -6,8 +6,11 @@ import {
   TrashIcon,
   ExclamationTriangleIcon,
   CheckIcon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
+
+// Add CSS animation style in index.css
 import { inventoryAPI } from '../../api/inventoryApi';
 
 const InventoryView = () => {
@@ -22,13 +25,24 @@ const InventoryView = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showExistingItemsModal, setShowExistingItemsModal] = useState(false);
+  const [showAddDropdown, setShowAddDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [medicalItems, setMedicalItems] = useState([]);
+  const [loadingMedicalItems, setLoadingMedicalItems] = useState(false);
+  const [medicalItemSearchTerm, setMedicalItemSearchTerm] = useState('');
+  const [selectedMedicalItem, setSelectedMedicalItem] = useState(null);
+  const [showAddQuantityForm, setShowAddQuantityForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     category: 'medications',
     quantity: 0,
     unit: '',
     description: '',
+    manufacturer: '',
+    expiryDate: '',
+    storageInstructions: '',
     minThreshold: 10,
     maxThreshold: 50,
   });
@@ -36,6 +50,75 @@ const InventoryView = () => {
   useEffect(() => {
     fetchInventory();
   }, []);
+  
+  // Fetch medical items when showing the existing items modal
+  // Fetch medical items when showing the existing items modal
+  useEffect(() => {
+    if (showExistingItemsModal) {
+      fetchMedicalItems();
+      setMedicalItemSearchTerm(''); // Reset search term when opening modal
+      setSelectedMedicalItem(null); // Reset selected item
+      setShowAddQuantityForm(false); // Reset quantity form visibility
+    }
+  }, [showExistingItemsModal]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showAddDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowAddDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAddDropdown]);
+
+  // Handle keyboard events for the dropdown
+  const handleDropdownKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      setShowAddDropdown(false);
+      return;
+    }
+
+    if (!showAddDropdown) {
+      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setShowAddDropdown(true);
+      }
+    } else {
+      if (['ArrowUp', 'ArrowDown'].includes(e.key)) {
+        e.preventDefault();
+        const focusableElements = dropdownRef.current.querySelectorAll('button[role="menuitem"]');
+        const currentIndex = Array.from(focusableElements).findIndex(el => el === document.activeElement);
+        
+        if (e.key === 'ArrowDown' && currentIndex < focusableElements.length - 1) {
+          focusableElements[currentIndex + 1].focus();
+        } else if (e.key === 'ArrowUp' && currentIndex > 0) {
+          focusableElements[currentIndex - 1].focus();
+        } else if (e.key === 'ArrowUp' && currentIndex === 0) {
+          // If at the first item, loop to the last item
+          focusableElements[focusableElements.length - 1].focus();
+        } else if (e.key === 'ArrowDown' && currentIndex === focusableElements.length - 1) {
+          // If at the last item, loop to the first item
+          focusableElements[0].focus();
+        }
+      }
+    }
+  };
+
+  // Focus the first item when dropdown opens
+  useEffect(() => {
+    if (showAddDropdown && dropdownRef.current) {
+      const firstItem = dropdownRef.current.querySelector('button[role="menuitem"]');
+      if (firstItem) {
+        // Small delay to ensure the dropdown is fully rendered
+        setTimeout(() => firstItem.focus(), 50);
+      }
+    }
+  }, [showAddDropdown]);
 
   const fetchInventory = async () => {
     try {
@@ -59,8 +142,8 @@ const InventoryView = () => {
         
         return {
           id: inventoryItem.inventoryId,
-          name: inventoryItem.item?.itemName || inventoryItem.item?.name || 'Unknown Item',
-          itemName: inventoryItem.item?.itemName || inventoryItem.item?.name || 'Unknown Item',
+          name: inventoryItem.item?.itemName || 'Unknown Item',
+          itemName: inventoryItem.item?.itemName || 'Unknown Item',
           category: category,
           description: inventoryItem.item?.description || '',
           quantity: inventoryItem.totalQuantity || 0,
@@ -68,10 +151,10 @@ const InventoryView = () => {
           manufacturer: inventoryItem.item?.manufacturer || '',
           expiryDate: inventoryItem.item?.expiryDate || '',
           storageInstructions: inventoryItem.item?.storageInstructions || '',
-          minThreshold: inventoryItem.item?.minThreshold || 10,
-          maxThreshold: inventoryItem.item?.maxThreshold || 50,
+          minThreshold: 10, // Default values since these aren't in the backend model
+          maxThreshold: 50, // Default values since these aren't in the backend model
           updatedAt: inventoryItem.updatedAt,
-          createdAt: inventoryItem.item?.createdAt || inventoryItem.createdAt
+          createdAt: inventoryItem.item?.createdAt || inventoryItem.updatedAt
         };
       });
       
@@ -91,13 +174,81 @@ const InventoryView = () => {
     }
   };
 
+  // Fetch available medical items from the backend
+  const fetchMedicalItems = async () => {
+    try {
+      setLoadingMedicalItems(true);
+      const items = await inventoryAPI.getMedicalItems();
+      setMedicalItems(items);
+      console.log('Fetched medical items:', items);
+    } catch (error) {
+      console.error('Error fetching medical items:', error);
+      alert('Failed to fetch medical items. Please try again later.');
+    } finally {
+      setLoadingMedicalItems(false);
+    }
+  };
+
+  // Filter medical items based on search term
+  const filteredMedicalItems = medicalItems.filter(item => 
+    item?.itemName?.toLowerCase().includes(medicalItemSearchTerm.toLowerCase()) ||
+    item?.description?.toLowerCase().includes(medicalItemSearchTerm.toLowerCase()) ||
+    item?.manufacturer?.toLowerCase().includes(medicalItemSearchTerm.toLowerCase()) ||
+    item?.category?.toLowerCase().includes(medicalItemSearchTerm.toLowerCase())
+  );
+
+  // Select an item to add to inventory
+  const selectItemToAdd = (item) => {
+    setSelectedMedicalItem(item);
+    setShowAddQuantityForm(true);
+    // Reset quantity to 1 when selecting an item for better user experience
+    setFormData(prevData => ({
+      ...prevData,
+      quantity: 1
+    }));
+  };
+  
+  // Handle adding an existing item to inventory
+  const handleAddExistingItem = async () => {
+    try {
+      if (!selectedMedicalItem) {
+        alert('Please select an item first');
+        return;
+      }
+      
+      if (!formData.quantity || formData.quantity <= 0) {
+        alert('Please enter a valid quantity');
+        return;
+      }
+      
+      // Show loading state
+      const quantity = formData.quantity; // Store quantity for success message
+      
+      await inventoryAPI.addExistingItemToInventory(selectedMedicalItem.itemId, formData.quantity);
+      
+      // Close modals and reset state
+      setShowExistingItemsModal(false);
+      setSelectedMedicalItem(null);
+      setShowAddQuantityForm(false);
+      resetForm();
+      fetchInventory();
+      
+      // Show success notification (could be enhanced with a toast component)
+      alert(`Successfully added ${quantity} ${selectedMedicalItem.unit || 'units'} of ${selectedMedicalItem.itemName} to inventory`);
+    } catch (error) {
+      console.error('Error adding existing item to inventory:', error);
+      alert(`Failed to add item: ${error.message || 'Please check your permissions.'}`);
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       fetchInventory();
       return;
     }
-
+    
     try {
+      setLoading(true);
       const searchResults = await inventoryAPI.searchInventory(searchTerm);
       console.log('Raw search results:', searchResults);
       
@@ -117,8 +268,8 @@ const InventoryView = () => {
         
         return {
           id: inventoryItem.inventoryId,
-          name: inventoryItem.item?.itemName || inventoryItem.item?.name || 'Unknown Item',
-          itemName: inventoryItem.item?.itemName || inventoryItem.item?.name || 'Unknown Item',
+          name: inventoryItem.item?.itemName || 'Unknown Item',
+          itemName: inventoryItem.item?.itemName || 'Unknown Item',
           category: category,
           description: inventoryItem.item?.description || '',
           quantity: inventoryItem.totalQuantity || 0,
@@ -126,17 +277,28 @@ const InventoryView = () => {
           manufacturer: inventoryItem.item?.manufacturer || '',
           expiryDate: inventoryItem.item?.expiryDate || '',
           storageInstructions: inventoryItem.item?.storageInstructions || '',
-          minThreshold: inventoryItem.item?.minThreshold || 10,
-          maxThreshold: inventoryItem.item?.maxThreshold || 50,
+          minThreshold: 10, // Default values
+          maxThreshold: 50, // Default values
           updatedAt: inventoryItem.updatedAt,
-          createdAt: inventoryItem.item?.createdAt || inventoryItem.createdAt
+          createdAt: inventoryItem.item?.createdAt || inventoryItem.updatedAt,
+          highlightMatch: true // Flag to indicate this is from a search result
         };
       });
       
       const categorizedData = inventoryAPI.categorizeInventory(transformedItems);
       setInventoryData(categorizedData);
+      
+      // Clear selected category to show all search results organized by category
+      setSelectedCategory(null);
+      
+      // Show a message if no results
+      if (transformedItems.length === 0) {
+        alert(`No items found matching "${searchTerm}"`);
+      }
     } catch (error) {
       console.error('Error searching inventory:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -155,16 +317,18 @@ const InventoryView = () => {
         backendCategory = 'Consumables';
       }
       
-      // Structure the data to match backend expectations
+      // Create a new medical item first, then add it to inventory
+      // The API expects a two-step process: 
+      // 1. Create medical item
+      // 2. Add the medical item to inventory with quantity
       const itemData = {
-        // Item properties
         itemName: formData.name,
         category: backendCategory,
         unit: formData.unit,
         description: formData.description || '',
-        minThreshold: formData.minThreshold || 10,
-        maxThreshold: formData.maxThreshold || 50,
-        // Inventory level properties
+        manufacturer: formData.manufacturer || '',
+        expiryDate: formData.expiryDate || null,
+        storageInstructions: formData.storageInstructions || '',
         totalQuantity: formData.quantity
       };
       
@@ -195,17 +359,18 @@ const InventoryView = () => {
         backendCategory = 'Consumables';
       }
       
-      // Structure the data to match backend expectations
-      // It seems the backend expects updates to both item properties and inventory quantity
+      // Structure the data for updating both medical item and inventory quantity
+      // The API expects:
+      // 1. Medical item details (name, category, etc.)
+      // 2. Inventory quantity update
       const itemData = {
-        // Item properties
         itemName: formData.name,
         category: backendCategory,
         unit: formData.unit,
         description: formData.description || '',
-        minThreshold: formData.minThreshold || 10,
-        maxThreshold: formData.maxThreshold || 50,
-        // Inventory level properties
+        manufacturer: formData.manufacturer || '',
+        expiryDate: formData.expiryDate || null,
+        storageInstructions: formData.storageInstructions || '',
         totalQuantity: formData.quantity
       };
       
@@ -239,6 +404,9 @@ const InventoryView = () => {
       quantity: 0,
       unit: '',
       description: '',
+      manufacturer: '',
+      expiryDate: '',
+      storageInstructions: '',
       minThreshold: 10,
       maxThreshold: 50,
     });
@@ -253,6 +421,9 @@ const InventoryView = () => {
       quantity: item.quantity || 0,
       unit: item.unit || '',
       description: item.description || '',
+      manufacturer: item.manufacturer || '',
+      expiryDate: item.expiryDate || '',
+      storageInstructions: item.storageInstructions || '',
       minThreshold: item.minThreshold || 10,
       maxThreshold: item.maxThreshold || 50,
     });
@@ -329,34 +500,138 @@ const InventoryView = () => {
         
         <div className="flex items-center space-x-4">
           {/* Search */}
-          <div className="flex items-center">
+          <div className="relative flex-grow max-w-md">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            </div>
             <input
               type="text"
-              placeholder="Search inventory..."
+              placeholder="Search by name, category, manufacturer..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {searchTerm && (
+              <button 
+                className="absolute inset-y-0 right-12 flex items-center pr-2 text-gray-500 hover:text-gray-700"
+                onClick={() => {
+                  setSearchTerm('');
+                  fetchInventory();
+                }}
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            )}
             <button
               onClick={handleSearch}
-              className="px-3 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700"
+              className="absolute inset-y-0 right-0 px-3 mr-1 my-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
             >
-              <MagnifyingGlassIcon className="h-5 w-5" />
+              <span className="text-sm font-medium">Search</span>
             </button>
           </div>
           
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-          >
-            <PlusIcon className="h-5 w-5" />
-            <span>Add Item</span>
-          </button>
+          <div className="relative add-item-dropdown" ref={dropdownRef}>
+            <button 
+              onClick={() => setShowAddDropdown(!showAddDropdown)}
+              onKeyDown={handleDropdownKeyDown}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2 transition-all focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 focus:outline-none"
+              aria-expanded={showAddDropdown}
+              aria-haspopup="true"
+              id="add-item-button"
+            >
+              <PlusIcon className="h-5 w-5" />
+              <span>Add Item</span>
+              <svg 
+                className={`ml-1 h-4 w-4 transition-transform duration-200 ${showAddDropdown ? 'rotate-180' : ''}`} 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 20 20" 
+                fill="currentColor"
+              >
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+            {showAddDropdown && (
+              <div 
+                className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-lg z-20 border border-gray-200 animate-fade-in transform origin-top-right"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="add-item-button"
+              >
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      setShowAddModal(true);
+                      setShowAddDropdown(false);
+                    }}
+                    onKeyDown={handleDropdownKeyDown}
+                    className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 rounded-t-xl transition-colors focus:outline-none focus:bg-blue-50"
+                    role="menuitem"
+                    tabIndex={showAddDropdown ? 0 : -1}
+                  >
+                    <span className="flex items-center">
+                      <PlusIcon className="h-4 w-4 mr-2 text-blue-600" />
+                      <div>
+                        <span className="font-medium">Create New Item</span>
+                        <p className="text-xs text-gray-500 mt-1">Add a completely new item to the inventory</p>
+                      </div>
+                    </span>
+                  </button>
+                  
+                  <div className="border-t border-gray-100"></div>
+                  
+                  <button
+                    onClick={() => {
+                      setShowExistingItemsModal(true);
+                      setShowAddDropdown(false);
+                    }}
+                    onKeyDown={handleDropdownKeyDown}
+                    className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 rounded-b-xl transition-colors focus:outline-none focus:bg-blue-50"
+                    role="menuitem"
+                    tabIndex={showAddDropdown ? 0 : -1}
+                  >
+                    <span className="flex items-center">
+                      <ArrowDownTrayIcon className="h-4 w-4 mr-2 text-green-600" />
+                      <div>
+                        <span className="font-medium">Use Existing Medical Item</span>
+                        <p className="text-xs text-gray-500 mt-1">Select from available medical catalog</p>
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {!selectedCategory ? (
         <div className="space-y-6">
+          {/* Search Status */}
+          {searchTerm.trim() && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-2">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-medium text-blue-800">
+                    Search results for "{searchTerm}"
+                  </h3>
+                  <p className="text-sm text-blue-600">
+                    Found {totalItems} {totalItems === 1 ? 'item' : 'items'} across all categories
+                  </p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setSearchTerm('');
+                    fetchInventory();
+                  }}
+                  className="px-3 py-1 bg-white text-blue-700 border border-blue-300 rounded-md text-sm hover:bg-blue-100"
+                >
+                  Clear search
+                </button>
+              </div>
+            </div>
+          )}
+          
           {/* Overview Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg shadow p-4">
@@ -383,35 +658,68 @@ const InventoryView = () => {
 
           {/* Category Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Object.entries(inventoryData).map(([category, items]) => (
-              <div 
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow border-2 ${getCategoryColor(category)} hover:border-opacity-80`}
-              >
-                <div className="flex items-center mb-4">
-                  <span className="text-2xl mr-3">{getCategoryIcon(category)}</span>
-                  <h3 className="text-xl font-semibold text-gray-800 capitalize">{category}</h3>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">Total Items: {items.length}</p>
-                  <p className="text-sm text-gray-600">
-                    Low Stock: {items.filter(item => {
-                      const status = item.status || inventoryAPI.getStockStatus(item.quantity);
-                      return status === 'low';
-                    }).length} items
-                  </p>
-                  <div className="mt-4">
-                    <div className="text-xs text-gray-500">Recent items:</div>
-                    <div className="text-sm">
-                      {items.slice(0, 3).map(item => item.name || item.itemName).join(', ')}
-                      {items.length > 3 ? '...' : ''}
+            {Object.entries(inventoryData).map(([category, items]) => {
+              if (items.length === 0) return null;
+              
+              return (
+                <div 
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow border-2 ${getCategoryColor(category)} hover:border-opacity-80`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <span className="text-2xl mr-3">{getCategoryIcon(category)}</span>
+                      <h3 className="text-xl font-semibold text-gray-800 capitalize">{category}</h3>
+                    </div>
+                    <span className="bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm font-medium">
+                      {items.length}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm text-gray-600">Low Stock:</p>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        items.filter(item => {
+                          const status = item.status || inventoryAPI.getStockStatus(item.quantity);
+                          return status === 'low';
+                        }).length > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                      }`}>
+                        {items.filter(item => {
+                          const status = item.status || inventoryAPI.getStockStatus(item.quantity);
+                          return status === 'low';
+                        }).length} items
+                      </span>
+                    </div>
+                    <div className="mt-4">
+                      <div className="text-xs text-gray-500 mb-1">Recent items:</div>
+                      {searchTerm.trim() ? (
+                        <div className="space-y-1">
+                          {items.slice(0, 4).map(item => (
+                            <div key={item.id} className="text-sm flex items-center">
+                              {item.highlightMatch && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-1.5"></span>
+                              )}
+                              <span className={item.highlightMatch ? 'font-medium' : ''}>
+                                {item.name || item.itemName}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm">
+                          {items.slice(0, 3).map(item => item.name || item.itemName).join(', ')}
+                          {items.length > 3 ? '...' : ''}
+                        </div>
+                      )}
                     </div>
                   </div>
+                  <div className="mt-4 flex items-center justify-center w-full px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 text-sm font-medium transition-colors">
+                    View all items →
+                  </div>
                 </div>
-                <div className="mt-4 text-blue-600 text-sm font-medium">Click to view all →</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ) : (
@@ -421,15 +729,42 @@ const InventoryView = () => {
             {inventoryData[selectedCategory]?.map((item) => {
               const status = item.status || inventoryAPI.getStockStatus(item.quantity);
               return (
-                <div key={item.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div key={item.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${item.highlightMatch ? 'bg-yellow-50 border-yellow-200' : ''}`}>
                   <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-gray-800">{item.name || item.itemName}</h4>
+                    <div className="flex items-center">
+                      {item.highlightMatch && (
+                        <span className="h-2 w-2 bg-yellow-400 rounded-full mr-2" title="Search match"></span>
+                      )}
+                      <h4 className="font-medium text-gray-800">{item.name || item.itemName}</h4>
+                    </div>
                     <span className={`text-sm font-semibold ${getStatusColor(item)}`}>
                       {item.quantity} {item.unit || 'units'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
-                    <span>Stock Level: {status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                  <div className="flex flex-col space-y-1 mb-3">
+                    <span className="text-sm text-gray-500">
+                      Stock Level: <span className={getStatusColor(item)}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                    </span>
+                    
+                    {item.manufacturer && (
+                      <span className="text-xs text-gray-500">Manufacturer: {item.manufacturer}</span>
+                    )}
+                    
+                    {item.expiryDate && (
+                      <span className="text-xs text-gray-500">
+                        Expires: {new Date(item.expiryDate).toLocaleDateString()}
+                      </span>
+                    )}
+                    
+                    {item.storageInstructions && (
+                      <span className="text-xs text-gray-500 line-clamp-1">
+                        Storage: {item.storageInstructions}
+                      </span>
+                    )}
+                    
+                    {item.description && (
+                      <span className="text-xs text-gray-500 line-clamp-1 mt-1">{item.description}</span>
+                    )}
                   </div>
                   <div className="flex space-x-2">
                     <button 
@@ -457,7 +792,7 @@ const InventoryView = () => {
       {/* Add Item Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Add New Item</h2>
             <form onSubmit={handleAddItem}>
               <div className="space-y-4">
@@ -503,6 +838,45 @@ const InventoryView = () => {
                     placeholder="e.g., boxes, units, ml"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Manufacturer</label>
+                  <input
+                    type="text"
+                    value={formData.manufacturer}
+                    onChange={(e) => setFormData({...formData, manufacturer: e.target.value})}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., MediCorp, PharmaCo"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
+                  <input
+                    type="date"
+                    value={formData.expiryDate}
+                    onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Storage Instructions</label>
+                  <textarea
+                    value={formData.storageInstructions}
+                    onChange={(e) => setFormData({...formData, storageInstructions: e.target.value})}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    rows="2"
+                    placeholder="e.g., Store in a cool, dry place"
+                  ></textarea>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    rows="2"
+                    placeholder="Item description (optional)"
+                  ></textarea>
+                </div>
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button
@@ -527,7 +901,7 @@ const InventoryView = () => {
       {/* Edit Item Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Edit Item</h2>
             <form onSubmit={handleEditItem}>
               <div className="space-y-4">
@@ -573,6 +947,45 @@ const InventoryView = () => {
                     placeholder="e.g., boxes, units, ml"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Manufacturer</label>
+                  <input
+                    type="text"
+                    value={formData.manufacturer}
+                    onChange={(e) => setFormData({...formData, manufacturer: e.target.value})}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., MediCorp, PharmaCo"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
+                  <input
+                    type="date"
+                    value={formData.expiryDate}
+                    onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Storage Instructions</label>
+                  <textarea
+                    value={formData.storageInstructions}
+                    onChange={(e) => setFormData({...formData, storageInstructions: e.target.value})}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    rows="2"
+                    placeholder="e.g., Store in a cool, dry place"
+                  ></textarea>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    rows="2"
+                    placeholder="Item description (optional)"
+                  ></textarea>
+                </div>
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button
@@ -597,7 +1010,7 @@ const InventoryView = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center mb-4">
               <ExclamationTriangleIcon className="h-6 w-6 text-red-600 mr-2" />
               <h2 className="text-xl font-bold">Confirm Delete</h2>
@@ -608,17 +1021,238 @@ const InventoryView = () => {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => {setShowDeleteModal(false); setSelectedItem(null);}}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteItem}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
               >
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Existing Medical Items Modal */}
+      {showExistingItemsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto my-4 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                {showAddQuantityForm && (
+                  <button
+                    onClick={() => {
+                      setShowAddQuantityForm(false);
+                      setSelectedMedicalItem(null);
+                    }}
+                    className="mr-3 p-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                    aria-label="Go back to item selection"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                  </button>
+                )}
+                <h2 className="text-xl font-bold">
+                  {showAddQuantityForm 
+                    ? `Add "${selectedMedicalItem?.itemName}" to Inventory` 
+                    : "Select Existing Medical Item"}
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowExistingItemsModal(false);
+                  setShowAddQuantityForm(false);
+                  setSelectedMedicalItem(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                aria-label="Close modal"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            {showAddQuantityForm ? (
+              <div className="py-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center mb-2">
+                    <span className="text-blue-600 mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                    <h3 className="font-medium text-blue-800">Item Details</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-7">
+                    <div>
+                      <p><span className="font-medium">Name:</span> {selectedMedicalItem?.itemName}</p>
+                      <p><span className="font-medium">Category:</span> {selectedMedicalItem?.category}</p>
+                      <p><span className="font-medium">Unit:</span> {selectedMedicalItem?.unit || 'units'}</p>
+                    </div>
+                    <div>
+                      {selectedMedicalItem?.manufacturer && (
+                        <p><span className="font-medium">Manufacturer:</span> {selectedMedicalItem.manufacturer}</p>
+                      )}
+                      {selectedMedicalItem?.expiryDate && (
+                        <p><span className="font-medium">Expiry Date:</span> {new Date(selectedMedicalItem.expiryDate).toLocaleDateString()}</p>
+                      )}
+                      {selectedMedicalItem?.storageInstructions && (
+                        <p><span className="font-medium">Storage:</span> {selectedMedicalItem.storageInstructions}</p>
+                      )}
+                    </div>
+                    {selectedMedicalItem?.description && (
+                      <p className="col-span-2"><span className="font-medium">Description:</span> {selectedMedicalItem.description}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Quantity to Add</label>
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      min="1"
+                      required
+                      autoFocus
+                    />
+                    <span className="ml-2 text-gray-500">{selectedMedicalItem?.unit || 'units'}</span>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-3 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddQuantityForm(false);
+                      setSelectedMedicalItem(null);
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddExistingItem}
+                    disabled={formData.quantity <= 0}
+                    className={`px-4 py-2 rounded-md text-white flex items-center ${
+                      formData.quantity <= 0 ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    <CheckIcon className="h-4 w-4 mr-1" />
+                    Add to Inventory
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Search Box */}
+                <div className="mb-4 flex">
+                  <div className="relative w-full">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search medical items by name or description..."
+                      value={medicalItemSearchTerm}
+                      onChange={(e) => setMedicalItemSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                {/* Medical Items List */}
+                <div className="border rounded-xl overflow-hidden">
+                  {loadingMedicalItems ? (
+                    <div className="p-4 flex justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      <span className="ml-2">Loading medical items...</span>
+                    </div>
+                  ) : filteredMedicalItems.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500">
+                      {medicalItemSearchTerm ? 
+                        <div className="space-y-2">
+                          <div className="flex justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-gray-300">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                            </svg>
+                          </div>
+                          <p>No matching items found for "{medicalItemSearchTerm}"</p>
+                          <p className="text-sm">Try a different search term or check spelling</p>
+                        </div>
+                        : 
+                        <div className="space-y-2">
+                          <div className="flex justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-gray-300">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+                            </svg>
+                          </div>
+                          <p>No medical items available in the catalog</p>
+                          <p className="text-sm">Create new items using the "Create New Item" option</p>
+                        </div>
+                      }
+                    </div>
+                  ) : (
+                    <div className="max-h-96 overflow-y-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50 sticky top-0 z-10">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Item Name
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Category
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Unit
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Action
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {filteredMedicalItems.map((item) => (
+                            <tr key={item.itemId} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900">{item.itemName}</div>
+                                <div className="text-sm text-gray-500 truncate max-w-xs">{item.description}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                  {item.category}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {item.unit || 'units'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button
+                                  onClick={() => selectItemToAdd(item)}
+                                  className="px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors flex items-center"
+                                >
+                                  <span className="mr-1">Select</span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                  </svg>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -365,36 +365,8 @@ const PrincipalDashboard = () => {
             </div>
 
             {/* Principal Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="bg-white rounded-lg shadow p-6"
-                style={{
-                  background: 'radial-gradient(at center, #E8FEFF, #FFFFFF)'
-                }}>
-                <h2 className="text-xl font-bold mb-4">Department Performance</h2>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium">Nursing Department</h3>
-                      <p className="text-sm text-gray-600">65 staff members</p>
-                    </div>
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded">Excellent</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium">Administrative</h3>
-                      <p className="text-sm text-gray-600">23 staff members</p>
-                    </div>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded">Good</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium">Support Services</h3>
-                      <p className="text-sm text-gray-600">34 staff members</p>
-                    </div>
-                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded">Average</span>
-                  </div>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
               
               {/* Calendar Card */}
               <ChartCard userRole="principal" />

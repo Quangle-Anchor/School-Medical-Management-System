@@ -60,7 +60,7 @@ export const inventoryAPI = {
       
       // Step 2: Add to inventory with the created item ID
       const inventoryRequest = {
-        itemId: medicalItemResponse.data.itemId,
+        itemId: medicalItemResponse.data.itemId, // This is correct, the API expects itemId
         totalQuantity: itemData.totalQuantity || 0
       };
       
@@ -211,6 +211,55 @@ export const inventoryAPI = {
       return 'moderate';
     } else {
       return 'good';
+    }
+  },
+
+  // Get all available medical items from the backend
+  getMedicalItems: async () => {
+    try {
+      const { token, role } = checkAuth();
+      
+      const response = await axiosInstance.get('/api/medical-items');
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error in getMedicalItems:', error);
+      
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      return [];
+    }
+  },
+
+  // Add existing medical item to inventory
+  addExistingItemToInventory: async (itemId, quantity) => {
+    try {
+      const { token, role } = checkAuth();
+      
+      // Check if user has permission
+      if (!['Nurse', 'Principal', 'Admin'].includes(role)) {
+        throw new Error(`Role ${role} is not authorized to add inventory items. Allowed: Nurse, Principal, Admin`);
+      }
+      
+      const inventoryRequest = {
+        itemId: itemId,
+        totalQuantity: quantity || 0
+      };
+      
+      const inventoryResponse = await axiosInstance.post('/api/inventory', inventoryRequest);
+      return inventoryResponse.data;
+    } catch (error) {
+      console.error('Error in addExistingItemToInventory:', error);
+      console.error('Error response:', error.response?.data);
+      
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
     }
   }
 };

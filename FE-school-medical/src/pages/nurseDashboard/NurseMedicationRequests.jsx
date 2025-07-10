@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { medicationAPI } from '../../api/medicationApi';
-import { CheckCircle, Clock, Eye, User, Pill, Calendar, AlertCircle, FileText, Download, X, RefreshCw } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, User, Pill, Calendar, AlertCircle, FileText, Download, X, RefreshCw } from 'lucide-react';
 
 const NurseMedicationRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -123,12 +123,19 @@ const NurseMedicationRequests = () => {
     setShowDetailModal(true);
   };
 
-  const getStatusBadge = (isConfirmed, confirmedAt) => {
-    if (isConfirmed) {
+  const getStatusBadge = (confirmationStatus, confirmedAt) => {
+    if (confirmationStatus === 'confirmed') {
       return (
         <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
           <CheckCircle className="w-3 h-3 mr-1" />
           Confirmed
+        </span>
+      );
+    } else if (confirmationStatus === 'unconfirmed') {
+      return (
+        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+          <XCircle className="w-3 h-3 mr-1" />
+          Rejected
         </span>
       );
     } else {
@@ -288,8 +295,8 @@ const NurseMedicationRequests = () => {
         <div className="flex items-center space-x-4">
           <span className="text-sm text-gray-600">
             {activeTab === 'pending' 
-              ? `${allRequests.filter(r => !(r.isConfirmed || r.confirmed)).length} pending requests`
-              : `${allRequests.filter(r => (r.isConfirmed || r.confirmed)).length} confirmed requests`
+              ? `${allRequests.filter(r => r.confirmationStatus === 'pending').length} pending requests`
+              : `${allRequests.filter(r => r.confirmationStatus === 'confirmed').length} confirmed requests`
             }
           </span>
           <button
@@ -321,7 +328,7 @@ const NurseMedicationRequests = () => {
             >
               Pending Requests
               <span className="ml-2 bg-yellow-100 text-yellow-800 py-1 px-2 rounded-full text-xs">
-                {allRequests.filter(r => !(r.isConfirmed || r.confirmed)).length}
+                {allRequests.filter(r => r.confirmationStatus === 'pending').length}
               </span>
             </button>
             <button
@@ -334,7 +341,7 @@ const NurseMedicationRequests = () => {
             >
               Confirmed Requests
               <span className="ml-2 bg-green-100 text-green-800 py-1 px-2 rounded-full text-xs">
-                {allRequests.filter(r => (r.isConfirmed || r.confirmed)).length}
+                {allRequests.filter(r => r.confirmationStatus === 'confirmed').length}
               </span>
             </button>
           </nav>
@@ -350,7 +357,7 @@ const NurseMedicationRequests = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {requests.filter(r => !(r.isConfirmed || r.confirmed)).length}
+                  {requests.filter(r => r.confirmationStatus === 'pending').length}
                 </p>
               </div>
             </div>
@@ -361,7 +368,7 @@ const NurseMedicationRequests = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-600">Confirmed Today</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {requests.filter(r => (r.isConfirmed || r.confirmed) && r.confirmedAt && 
+                  {requests.filter(r => r.confirmationStatus === 'confirmed' && r.confirmedAt && 
                     new Date(r.confirmedAt).toDateString() === new Date().toDateString()).length}
                 </p>
               </div>
@@ -373,7 +380,7 @@ const NurseMedicationRequests = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-600">High Priority</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {requests.filter(r => !(r.isConfirmed || r.confirmed) && getPriorityLevel(r.createdAt).level === 'high').length}
+                  {requests.filter(r => r.confirmationStatus === 'pending' && getPriorityLevel(r.createdAt).level === 'high').length}
                 </p>
               </div>
             </div>
@@ -385,8 +392,8 @@ const NurseMedicationRequests = () => {
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
         {(() => {
           const filteredRequests = activeTab === 'pending' 
-            ? requests.filter(r => !(r.isConfirmed || r.confirmed))
-            : requests.filter(r => (r.isConfirmed || r.confirmed));
+            ? requests.filter(r => r.confirmationStatus === 'pending')
+            : requests.filter(r => r.confirmationStatus === 'confirmed');
           
           if (filteredRequests.length === 0) {
             return (
@@ -470,7 +477,7 @@ const NurseMedicationRequests = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(request.isConfirmed || request.confirmed, request.confirmedAt)}
+                        {getStatusBadge(request.confirmationStatus, request.confirmedAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {activeTab === 'pending' 
@@ -487,7 +494,7 @@ const NurseMedicationRequests = () => {
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </button>
-                          {!(request.isConfirmed || request.confirmed) && (
+                          {request.confirmationStatus === 'pending' && (
                             <button
                               onClick={() => handleConfirmRequest(request.requestId)}
                               disabled={confirming === request.requestId}
@@ -515,13 +522,13 @@ const NurseMedicationRequests = () => {
 
       {/* Detail Modal */}
       {showDetailModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto my-4 shadow-xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Medication Request Details</h2>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -608,7 +615,7 @@ const NurseMedicationRequests = () => {
               <div className="mt-3 space-y-2">
                 <div className="flex justify-between">
                   <span className="font-medium text-gray-600">Status:</span>
-                  <span>{getStatusBadge(selectedRequest.isConfirmed || selectedRequest.confirmed, selectedRequest.confirmedAt)}</span>
+                  <span>{getStatusBadge(selectedRequest.confirmationStatus, selectedRequest.confirmedAt)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium text-gray-600">Submitted:</span>
@@ -626,17 +633,17 @@ const NurseMedicationRequests = () => {
             <div className="mt-6 flex justify-end space-x-3">
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 Close
               </button>
-              {!(selectedRequest.isConfirmed || selectedRequest.confirmed) && (
+              {selectedRequest.confirmationStatus === 'pending' && (
                 <button
                   onClick={() => {
                     setShowDetailModal(false);
                     handleConfirmRequest(selectedRequest.requestId);
                   }}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+                  className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Confirm Request
