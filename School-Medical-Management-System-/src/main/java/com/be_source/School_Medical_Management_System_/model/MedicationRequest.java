@@ -1,5 +1,6 @@
 package com.be_source.School_Medical_Management_System_.model;
 
+import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,11 +24,8 @@ public class MedicationRequest {
     private Students student;
 
     private String medicationName;
-
     private String dosage;
-
-    private String frequency; // Đã đổi từ Integer sang String
-
+    private String frequency;
     private String prescriptionFile;
 
     @ManyToOne
@@ -42,19 +40,23 @@ public class MedicationRequest {
     private Integer totalQuantity;
 
     @Column(name = "morning_quantity")
-    private String morningQuantity; // Đổi từ Integer sang String
+    private String morningQuantity;
 
     @Column(name = "noon_quantity")
-    private String noonQuantity; // Đổi từ Integer sang String
+    private String noonQuantity;
 
     @Column(name = "evening_quantity")
-    private String eveningQuantity; // Đổi từ Integer sang String
+    private String eveningQuantity;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "is_confirmed")
-    private Boolean isConfirmed = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "confirmation_status")
+    private ConfirmationStatus confirmationStatus = ConfirmationStatus.pending;
 
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
+
+    @Column(name = "unconfirm_reason")
+    private String unconfirmReason;
 }

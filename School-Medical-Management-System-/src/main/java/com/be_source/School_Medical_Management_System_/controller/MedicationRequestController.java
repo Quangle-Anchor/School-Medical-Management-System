@@ -1,6 +1,7 @@
 package com.be_source.School_Medical_Management_System_.controller;
 
 import com.be_source.School_Medical_Management_System_.request.MedicationRequestRequest;
+import com.be_source.School_Medical_Management_System_.request.UnconfirmRequest;
 import com.be_source.School_Medical_Management_System_.response.MedicationRequestResponse;
 import com.be_source.School_Medical_Management_System_.service.MedicationRequestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,5 +78,14 @@ public class MedicationRequestController {
         medicationRequestService.confirmRequest(id);
         return ResponseEntity.ok("Request confirmed successfully.");
     }
+
+    @PutMapping("/nurse/unconfirm/{id}")
+    public ResponseEntity<?> unconfirmRequest(
+            @PathVariable Long id,
+            @RequestBody UnconfirmRequest request) {
+        medicationRequestService.unconfirmRequest(id, request.getReason());
+        return ResponseEntity.ok("Request unconfirmed successfully.");
+    }
+
 }
 

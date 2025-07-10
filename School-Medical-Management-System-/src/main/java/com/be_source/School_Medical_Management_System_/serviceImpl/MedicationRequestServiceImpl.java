@@ -1,12 +1,13 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
-import com.be_source.School_Medical_Management_System_.request.MedicationRequestRequest;
-import com.be_source.School_Medical_Management_System_.response.MedicationRequestResponse;
+import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
 import com.be_source.School_Medical_Management_System_.model.MedicationRequest;
 import com.be_source.School_Medical_Management_System_.model.Students;
 import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.MedicationRequestRepository;
 import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
+import com.be_source.School_Medical_Management_System_.request.MedicationRequestRequest;
+import com.be_source.School_Medical_Management_System_.response.MedicationRequestResponse;
 import com.be_source.School_Medical_Management_System_.service.MedicationRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,15 +18,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-
 public class MedicationRequestServiceImpl implements MedicationRequestService {
 
     @Autowired
     private MedicationRequestRepository medicationRequestRepository;
+
     @Autowired
     private StudentRepository studentRepository;
+
     @Autowired
     private UserUtilService userUtilService;
+
     @Autowired
     private CloudinaryService cloudinaryService;
 
@@ -49,8 +52,9 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         entity.setFrequency(request.getFrequency());
         entity.setRequestedBy(parent);
         entity.setCreatedAt(LocalDateTime.now());
-        entity.setIsConfirmed(false);
+        entity.setConfirmationStatus(ConfirmationStatus.pending);
         entity.setConfirmedAt(null);
+        entity.setUnconfirmReason(null);
         entity.setTotalQuantity(request.getTotalQuantity());
         entity.setMorningQuantity(request.getMorningQuantity());
         entity.setNoonQuantity(request.getNoonQuantity());
@@ -79,14 +83,14 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         existing.setMorningQuantity(request.getMorningQuantity());
         existing.setNoonQuantity(request.getNoonQuantity());
         existing.setEveningQuantity(request.getEveningQuantity());
+        existing.setConfirmationStatus(ConfirmationStatus.pending);
+        existing.setConfirmedAt(null);
+        existing.setUnconfirmReason(null);
 
         if (file != null && !file.isEmpty()) {
             String fileUrl = cloudinaryService.uploadFile(file);
             existing.setPrescriptionFile(fileUrl);
         }
-
-        existing.setIsConfirmed(false);
-        existing.setConfirmedAt(null);
 
         return mapToResponse(medicationRequestRepository.save(existing));
     }
@@ -97,14 +101,12 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         MedicationRequest existing = medicationRequestRepository.findByRequestIdAndRequestedBy(id, parent)
                 .orElseThrow(() -> new RuntimeException("Not found or not authorized"));
 
-        // Xoá file trên Cloudinary nếu tồn tại
         if (existing.getPrescriptionFile() != null) {
             cloudinaryService.deleteFileByUrl(existing.getPrescriptionFile());
         }
 
         medicationRequestRepository.delete(existing);
     }
-
 
     @Override
     public List<MedicationRequestResponse> getHistoryByStudent(Long studentId) {
@@ -118,7 +120,7 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
 
     @Override
     public List<MedicationRequestResponse> getUnconfirmedRequests() {
-        return medicationRequestRepository.findByIsConfirmedFalse().stream()
+        return medicationRequestRepository.findByConfirmationStatus(ConfirmationStatus.pending).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -134,8 +136,19 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
     public void confirmRequest(Long id) {
         MedicationRequest request = medicationRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Medication request not found"));
-        request.setIsConfirmed(true);
+        request.setConfirmationStatus(ConfirmationStatus.confirmed);
         request.setConfirmedAt(LocalDateTime.now());
+        request.setUnconfirmReason(null);
+        medicationRequestRepository.save(request);
+    }
+
+    @Override
+    public void unconfirmRequest(Long id, String reason) {
+        MedicationRequest request = medicationRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Medication request not found"));
+        request.setConfirmationStatus(ConfirmationStatus.unconfirmed);
+        request.setUnconfirmReason(reason);
+        request.setConfirmedAt(null);
         medicationRequestRepository.save(request);
     }
 
@@ -164,7 +177,8 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
                 .noonQuantity(entity.getNoonQuantity())
                 .eveningQuantity(entity.getEveningQuantity())
                 .prescriptionFile(entity.getPrescriptionFile())
-                .isConfirmed(Boolean.TRUE.equals(entity.getIsConfirmed()))
+                .confirmationStatus(entity.getConfirmationStatus())
+                .unconfirmReason(entity.getUnconfirmReason())
                 .createdAt(entity.getCreatedAt())
                 .confirmedAt(entity.getConfirmedAt())
                 .build();
