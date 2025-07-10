@@ -290,23 +290,26 @@ const SignUp = () => {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/100 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
+                  className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/100 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
                   placeholder="Create a password"
-                />                <button
+                />
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white/90 transition-all duration-200 p-1 rounded-md hover:bg-white/10"
+                  tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-5 h-5 text-white" /> : <Eye className="w-5 h-5 text-white" />}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-white drop-shadow-sm">
+              <p className="mt-1 text-xs text-white/80 drop-shadow-sm">
                 Password must be at least 6 characters long
               </p>
             </div>
 
             {/* Confirm Password */}
-            <div>              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white mb-2 drop-shadow-md">
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white mb-2 drop-shadow-md">
                 Confirm Password *
               </label>
               <div className="relative">
@@ -319,14 +322,19 @@ const SignUp = () => {
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/100 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
+                  className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/100 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
                   placeholder="Confirm your password"
-                />                <button
+                />
+                <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white/90 transition-all duration-200 p-1 rounded-md hover:bg-white/10"
+                  tabIndex={-1}
                 >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirmPassword ? 
+                    <EyeOff className="w-5 h-5 text-white" /> : 
+                    <Eye className="w-5 h-5 text-white" />
+                  }
                 </button>
               </div>
             </div>
