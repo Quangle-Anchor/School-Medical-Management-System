@@ -127,6 +127,9 @@ public class SecurityConfig {
                         .requestMatchers(SHARED_ENDPOINTS_4ROLE).hasAnyRole("ADMIN", "PRINCIPAL", "NURSE", "PARENT")
                         .requestMatchers(HttpMethod.GET, "/api/notifications/my").hasRole("PARENT")
                         .requestMatchers("/api/notifications/**").hasAnyRole("PRINCIPAL", "NURSE")
+                        .requestMatchers(HttpMethod.GET, "/api/schedules/my-students").hasRole("PARENT")
+                        .requestMatchers("/api/schedules/**").hasRole("NURSE") // dòng này nằm sau
+
 
 
 

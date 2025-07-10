@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Year;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -32,19 +33,47 @@ public class NotificationEmailScheduler {
                 String to = noti.getUser().getEmail();
                 if (to == null || to.isBlank()) continue;
 
+                // Tên người nhận từ User.fullName
+                String recipientName = Optional.ofNullable(noti.getUser().getFullName()).orElse("Parent");
+
                 String subject = "[School Health Notification] " + noti.getTitle();
 
-                // label like: "Health Event" or "Health Incident"
-                String typeLabel = switch (noti.getNotificationType()) {
-                    case "HEALTH_EVENT" -> "Upcoming Health Event";
-                    case "HEALTH_INCIDENT" -> "Health Incident Alert";
-                    default -> "Health Notification";
-                };
+                // Xác định label & tiêu đề theo loại thông báo
+                String typeLabel;
+                String emailHeader;
 
-                String html = buildEmailTemplate(typeLabel, noti.getTitle(), noti.getContent());
+                switch (noti.getNotificationType()) {
+                    case "HEALTH_EVENT" -> {
+                        typeLabel = "📅 Health Event Notice";
+                        emailHeader = "Vừa có sự kiện y tế mới được tạo!";
+                    }
+                    case "HEALTH_INCIDENT" -> {
+                        typeLabel = "🚑 Health Incident Alert";
+                        emailHeader = "Vừa có tai nạn xảy ra liên quan đến học sinh!";
+                    }
+                    case "MEDICATION_REQUEST" -> {
+                        typeLabel = "💊 Medication Request Update";
+                        emailHeader = "Yêu cầu cấp phát thuốc của bạn đã được cập nhật!";
+                    }
+                    case "MEDICATION_ADMINISTERED", "MEDICATION_SCHEDULE" -> {
+                        typeLabel = "✅ Medication Administered";
+                        emailHeader = "Đơn thuốc của học sinh đã được cấp phát.";
+                    }
+                    case "CUSTOM" -> {
+                        typeLabel = "📢 General Notification";
+                        emailHeader = "Thông báo từ trường học.";
+                    }
+                    default -> {
+                        typeLabel = "📌 School Notification";
+                        emailHeader = "Thông báo y tế từ nhà trường.";
+                    }
+                }
 
+                // Gửi email
+                String html = buildEmailTemplate(typeLabel, emailHeader, noti.getContent(), recipientName);
                 emailService.sendEmail(to, subject, html);
 
+                // Cập nhật trạng thái đã gửi
                 noti.setEmailSent(true);
                 notificationRepository.save(noti);
 
@@ -55,7 +84,7 @@ public class NotificationEmailScheduler {
         }
     }
 
-    private String buildEmailTemplate(String tag, String title, String content) {
+    private String buildEmailTemplate(String tag, String header, String content, String recipientName) {
         return """
                 <!DOCTYPE html>
                 <html>
@@ -135,7 +164,7 @@ public class NotificationEmailScheduler {
                     </div>
 
                     <div class="content">
-                      <p>Dear Parent,</p>
+                      <p>Dear %s,</p>
                       <p>%s</p>
 
                       <div class="note">
@@ -153,7 +182,8 @@ public class NotificationEmailScheduler {
                 </html>
                 """.formatted(
                 tag,
-                title,
+                header,
+                recipientName,
                 content,
                 PARENT_PORTAL_URL,
                 Year.now().getValue()

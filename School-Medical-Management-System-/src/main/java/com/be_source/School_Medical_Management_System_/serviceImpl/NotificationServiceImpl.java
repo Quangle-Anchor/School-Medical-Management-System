@@ -41,7 +41,7 @@ public class NotificationServiceImpl implements NotificationService {
             noti.setCreatedAt(ZonedDateTime.now());
             noti.setReadStatus(false);
             noti.setEmailSent(false);
-            noti.setNotificationType("Custom");
+            noti.setNotificationType("CUSTOM_NOTIFICATION");
 
             notificationRepository.save(noti);
         }
