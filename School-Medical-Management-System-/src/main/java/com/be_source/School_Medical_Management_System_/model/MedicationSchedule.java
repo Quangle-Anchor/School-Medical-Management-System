@@ -21,24 +21,22 @@ public class MedicationSchedule {
     private Long scheduleId;
 
     @ManyToOne
-    @JoinColumn(name = "request_id")
+    @JoinColumn(name = "request_id", nullable = false)
     private MedicationRequest request;
 
     @ManyToOne
-    @JoinColumn(name = "student_id")
+    @JoinColumn(name = "student_id", nullable = false)
     private Students student;
 
     private LocalDate scheduledDate;
 
     private LocalTime scheduledTime;
 
-    private String status;
+    private String notes;
 
     @ManyToOne
-    @JoinColumn(name = "administered_by")
+    @JoinColumn(name = "administered_by", nullable = false)
     private User administeredBy;
-
-    private String notes;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 }
