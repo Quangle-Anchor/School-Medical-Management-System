@@ -112,6 +112,7 @@ public class SecurityConfig {
                         .requestMatchers(SHARED_ENDPOINTS_3ROLE).hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
 
                         // --- Admin APIs ---
+                        .requestMatchers(HttpMethod.GET, "/api/admin/users").hasRole("PRINCIPAL")
                         .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
 
                         // --- Principal APIs ---
@@ -128,7 +129,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/notifications/my").hasRole("PARENT")
                         .requestMatchers("/api/notifications/**").hasAnyRole("PRINCIPAL", "NURSE")
                         .requestMatchers(HttpMethod.GET, "/api/schedules/my-students").hasRole("PARENT")
-                        .requestMatchers("/api/schedules/**").hasRole("NURSE") // dòng này nằm sau
+                        .requestMatchers("/api/schedules/**").hasRole("NURSE")
+
 
 
 
