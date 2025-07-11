@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import AboutPage from "./pages/about/About";
 import HomePage from "./pages/home/Homepage";
 import Contact from "./pages/Contact/Contact";
+import HealthLookupPage from "./pages/HealthLookupPage";
 import LoginPage from "./pages/login/Login";
 import SignUp from "./pages/login/SignUp";
 import Navbar from "./components/Navbar";
@@ -87,9 +88,9 @@ function AppContent() {
       {/* Main content area with padding for navbar */}
       <div className="relative z-10 pt-16">
         <Routes>
-          {" "}
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
+          <Route path="/health-lookup" element={<HealthLookupPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<LoginPage />} />
@@ -97,66 +98,14 @@ function AppContent() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/forgot-password/verify-otp" element={<VerifyOtp />} />
           <Route path="/forgot-password/reset" element={<ResetPassword />} />
-          <Route
-            path="/forgot-password/success"
-            element={<RecoverySuccess />}
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/adminDashboard"
-            element={
-              <ProtectedRoute requiredRole="Admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/nurseDashboard/*"
-            element={
-              <ProtectedRoute requiredRole="Nurse">
-                <NurseDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/principalDashboard"
-            element={
-              <ProtectedRoute requiredRole="Principal">
-                <PrincipalDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/parentDashboard/*"
-            element={
-              <ProtectedRoute requiredRole="Parent">
-                <ParentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/studentDashboard"
-            element={
-              <ProtectedRoute requiredRole="Student">
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/forgot-password/success" element={<RecoverySuccess />} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/adminDashboard" element={<ProtectedRoute requiredRole="Admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/nurseDashboard/*" element={<ProtectedRoute requiredRole="Nurse"><NurseDashboard /></ProtectedRoute>} />
+          <Route path="/principalDashboard" element={<ProtectedRoute requiredRole="Principal"><PrincipalDashboard /></ProtectedRoute>} />
+          <Route path="/parentDashboard/*" element={<ProtectedRoute requiredRole="Parent"><ParentDashboard /></ProtectedRoute>} />
+          <Route path="/studentDashboard" element={<ProtectedRoute requiredRole="Student"><StudentDashboard /></ProtectedRoute>} />
         </Routes>
 
         {/* Footer - hidden on login/signup pages */}

@@ -154,8 +154,9 @@ const AuthNavbar = () => {
   const getRoleBasedNavigation = (role) => {
     const baseNavigation = [
       { name: 'Home', href: '/home' },
+      { name: 'Health Lookup', href: '/health-lookup' },
       { name: 'About', href: '/about' },
-      { name: 'Contact', href: '/contact' },     
+      { name: 'Contact', href: '/contact' },
     ];
 
     const roleSpecificNavigation = {
@@ -188,6 +189,7 @@ const AuthNavbar = () => {
     ? getRoleBasedNavigation(user.role)
     : [
         { name: 'Home', href: '/home' },
+        { name: 'Health Lookup', href: '/health-lookup' },
         { name: 'About', href: '/about' },
         { name: 'Contact', href: '/contact' },
       ];
