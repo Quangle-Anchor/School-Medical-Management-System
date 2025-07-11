@@ -10,4 +10,5 @@ public interface EventSignupService {
     List<EventSignupResponse> getMySignups(); // theo parent
     List<EventSignupResponse> getSignupsByEvent(Long eventId); // cho nurse, principal
     void updateStatus(Long signupId, String status); // duyệt hoặc từ chối
+    void approveAllSignups(Long eventId);
 }
