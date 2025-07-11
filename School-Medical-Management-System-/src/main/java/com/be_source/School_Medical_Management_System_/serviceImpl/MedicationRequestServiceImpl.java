@@ -88,12 +88,19 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         existing.setUnconfirmReason(null);
 
         if (file != null && !file.isEmpty()) {
+            // Xoá file cũ nếu có
+            if (existing.getPrescriptionFile() != null) {
+                cloudinaryService.deleteFileByUrl(existing.getPrescriptionFile());
+            }
+
+            // Upload file mới
             String fileUrl = cloudinaryService.uploadFile(file);
             existing.setPrescriptionFile(fileUrl);
         }
 
         return mapToResponse(medicationRequestRepository.save(existing));
     }
+
 
     @Override
     public void delete(Long id) {

@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URI;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Service
@@ -34,21 +36,31 @@ public class CloudinaryService {
             throw new RuntimeException("Failed to upload file to Cloudinary", e);
         }
     }
-    public void deleteFileByUrl(String fileUrl) {
+
+    public void deleteFileByUrl(String fileUrlOrPublicId) {
         try {
-            // Cloudinary public_id là phần sau cloudinary.com/<cloud_name>/image/upload/
-            // VD: https://res.cloudinary.com/demo/image/upload/v1716999999/abc_xyz.pdf
-            // → publicId = abc_xyz (không có extension)
+            String publicId;
 
-            URI uri = new URI(fileUrl);
-            String[] parts = uri.getPath().split("/");
-            String publicIdWithExt = parts[parts.length - 1];  // abc_xyz.pdf
+            // Trường hợp là URL đầy đủ → trích xuất public_id
+            if (fileUrlOrPublicId.startsWith("http://") || fileUrlOrPublicId.startsWith("https://")) {
+                URL url = new URL(fileUrlOrPublicId);
+                String decodedPath = URLDecoder.decode(url.getPath(), StandardCharsets.UTF_8);
+                String[] pathParts = decodedPath.split("/upload/");
+                if (pathParts.length < 2) {
+                    throw new RuntimeException("Invalid Cloudinary file URL: " + fileUrlOrPublicId);
+                }
 
-            String publicId = publicIdWithExt.contains(".")
-                    ? publicIdWithExt.substring(0, publicIdWithExt.lastIndexOf('.'))
-                    : publicIdWithExt;
+                String filePath = pathParts[1]; // ví dụ: v123/folder/my file.jpg
+                String[] subParts = filePath.split("/", 2);
+                String potentialPath = subParts.length == 2 ? subParts[1] : subParts[0];
+                publicId = potentialPath.replaceAll("\\.[^.]+$", "");
+            } else {
+                // Trường hợp là tên file như: abc_xyz.pdf → bỏ đuôi .pdf
+                publicId = fileUrlOrPublicId.replaceAll("\\.[^.]+$", "");
+            }
 
             cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to delete file from Cloudinary", e);
         }
