@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { healthEventAPI } from '../api/healthEventApi';
 
-const ChartCard = ({ userRole = 'parent' }) => {
+const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [healthEvents, setHealthEvents] = useState({});
@@ -85,20 +85,26 @@ const ChartCard = ({ userRole = 'parent' }) => {
     return healthEvents[dateStr] || [];
   };
 
-  // Get event type color
-  const getEventColor = (type) => {
+  // Get background color for date with events
+  const getDateBackgroundColor = (events) => {
+    if (events.length === 0) return '';
+    
+    // Get the primary event type for coloring
+    const primaryEvent = events[0];
     const colors = {
-      'vaccination': 'bg-blue-500',
-      'general checkup': 'bg-green-500', 
-      'dental': 'bg-purple-500',
-      'vision': 'bg-orange-500',
-      'physical': 'bg-red-500',
-      'mental health': 'bg-indigo-500',
-      'checkup': 'bg-green-500',
-      'treatment': 'bg-orange-500',
-      'default': 'bg-gray-500'
+      'vaccination': 'bg-blue-100',
+      'general checkup': 'bg-green-100', 
+      'dental': 'bg-purple-100',
+      'vision': 'bg-orange-100',
+      'physical': 'bg-red-100',
+      'mental health': 'bg-indigo-100',
+      'checkup': 'bg-green-100',
+      'treatment': 'bg-orange-100',
+      'emergency': 'bg-red-100',
+      'other': 'bg-gray-100',
+      'default': 'bg-gray-100'
     };
-    return colors[type] || colors.default;
+    return colors[primaryEvent.type] || colors.default;
   };
 
   // Check if date is today
@@ -136,28 +142,22 @@ const ChartCard = ({ userRole = 'parent' }) => {
       const hasEvents = events.length > 0;
       const todayClass = isToday(day) ? 'bg-blue-500 text-white' : '';
       const selectedClass = isSelected(day) ? 'ring-2 ring-blue-500' : '';
+      const eventBackgroundClass = hasEvents && !isToday(day) ? getDateBackgroundColor(events) : '';
       
       days.push(
         <div
           key={day}
           onClick={() => setSelectedDate(new Date(currentYear, currentMonth, day))}
-          className={`p-2 text-sm cursor-pointer hover:bg-blue-50 rounded transition-colors relative ${todayClass} ${selectedClass}`}
+          className={`p-2 text-sm cursor-pointer hover:bg-blue-50 rounded transition-colors relative ${todayClass} ${selectedClass} ${eventBackgroundClass}`}
         >
-          <span className={`${hasEvents && !isToday(day) ? 'font-semibold text-blue-600' : ''}`}>
+          <span className={`${hasEvents && !isToday(day) ? 'font-semibold text-gray-800' : ''}`}>
             {day}
           </span>
-          {hasEvents && (
-            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-1">
-              {events.slice(0, 3).map((event, idx) => (
-                <div
-                  key={idx}
-                  className={`w-1.5 h-1.5 rounded-full ${getEventColor(event.type)}`}
-                  title={event.title}
-                ></div>
-              ))}
-              {events.length > 3 && (
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-400" title={`+${events.length - 3} more`}></div>
-              )}
+          {hasEvents && events.length > 1 && (
+            <div className="absolute top-1 right-1">
+              <span className="text-xs bg-gray-600 text-white rounded-full px-1">
+                {events.length}
+              </span>
             </div>
           )}
         </div>
@@ -244,14 +244,25 @@ const ChartCard = ({ userRole = 'parent' }) => {
       {/* Selected Date Events */}
       {selectedDate && (
         <div className="mt-4 p-3 bg-gray-50 rounded-md">
-          <h4 className="font-medium mb-2">
-            Events for {selectedDate.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-medium">
+              Events for {selectedDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </h4>
+            {onCreateEvent && (
+              <button
+                onClick={() => onCreateEvent(selectedDate)}
+                className="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <span className="mr-1">+</span>
+                Add Event
+              </button>
+            )}
+          </div>
           {getDateEvents(selectedDate.getDate()).length > 0 ? (
             <div className="space-y-1">
               {getDateEvents(selectedDate.getDate()).map((event, idx) => (

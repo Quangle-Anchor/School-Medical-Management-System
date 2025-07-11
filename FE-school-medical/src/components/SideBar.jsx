@@ -58,25 +58,9 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
     if (userRole === 'principal') {
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
-        { id: 'staff-management', icon: Users, label: 'Staff Management' },
+        { id: 'nurse-management', icon: Users, label: 'Staff Management' },
         { id: 'scheduling', icon: Calendar, label: 'Scheduling' },
-        { id: 'inventory', icon: FileText, label: 'Inventory' },
-        { id: 'financial', icon: Heart, label: 'Financial' },
-        { id: 'reports', icon: Bell, label: 'Reports' },
-        { id: 'quality-assurance', icon: Stethoscope, label: 'Quality Assurance' },
-        { id: 'settings', icon: Settings, label: 'Settings' },
-      ];
-    }
-    
-    if (userRole === 'student') {
-      return [
-        { id: 'dashboard', icon: Activity, label: 'Dashboard' },
-        { id: 'my-health', icon: Heart, label: 'My Health' },
-        { id: 'health-events', icon: Calendar, label: 'Health Events' },
-        { id: 'health-records', icon: FileText, label: 'Health Records' },
-        { id: 'notifications', icon: Bell, label: 'Notifications' },
-        { id: 'health-tips', icon: BookOpen, label: 'Health Tips' },
-        { id: 'settings', icon: Settings, label: 'Settings' },
+        { id: 'inventory', icon: Warehouse, label: 'Inventory' },
       ];
     }
     return [];
@@ -99,22 +83,22 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
   // const userInfo = getUserInfo();
 
   return (
-    <div className={`bg-white border-r border-border transition-all duration-300 ${
+    <div className={`bg-white border-r border-gray-200 transition-all duration-300 ${
       isCollapsed ? 'w-16' : 'w-64'
     } min-h-screen flex flex-col`}>
       {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Stethoscope className="w-5 h-5 text-primary-foreground" />
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Stethoscope className="w-5 h-5 text-white" />
             </div>
             <span className="font-semibold text-lg">MediCare</span>
           </div>
         )}
         <button
           onClick={onToggle}
-          className="p-1 hover:bg-accent rounded-md transition-colors"
+          className="p-1 hover:bg-gray-100 rounded-md transition-colors"
         >
           {isCollapsed ? (
             <ChevronRight className="w-4 h-4" />
@@ -133,8 +117,8 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
                 onClick={() => onMenuClick && onMenuClick(item.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
                   activeMenu === item.id
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                    ? 'bg-blue-600 text-white' 
+                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
