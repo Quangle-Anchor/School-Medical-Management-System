@@ -448,7 +448,7 @@ const NurseMedicationRequests = () => {
                             {request.studentName || 'Unknown Student'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            ID: {request.studentId || 'N/A'}
+                            Code: {request.studentCode || request.studentId || 'N/A'}
                           </div>
                           <div className="text-sm text-gray-500">
                             Parent: {request.parentName || 'Unknown'}
@@ -547,8 +547,8 @@ const NurseMedicationRequests = () => {
                     <span className="text-gray-900">{selectedRequest.studentName || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Student ID:</span>
-                    <span className="text-gray-900">{selectedRequest.studentId || 'N/A'}</span>
+                    <span className="font-medium text-gray-600">Student Code:</span>
+                    <span className="text-gray-900">{selectedRequest.studentCode || selectedRequest.studentId || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Class:</span>

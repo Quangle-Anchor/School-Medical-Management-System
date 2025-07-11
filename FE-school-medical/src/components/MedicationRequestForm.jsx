@@ -277,7 +277,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
                   <option value="">Choose a student</option>
                   {students.map(student => (
                     <option key={student.studentId} value={student.studentId}>
-                      {student.fullName} (ID: {student.studentId})
+                      {student.fullName} (Code: {student.studentCode || student.studentId})
                     </option>
                   ))}
                 </select>

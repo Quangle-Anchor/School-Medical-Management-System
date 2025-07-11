@@ -4,6 +4,7 @@ import Sidebar from '../../components/SideBar';
 import DashboardCard from '../../components/DashboardCard';
 import ChartCard from '../../components/ChartCard';
 import HealthEventsView from '../../components/HealthEventsView';
+import NurseHealthEventsView from '../../components/NurseHealthEventsView';
 import UpcomingHealthEventsCard from '../../components/UpcomingHealthEventsCard';
 import StudentsView from './StudentsView';
 import NurseMedicationRequests from './NurseMedicationRequests';
@@ -186,7 +187,7 @@ const NurseDashboard = () => {
         return <StudentsView />;
      
       case 'health-events':
-        return <HealthEventsView userRole="nurse" />;
+        return <NurseHealthEventsView />;
          
       case 'medication-requests':
         return <NurseMedicationRequests />;

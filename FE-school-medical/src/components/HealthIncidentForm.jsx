@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { healthIncidentAPI } from '../api/healthIncidentApi';
 import { studentAPI } from '../api/studentsApi';
-import { X, AlertTriangle, Calendar, User, FileText, Save } from 'lucide-react';
+import { X, AlertTriangle, Calendar, User, FileText, Save, Search, ChevronDown } from 'lucide-react';
 
 const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident = null, isEditing = false }) => {
   const [formData, setFormData] = useState({
@@ -14,9 +14,21 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
   const [loading, setLoading] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [error, setError] = useState('');
+  
+  // Search functionality state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   // Ensure students is always an array to prevent map errors
   const safeStudents = Array.isArray(students) ? students : [];
+
+  // Filter students based on search term
+  const filteredStudents = safeStudents.filter(student => 
+    student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.studentCode?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.className?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Load students when component mounts
   useEffect(() => {
@@ -41,14 +53,23 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
         incidentDate: editingIncident.incidentDate || '',
         description: editingIncident.description || '',
       });
+      
+      // Set selected student for display
+      if (editingIncident.student) {
+        setSelectedStudent(editingIncident.student);
+        setSearchTerm(editingIncident.student.fullName || '');
+      }
     } else {
       setFormData({
         studentId: '',
         incidentDate: new Date().toISOString().split('T')[0], // Default to today
         description: '',
       });
+      setSelectedStudent(null);
+      setSearchTerm('');
     }
     setError('');
+    setIsDropdownOpen(false);
   }, [isEditing, editingIncident, isOpen]);
 
   const fetchAllStudents = async () => {
@@ -92,13 +113,13 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
         if (status === 401) {
           setError('Session expired. Please login again.');
         } else if (status === 403) {
-          setError('Access denied. You may not have permission to view the student list, but you can still enter a student ID manually.');
+          setError('Access denied. You may not have permission to view the student list, but you can still enter a student code manually.');
         } else if (status === 404) {
           setError('Student data endpoint not found. Please contact support.');
         } else if (status >= 500) {
           setError('Server error occurred. Please try again later.');
         } else {
-          setError(`Failed to load students (Error ${status}). You can still enter a student ID manually.`);
+          setError(`Failed to load students (Error ${status}). You can still enter a student code manually.`);
         }
       } else if (error.request) {
         // Request was made but no response received
@@ -124,6 +145,35 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       ...prev,
       [name]: String(value) // Ensure all values are strings
     }));
+  };
+
+  const handleStudentSelect = (student) => {
+    setSelectedStudent(student);
+    setSearchTerm(student.fullName);
+    setFormData(prev => ({
+      ...prev,
+      studentId: String(student.studentId)
+    }));
+    setIsDropdownOpen(false);
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setIsDropdownOpen(true);
+    
+    // If search is cleared, clear the selection
+    if (!value) {
+      setSelectedStudent(null);
+      setFormData(prev => ({
+        ...prev,
+        studentId: ''
+      }));
+    }
+  };
+
+  const handleDropdownToggle = () => {
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   const handleSubmit = async (e) => {
@@ -207,7 +257,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
           const errorMessage = errorData?.message || errorData?.error || 'Invalid data provided';
           setError(`Validation error: ${errorMessage}. Please check all fields and try again.`);
         } else if (status === 404) {
-          setError('Student not found. Please verify the Student ID is correct.');
+          setError('Student not found. Please verify the Student Code is correct.');
         } else if (status >= 500) {
           setError('Server error occurred. Please try again later.');
         } else {
@@ -277,22 +327,86 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
               ) : (
                 <>
                   {safeStudents.length > 0 ? (
-                    <>
-                      <select
-                        name="studentId"
-                        value={formData.studentId}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Choose a student</option>
-                        {safeStudents.map(student => (
-                          <option key={student.studentId} value={student.studentId}>
-                            {student.fullName} (ID: {student.studentId}) - {student.className || 'No Class'}
-                          </option>
-                        ))}
-                      </select>
-                    </>
+                    <div className="relative">
+                      {/* Search Input */}
+                      <div className="relative">
+                        <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                        <input
+                          type="text"
+                          value={searchTerm}
+                          onChange={handleSearchChange}
+                          onFocus={() => setIsDropdownOpen(true)}
+                          placeholder="Search students by name, code, or class..."
+                          className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required={!selectedStudent}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleDropdownToggle}
+                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        >
+                          <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+
+                      {/* Selected Student Display */}
+                      {selectedStudent && (
+                        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-blue-900">{selectedStudent.fullName}</div>
+                              <div className="text-sm text-blue-700">
+                                Code: {selectedStudent.studentCode || selectedStudent.studentId} • Class: {selectedStudent.className || 'No Class'}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedStudent(null);
+                                setSearchTerm('');
+                                setFormData(prev => ({ ...prev, studentId: '' }));
+                              }}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Dropdown List */}
+                      {isDropdownOpen && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                          {filteredStudents.length > 0 ? (
+                            filteredStudents.map(student => (
+                              <button
+                                key={student.studentId}
+                                type="button"
+                                onClick={() => handleStudentSelect(student)}
+                                className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-blue-50"
+                              >
+                                <div className="font-medium text-gray-900">{student.fullName}</div>
+                                <div className="text-sm text-gray-600">
+                                  ID: {student.studentId} • Class: {student.className || 'No Class'}
+                                </div>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-4 py-3 text-gray-500 text-center">
+                              {searchTerm ? 'No students found matching your search' : 'No students available'}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Click outside handler */}
+                      {isDropdownOpen && (
+                        <div
+                          className="fixed inset-0 z-5"
+                          onClick={() => setIsDropdownOpen(false)}
+                        />
+                      )}
+                    </div>
                   ) : (
                     <>
                       {/* Show current student info prominently when editing */}

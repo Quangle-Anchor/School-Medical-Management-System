@@ -19,7 +19,6 @@ const PrincipalDashboard = () => {
   // Get current view from URL path
   const getCurrentViewFromURL = () => {
     const path = location.pathname;
-    
     if (path.includes('/nurse-management')) return 'nurse-management';
     if (path.includes('/scheduling')) return 'scheduling';
     if (path.includes('/inventory')) return 'inventory';
@@ -50,7 +49,6 @@ const PrincipalDashboard = () => {
   // Update activeView when URL changes
   useEffect(() => {
     const newView = getCurrentViewFromURL();
-    console.log('Setting activeView to:', newView); // Debug log
     setActiveView(newView);
   }, [location.pathname]);
   
@@ -502,10 +500,6 @@ const PrincipalDashboard = () => {
       />
       
       <main className="flex-1 overflow-hidden">
-        {/* Debug info */}
-        <div style={{position: 'fixed', top: 0, right: 0, background: 'yellow', padding: '5px', zIndex: 1000}}>
-          activeView: {activeView}
-        </div>
         {renderContent()}
       </main>
     </div>
