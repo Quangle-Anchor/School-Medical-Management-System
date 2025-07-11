@@ -175,6 +175,7 @@ const StudentsView = () => {
     const matchesSearch = searchTerm === '' || (
       (studentData.fullName && typeof studentData.fullName === 'string' && studentData.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (studentData.studentId && typeof studentData.studentId === 'string' && studentData.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (studentData.studentCode && typeof studentData.studentCode === 'string' && studentData.studentCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (studentData.className && typeof studentData.className === 'string' && studentData.className.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     
@@ -366,7 +367,7 @@ const StudentsView = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name, student ID, or class..."
+              placeholder="Search by name, student code, or class..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -433,7 +434,7 @@ const StudentsView = () => {
                               {studentData.fullName || 'Unknown'}
                             </div>
                             <div className="text-sm text-gray-500">
-                              ID: {studentData.studentId || 'N/A'}
+                              Code: {studentData.studentCode || studentData.studentId || 'N/A'}
                             </div>
                           </div>
                         </div>
@@ -529,8 +530,8 @@ const StudentsView = () => {
                           <span className="text-gray-900">{patientData.gender || 'Not specified'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="font-medium text-gray-600">Student ID:</span>
-                          <span className="text-gray-900">{patientData.studentId || 'N/A'}</span>
+                          <span className="font-medium text-gray-600">Student Code:</span>
+                          <span className="text-gray-900">{patientData.studentCode || patientData.studentId || 'N/A'}</span>
                         </div>
                       </div>
 

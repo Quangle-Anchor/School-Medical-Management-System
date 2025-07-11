@@ -364,8 +364,8 @@ const MyChildView = () => {
                       <span className="text-gray-900">{selectedStudent.className || 'Not assigned'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Student ID:</span>
-                      <span className="text-gray-900">{selectedStudent.studentId}</span>
+                      <span className="font-medium text-gray-600">Student Code:</span>
+                      <span className="text-gray-900">{selectedStudent.studentCode || 'Not assigned'}</span>
                     </div>
                   </div>
                 </div>

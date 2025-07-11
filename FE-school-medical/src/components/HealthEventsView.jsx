@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, UserPlus } from 'lucide-react';
 import { healthEventAPI } from '../api/healthEventApi';
 import { formatEventDate, getCategoryStyle, safeDisplay } from '../utils/dashboardUtils';
+import EventSignupForm from './EventSignupForm';
 
 const HealthEventsView = ({ userRole = 'parent', title, description }) => {
   const [healthEvents, setHealthEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [signupFormOpen, setSignupFormOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     fetchHealthEvents();
@@ -30,6 +33,21 @@ const HealthEventsView = ({ userRole = 'parent', title, description }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSignupClick = (event) => {
+    setSelectedEvent(event);
+    setSignupFormOpen(true);
+  };
+
+  const handleSignupSuccess = () => {
+    // Optionally refresh events or show success message
+    fetchHealthEvents();
+  };
+
+  const handleCloseSignupForm = () => {
+    setSignupFormOpen(false);
+    setSelectedEvent(null);
   };
 
   const getDefaultTexts = () => {
@@ -164,9 +182,20 @@ const HealthEventsView = ({ userRole = 'parent', title, description }) => {
                               {eventDate.toLocaleDateString()}
                             </p>
                           </div>
-                          <span className={`px-2 py-1 bg-${statusColor}-100 text-${statusColor}-800 text-xs rounded-full font-medium`}>
-                            {statusText}
-                          </span>
+                          <div className="flex flex-col items-end space-y-2">
+                            <span className={`px-2 py-1 bg-${statusColor}-100 text-${statusColor}-800 text-xs rounded-full font-medium`}>
+                              {statusText}
+                            </span>
+                            {userRole === 'parent' && !isPast && (
+                              <button
+                                onClick={() => handleSignupClick(event)}
+                                className="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
+                              >
+                                <UserPlus className="w-3 h-3 mr-1" />
+                                Sign Up
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -183,6 +212,14 @@ const HealthEventsView = ({ userRole = 'parent', title, description }) => {
           )}
         </div>
       </div>
+
+      {/* Event Signup Modal */}
+      <EventSignupForm
+        isOpen={signupFormOpen}
+        onClose={handleCloseSignupForm}
+        event={selectedEvent}
+        onSignupSuccess={handleSignupSuccess}
+      />
     </div>
   );
 };

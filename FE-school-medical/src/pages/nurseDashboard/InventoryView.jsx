@@ -506,7 +506,7 @@ const InventoryView = () => {
             </div>
             <input
               type="text"
-              placeholder="Search by name, category, manufacturer..."
+              placeholder="Search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

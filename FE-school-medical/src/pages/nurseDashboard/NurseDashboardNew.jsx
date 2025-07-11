@@ -1,35 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import Sidebar from "../../components/SideBar";
-import DashboardCard from "../../components/DashboardCard";
-import ChartCard from "../../components/ChartCard";
-import HealthEventsView from "../../components/HealthEventsView";
-import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard";
-import StudentsView from "./StudentsView";
-import NurseMedicationRequests from "./NurseMedicationRequests";
-import HealthIncidentsView from "./HealthIncidentsView";
-import InventoryView from "./InventoryView";
-import NotificationsView from "./NotificationsView";
-import {
-  Users,
-  Calendar,
-  FileText,
-  Heart,
-  Activity,
-  Stethoscope,
-  Bell,
-  Warehouse,
-  Pill,
-} from "lucide-react";
-import { healthIncidentAPI } from "../../api/healthIncidentApi";
-import { studentAPI } from "../../api/studentsApi";
-import { healthEventAPI } from "../../api/healthEventApi";
-import { medicationAPI } from "../../api/medicationApi";
-import {
-  formatEventDate,
-  getCategoryStyle,
-  safeDisplay,
-} from "../../utils/dashboardUtils";
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Sidebar from '../../components/SideBar';
+import DashboardCard from '../../components/DashboardCard';
+import ChartCard from '../../components/ChartCard';
+import HealthEventsView from '../../components/HealthEventsView';
+import NurseHealthEventsView from '../../components/NurseHealthEventsView';
+import UpcomingHealthEventsCard from '../../components/UpcomingHealthEventsCard';
+import StudentsView from './StudentsView';
+import NurseMedicationRequests from './NurseMedicationRequests';
+import HealthIncidentsView from './HealthIncidentsView';
+import InventoryView from './InventoryView';
+import { Users, Calendar, FileText, Heart, Activity, Stethoscope, Bell, Warehouse, Pill } from 'lucide-react';
+import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
+import { studentAPI } from '../../api/studentsApi';
+import { healthEventAPI } from '../../api/healthEventApi';
+import { medicationAPI } from '../../api/medicationApi';
+import { formatEventDate, getCategoryStyle, safeDisplay } from '../../utils/dashboardUtils';
 
 const NurseDashboard = () => {
   const navigate = useNavigate();
@@ -209,10 +196,12 @@ const NurseDashboard = () => {
       case "students":
         return <StudentsView />;
 
-      case "health-events":
-        return <HealthEventsView userRole="nurse" />;
+ 
+      case 'health-events':
+        return <NurseHealthEventsView />;
+         
+      case 'medication-requests':
 
-      case "medication-requests":
         return <NurseMedicationRequests />;
 
       case "health-incidents":
