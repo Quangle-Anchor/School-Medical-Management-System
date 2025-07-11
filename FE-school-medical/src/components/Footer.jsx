@@ -24,11 +24,11 @@ const Footer = () => {
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="opacity-90" />
-                <span>School Health Office</span>
+                <span>School Health Services</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={16} className="opacity-90" />
-                <span>schoolhealth@xyz.edu</span>
+                <span>schoolhealthservices@fpt.edu.vn</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={16} className="opacity-90" />
@@ -75,14 +75,14 @@ const Footer = () => {
               <a
                 href="#"
                 aria-label="Facebook"
-                className="bg-blue-400 p-3 rounded-full hover:bg-blue-300 transition-colors shadow-lg"
+                className="bg-blue-500 p-3 rounded-full transition-colors shadow-lg"
               >
                 <Facebook size={20} />
               </a>
               <a
                 href="#"
                 aria-label="YouTube"
-                className="bg-blue-400 p-3 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                className="bg-red-600 p-3 rounded-full transition-colors shadow-lg"
               >
                 <Youtube size={20} />
               </a>
