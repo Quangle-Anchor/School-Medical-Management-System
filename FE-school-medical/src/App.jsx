@@ -2,7 +2,6 @@ import AdminDashboard from "./pages/adminDashboard/AdminDashboard";
 import PrincipalDashboard from "./pages/principalDashboard/PrincipalDashboard";
 import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
-import StudentDashboard from "./pages/studentDashboard/StudentDashboardNew";
 import Profile from "./pages/profile/Profile";
 import Settings from "./pages/Settings/Settings";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
@@ -11,7 +10,7 @@ import { useState, useEffect } from "react";
 import AboutPage from "./pages/about/About";
 import HomePage from "./pages/home/Homepage";
 import Contact from "./pages/Contact/Contact";
-import HealthLookupPage from "./pages/HealthLookupPage";
+import HealthLookupPage from "./pages/HealthLookupPage/HealthLookupPage";
 import LoginPage from "./pages/login/Login";
 import SignUp from "./pages/login/SignUp";
 import Navbar from "./components/Navbar";
@@ -26,7 +25,7 @@ import backgroundImg from "./assets/img/back.png";
 
 function AppContent() {
   const location = useLocation();
-  const hideFooter = ['/login', '/signup'].includes(location.pathname);
+  const hideFooter = ["/login", "/signup"].includes(location.pathname);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMouseNearTop, setIsMouseNearTop] = useState(false);
@@ -36,7 +35,7 @@ function AppContent() {
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (currentScrollY < 50) {
         // Always show navbar at the top of the page
         setIsNavbarVisible(true);
@@ -49,7 +48,7 @@ function AppContent() {
         // Scrolling up - show navbar
         setIsNavbarVisible(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -57,19 +56,20 @@ function AppContent() {
       // Show navbar when mouse is near the top 100px of the screen
       const isNearTop = e.clientY <= 100;
       setIsMouseNearTop(isNearTop);
-      
+
       if (isNearTop && !isNavbarVisible) {
         setIsNavbarVisible(true);
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('mousemove', handleMouseMove);
-    };  }, [lastScrollY, isNavbarVisible, isMouseNearTop, hideFooter]);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [lastScrollY, isNavbarVisible, isMouseNearTop, hideFooter]);
 
   return (
     <div className="min-h-screen relative">
@@ -149,15 +149,7 @@ function AppContent() {
                 <ParentDashboard />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path="/studentDashboard"
-            element={
-              <ProtectedRoute requiredRole="Student">
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
+          />         
         </Routes>
 
         {/* Footer - hidden on login/signup pages */}

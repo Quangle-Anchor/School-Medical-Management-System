@@ -1,5 +1,5 @@
 import React from "react";
-import HealthLookup from "./HealthLookupPage/HealthLookup";
+import HealthLookup from "./HealthLookup";
 
 const HealthLookupPage = () => <HealthLookup />;
 
