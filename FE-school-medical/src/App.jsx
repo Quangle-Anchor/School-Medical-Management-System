@@ -2,6 +2,7 @@ import AdminDashboard from "./pages/adminDashboard/AdminDashboard";
 import PrincipalDashboard from "./pages/principalDashboard/PrincipalDashboard";
 import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
+import StudentDashboard from "./pages/studentDashboard/StudentDashboardNew";
 import Profile from "./pages/profile/Profile";
 import Settings from "./pages/Settings/Settings";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
@@ -10,6 +11,7 @@ import { useState, useEffect } from "react";
 import AboutPage from "./pages/about/About";
 import HomePage from "./pages/home/Homepage";
 import Contact from "./pages/Contact/Contact";
+import HealthLookupPage from "./pages/HealthLookupPage";
 import LoginPage from "./pages/login/Login";
 import SignUp from "./pages/login/SignUp";
 import Navbar from "./components/Navbar";
@@ -86,9 +88,9 @@ function AppContent() {
       {/* Main content area with padding for navbar */}
       <div className="relative z-10 pt-16">
         <Routes>
-          {" "}
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
+          <Route path="/health-lookup" element={<HealthLookupPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<LoginPage />} />
@@ -133,7 +135,7 @@ function AppContent() {
             }
           />
           <Route
-            path="/principalDashboard/*"
+            path="/principalDashboard"
             element={
               <ProtectedRoute requiredRole="Principal">
                 <PrincipalDashboard />
@@ -145,6 +147,14 @@ function AppContent() {
             element={
               <ProtectedRoute requiredRole="Parent">
                 <ParentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/studentDashboard"
+            element={
+              <ProtectedRoute requiredRole="Student">
+                <StudentDashboard />
               </ProtectedRoute>
             }
           />
