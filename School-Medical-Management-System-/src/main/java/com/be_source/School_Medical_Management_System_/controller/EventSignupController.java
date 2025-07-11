@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/event-signups")
-
 public class EventSignupController {
 
     @Autowired
@@ -37,5 +36,11 @@ public class EventSignupController {
                                           @RequestParam("status") String status) {
         eventSignupService.updateStatus(signupId, status);
         return ResponseEntity.ok("Status updated successfully");
+    }
+
+    @PutMapping("/event/{eventId}/approve-all")
+    public ResponseEntity<String> approveAllSignups(@PathVariable Long eventId) {
+        eventSignupService.approveAllSignups(eventId);
+        return ResponseEntity.ok("All signups for event ID " + eventId + " have been approved.");
     }
 }

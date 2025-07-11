@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import AboutPage from "./pages/about/About";
 import HomePage from "./pages/home/Homepage";
 import Contact from "./pages/Contact/Contact";
+import HealthLookupPage from "./pages/HealthLookupPage/HealthLookupPage";
 import LoginPage from "./pages/login/Login";
 import SignUp from "./pages/login/SignUp";
 import Navbar from "./components/Navbar";
@@ -24,7 +25,7 @@ import backgroundImg from "./assets/img/back.png";
 
 function AppContent() {
   const location = useLocation();
-  const hideFooter = ['/login', '/signup'].includes(location.pathname);
+  const hideFooter = ["/login", "/signup"].includes(location.pathname);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMouseNearTop, setIsMouseNearTop] = useState(false);
@@ -34,7 +35,7 @@ function AppContent() {
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (currentScrollY < 50) {
         // Always show navbar at the top of the page
         setIsNavbarVisible(true);
@@ -47,7 +48,7 @@ function AppContent() {
         // Scrolling up - show navbar
         setIsNavbarVisible(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -55,19 +56,20 @@ function AppContent() {
       // Show navbar when mouse is near the top 100px of the screen
       const isNearTop = e.clientY <= 100;
       setIsMouseNearTop(isNearTop);
-      
+
       if (isNearTop && !isNavbarVisible) {
         setIsNavbarVisible(true);
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('mousemove', handleMouseMove);
-    };  }, [lastScrollY, isNavbarVisible, isMouseNearTop, hideFooter]);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [lastScrollY, isNavbarVisible, isMouseNearTop, hideFooter]);
 
   return (
     <div className="min-h-screen relative">
@@ -86,9 +88,9 @@ function AppContent() {
       {/* Main content area with padding for navbar */}
       <div className="relative z-10 pt-16">
         <Routes>
-          {" "}
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
+          <Route path="/health-lookup" element={<HealthLookupPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<LoginPage />} />
@@ -133,7 +135,7 @@ function AppContent() {
             }
           />
           <Route
-            path="/principalDashboard/*"
+            path="/principalDashboard"
             element={
               <ProtectedRoute requiredRole="Principal">
                 <PrincipalDashboard />
@@ -147,7 +149,7 @@ function AppContent() {
                 <ParentDashboard />
               </ProtectedRoute>
             }
-          />
+          />         
         </Routes>
 
         {/* Footer - hidden on login/signup pages */}

@@ -1,5 +1,6 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
+import com.be_source.School_Medical_Management_System_.enums.SignupStatus;
 import com.be_source.School_Medical_Management_System_.request.EventSignupRequest;
 import com.be_source.School_Medical_Management_System_.response.EventSignupResponse;
 import com.be_source.School_Medical_Management_System_.model.*;
@@ -27,7 +28,6 @@ public class EventSignupServiceImpl implements EventSignupService {
     @Autowired
     private UserUtilService userUtilService;
 
-    @Override
     public EventSignupResponse createSignup(EventSignupRequest request) {
         User parent = userUtilService.getCurrentUser();
 
@@ -41,14 +41,20 @@ public class EventSignupServiceImpl implements EventSignupService {
         HealthEvent event = healthEventRepository.findById(request.getEventId())
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
+        // Kiểm tra nếu đã đăng ký
+        if (eventSignupRepository.existsByStudentAndEvent(student, event)) {
+            throw new RuntimeException("Student already signed up for this event");
+        }
+
         EventSignup signup = new EventSignup();
         signup.setEvent(event);
         signup.setStudent(student);
         signup.setSignupDate(LocalDateTime.now());
-        signup.setStatus("pending");
+        signup.setStatus(SignupStatus.PENDING);
 
         return mapToResponse(eventSignupRepository.save(signup));
     }
+
 
     @Override
     public List<EventSignupResponse> getMySignups() {
@@ -75,8 +81,27 @@ public class EventSignupServiceImpl implements EventSignupService {
         EventSignup signup = eventSignupRepository.findById(signupId)
                 .orElseThrow(() -> new RuntimeException("Signup not found"));
 
-        signup.setStatus(status);
-        eventSignupRepository.save(signup);
+        try {
+            SignupStatus newStatus = SignupStatus.valueOf(status.toUpperCase());
+            signup.setStatus(newStatus);
+            eventSignupRepository.save(signup);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status value. Use: PENDING, APPROVED, REJECTED");
+        }
+    }
+
+    @Override
+    public void approveAllSignups(Long eventId) {
+        HealthEvent event = healthEventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        List<EventSignup> signups = eventSignupRepository.findByEvent(event);
+
+        for (EventSignup signup : signups) {
+            signup.setStatus(SignupStatus.APPROVED);
+        }
+
+        eventSignupRepository.saveAll(signups);
     }
 
     private EventSignupResponse mapToResponse(EventSignup signup) {
@@ -86,7 +111,7 @@ public class EventSignupServiceImpl implements EventSignupService {
                 .eventTitle(signup.getEvent().getTitle())
                 .studentId(signup.getStudent().getStudentId())
                 .studentName(signup.getStudent().getFullName())
-                .status(signup.getStatus())
+                .status(signup.getStatus().name())
                 .signupDate(signup.getSignupDate())
                 .build();
     }

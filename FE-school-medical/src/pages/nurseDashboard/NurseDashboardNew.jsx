@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/SideBar';
@@ -26,24 +27,27 @@ const NurseDashboard = () => {
   const [students, setStudents] = useState([]);
   const [healthEvents, setHealthEvents] = useState([]);
   const [medicationRequests, setMedicationRequests] = useState([]);
-  const [pendingMedicationRequests, setPendingMedicationRequests] = useState([]);
+  const [pendingMedicationRequests, setPendingMedicationRequests] = useState(
+    []
+  );
   // Get current view from URL
   const getCurrentView = () => {
     const path = location.pathname;
-    console.log('Current path:', path); // Debug log
-    
+    console.log("Current path:", path); // Debug log
+
     // More precise matching to avoid conflicts
-    if (path === '/nurseDashboard/students') return 'students';
-    if (path === '/nurseDashboard/health-events') return 'health-events';
-    if (path === '/nurseDashboard/health-incidents') return 'health-incidents';
-    if (path === '/nurseDashboard/medication-requests') return 'medication-requests';
-    if (path === '/nurseDashboard/notifications') return 'notifications';
-    if (path === '/nurseDashboard/inventory') return 'inventory';
-    
-    return 'dashboard';
+    if (path === "/nurseDashboard/students") return "students";
+    if (path === "/nurseDashboard/health-events") return "health-events";
+    if (path === "/nurseDashboard/health-incidents") return "health-incidents";
+    if (path === "/nurseDashboard/medication-requests")
+      return "medication-requests";
+    if (path === "/nurseDashboard/notifications") return "notifications";
+    if (path === "/nurseDashboard/inventory") return "inventory";
+
+    return "dashboard";
   };
   const [activeView, setActiveView] = useState(getCurrentView());
-  
+
   // Update active view when URL changes
   useEffect(() => {
     setActiveView(getCurrentView());
@@ -53,23 +57,23 @@ const NurseDashboard = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
-      console.log('Starting to fetch all data...');
-      
+      console.log("Starting to fetch all data...");
+
       try {
         await Promise.all([
           fetchStudents(),
           fetchHealthIncidents(),
           fetchHealthEvents(),
-          fetchMedicationRequests()
+          fetchMedicationRequests(),
         ]);
-        console.log('All data fetched successfully');
+        console.log("All data fetched successfully");
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchAllData();
   }, []);
   const toggleSidebar = () => {
@@ -77,9 +81,9 @@ const NurseDashboard = () => {
   };
 
   const handleMenuClick = (menuId) => {
-    console.log('Menu clicked:', menuId); // Debug log
-    if (menuId === 'dashboard') {
-      navigate('/nurseDashboard');
+    console.log("Menu clicked:", menuId); // Debug log
+    if (menuId === "dashboard") {
+      navigate("/nurseDashboard");
     } else {
       navigate(`/nurseDashboard/${menuId}`);
     }
@@ -89,23 +93,24 @@ const NurseDashboard = () => {
   const fetchStudents = async () => {
     try {
       // For nurses, we want to get all students, but we need to handle the paginated response
-   
+
       const studentsData = await studentAPI.getAllStudents(0, 1000); // Get a large page to include all students
-    
+
       // Handle paginated response - extract content array
-      if (studentsData && studentsData.content && Array.isArray(studentsData.content)) {
-     
+      if (
+        studentsData &&
+        studentsData.content &&
+        Array.isArray(studentsData.content)
+      ) {
         setStudents(studentsData.content);
       } else if (Array.isArray(studentsData)) {
         // Fallback in case the API returns an array directly
- 
+
         setStudents(studentsData);
       } else {
-  
         setStudents([]); // Set empty array if no content
       }
     } catch (error) {
-   
       setStudents([]); // Set empty array on error
     }
   };
@@ -114,7 +119,6 @@ const NurseDashboard = () => {
       const incidents = await healthIncidentAPI.getAllHealthIncidents();
       setHealthIncidents(incidents || []); // Ensure we always set an array
     } catch (error) {
- 
       setHealthIncidents([]); // Set empty array on error
     }
   };
@@ -124,7 +128,7 @@ const NurseDashboard = () => {
       const events = await healthEventAPI.getAllEvents(); // Get all events for nurse
       setHealthEvents(events || []);
     } catch (error) {
-      console.error('Error fetching health events:', error);
+      console.error("Error fetching health events:", error);
       setHealthEvents([]);
     }
   };
@@ -134,12 +138,14 @@ const NurseDashboard = () => {
       // Fetch all medication requests
       const allRequests = await medicationAPI.getAllRequests();
       setMedicationRequests(Array.isArray(allRequests) ? allRequests : []);
-      
+
       // Fetch pending medication requests
       const pendingRequests = await medicationAPI.getPendingRequests();
-      setPendingMedicationRequests(Array.isArray(pendingRequests) ? pendingRequests : []);
+      setPendingMedicationRequests(
+        Array.isArray(pendingRequests) ? pendingRequests : []
+      );
     } catch (error) {
-      console.error('Error fetching medication requests:', error);
+      console.error("Error fetching medication requests:", error);
       setMedicationRequests([]);
       setPendingMedicationRequests([]);
     }
@@ -148,82 +154,70 @@ const NurseDashboard = () => {
   // Nurse dashboard data
   const nurseCardData = [
     {
-      title: 'Total Students',
-      value: loading ? '...' : (Array.isArray(students) ? students.length : 0).toString(),
-      change: 'Students in database',
-      changeType: 'neutral',
+      title: "Total Students",
+      value: loading
+        ? "..."
+        : (Array.isArray(students) ? students.length : 0).toString(),
+      change: "Students in database",
+      changeType: "neutral",
       icon: Users,
     },
     {
-      title: 'Health Events',
-      value: loading ? '...' : healthEvents.length.toString(),
-      change: `${healthEvents.filter(event => {
-        const today = new Date();
-        const eventDate = new Date(event.scheduleDate);
-        return eventDate.toDateString() === today.toDateString();
-      }).length} scheduled today`,
-      changeType: 'neutral',
+      title: "Health Events",
+      value: loading ? "..." : healthEvents.length.toString(),
+      change: `${
+        healthEvents.filter((event) => {
+          const today = new Date();
+          const eventDate = new Date(event.scheduleDate);
+          return eventDate.toDateString() === today.toDateString();
+        }).length
+      } scheduled today`,
+      changeType: "neutral",
       icon: Calendar,
-    },    
+    },
     {
-      title: 'Health Incidents',
-      value: loading ? '...' : healthIncidents.length.toString(),
-      change: 'Total recorded incidents',
-      changeType: healthIncidents.length > 5 ? 'negative' : 'neutral',
+      title: "Health Incidents",
+      value: loading ? "..." : healthIncidents.length.toString(),
+      change: "Total recorded incidents",
+      changeType: healthIncidents.length > 5 ? "negative" : "neutral",
       icon: Heart,
     },
     {
-      title: 'Pending Medication Requests',
-      value: loading ? '...' : pendingMedicationRequests.length.toString(),
-      change: 'Awaiting confirmation',
-      changeType: pendingMedicationRequests.length > 5 ? 'negative' : 'neutral',
+      title: "Pending Medication Requests",
+      value: loading ? "..." : pendingMedicationRequests.length.toString(),
+      change: "Awaiting confirmation",
+      changeType: pendingMedicationRequests.length > 5 ? "negative" : "neutral",
       icon: Bell,
     },
   ];
 
   const renderContent = () => {
     switch (activeView) {
-      case 'students':
+      case "students":
         return <StudentsView />;
-     
+
+ 
       case 'health-events':
         return <NurseHealthEventsView />;
          
       case 'medication-requests':
+
         return <NurseMedicationRequests />;
-      
-      case 'health-incidents':
+
+      case "health-incidents":
         return <HealthIncidentsView />;
-      
-    
-      case 'notifications':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Notifications</h1>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Alerts & Notifications</h2>
-              <p className="text-gray-600 mb-4">Stay updated with important alerts and system notifications.</p>
-              <div className="space-y-3">
-                <div className="p-4 border-l-4 border-red-500 bg-red-50">
-                  <h3 className="font-medium text-red-800">Emergency Alert</h3>
-                  <p className="text-sm text-red-600">Patient in Room 205 requires immediate attention</p>
-                  <p className="text-xs text-red-500">5 minutes ago</p>
-                </div>
-                <div className="p-4 border-l-4 border-yellow-500 bg-yellow-50">
-                  <h3 className="font-medium text-yellow-800">Medication Reminder</h3>
-                  <p className="text-sm text-yellow-600">Time for medication round - Ward B</p>
-                  <p className="text-xs text-yellow-500">15 minutes ago</p>
-                </div>
-                <div className="p-4 border-l-4 border-blue-500 bg-blue-50">
-                  <h3 className="font-medium text-blue-800">Schedule Update</h3>
-                  <p className="text-sm text-blue-600">Tomorrow's shift schedule has been updated</p>
-                  <p className="text-xs text-blue-500">2 hours ago</p>
-                </div>
-              </div>
-            </div>
-          </div>        );      
-      
-      case 'inventory':
+
+      case "notifications": {
+        // Lấy user nurse hiện tại từ localStorage
+        const nurseUser = {
+          id: localStorage.getItem("userId"),
+          role: localStorage.getItem("role"),
+          name: localStorage.getItem("fullname"),
+        };
+        return <NotificationsView user={nurseUser} />;
+      }
+
+      case "inventory":
         return <InventoryView />;
 
       default:
@@ -237,7 +231,8 @@ const NurseDashboard = () => {
                     Nurse Dashboard
                   </h1>
                   <p className="text-gray-600 mt-2">
-                    Welcome back! Here's your patient care overview and daily tasks.
+                    Welcome back! Here's your patient care overview and daily
+                    tasks.
                   </p>
                 </div>
               </div>
@@ -249,14 +244,14 @@ const NurseDashboard = () => {
                 <DashboardCard key={index} {...card} />
               ))}
             </div>
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Calendar Card */}
               <ChartCard userRole="nurse" />
-            
+
               {/* Upcoming Health Events Section */}
-              <UpcomingHealthEventsCard 
+              <UpcomingHealthEventsCard
                 userRole="nurse"
-                onViewAll={() => handleMenuClick('health-events')}
+                onViewAll={() => handleMenuClick("health-events")}
               />
             </div>
           </div>
@@ -266,17 +261,15 @@ const NurseDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar 
-        isCollapsed={sidebarCollapsed} 
-        onToggle={toggleSidebar} 
+      <Sidebar
+        isCollapsed={sidebarCollapsed}
+        onToggle={toggleSidebar}
         userRole="nurse"
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-      
-      <main className="flex-1 overflow-hidden">
-        {renderContent()}
-      </main>
+
+      <main className="flex-1 overflow-hidden">{renderContent()}</main>
     </div>
   );
 };

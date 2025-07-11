@@ -61,7 +61,7 @@ const AdminDashboard = () => {
                 Manage User
               </h2>
               <p className="text-red-600 mb-4">
-                This use case allows manager to add, delete, update the user
+                This use case allows principal to add, delete, update the user
                 and assign their role
               </p>
               <UserManagement />

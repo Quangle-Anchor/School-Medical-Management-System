@@ -214,7 +214,21 @@ export const studentAPI = {
   },
 };
 
+// Search student by code (for Health Lookup)
+export const searchStudentByCode = async (studentCode) => {
+  try {
+    const response = await axiosInstance.get(`/api/students/code/${studentCode}`);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      throw new Error('Student not found');
+    }
+    throw error;
+  }
+};
+
 // Export default API object
 export default {
   students: studentAPI,
+  searchStudentByCode,
 };

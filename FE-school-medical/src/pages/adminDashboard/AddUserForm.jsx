@@ -58,11 +58,11 @@ const AddUserForm = ({
       setError("Email is required.");
       return;
     }
-    if (!isEditing && !form.username.trim()) {
+    if (!form.username.trim()) {
       setError("Username is required.");
       return;
     }
-    if (!isEditing && !form.password.trim()) {
+    if (!form.password.trim()) {
       setError("Password is required.");
       return;
     }
@@ -142,42 +142,22 @@ const AddUserForm = ({
             </div>
             {/* Username: only show input when add or editing, but do not prefill when add */}
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Username {isEditing ? "" : "*"}
-              </label>
+              <label className="block text-sm font-medium mb-1">Username</label>
               <input
                 type="text"
                 name="username"
-                value={
-                  isEditing
-                    ? form.username
-                    : isOpen && !isEditing
-                    ? form.username
-                    : ""
-                }
+                value={form.username}
                 onChange={handleChange}
-                required={!isEditing}
-                placeholder="Enter username (required)"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1">
-                Password {isEditing ? "" : "*"}
-              </label>
+              <label className="block text-sm font-medium mb-1">Password</label>
               <input
                 type="password"
                 name="password"
-                value={
-                  isEditing
-                    ? form.password
-                    : isOpen && !isEditing
-                    ? form.password
-                    : ""
-                }
+                value={form.password}
                 onChange={handleChange}
-                required={!isEditing}
-                placeholder="Enter password (required)"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -191,9 +171,8 @@ const AddUserForm = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="Parent">Parent</option>
-                <option value="Student">Student</option>
                 <option value="Nurse">Nurse</option>
-                <option value="Manager">Manager</option>
+                <option value="Principal">Principal</option>
                 <option value="Admin">Admin</option>
               </select>
             </div>
