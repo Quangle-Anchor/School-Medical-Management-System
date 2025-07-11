@@ -9,6 +9,7 @@ import MyChildView from './MyChildView';
 import AddStudentForm from './AddStudentForm';
 import MyMedicationRequests from './MyMedicationRequests';
 import HealthIncidentsView from '../nurseDashboard/HealthIncidentsView';
+import NotificationsView from '../nurseDashboard/NotificationsView';
 import { User, Calendar, FileText, Heart, Plus } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
 import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
@@ -208,13 +209,15 @@ const ParentDashboardWrapper = () => {
         
         case 'medical-records':
         return <HealthIncidentsView isParentView={true} students={students} parentLoading={loading} />;
-      case 'notifications':
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Notifications</h1>
-            <p>Notifications content coming soon...</p>
-          </div>
-        );
+      case 'notifications': {
+        // Lấy user parent hiện tại từ localStorage
+        const parentUser = {
+          id: localStorage.getItem('userId'),
+          role: localStorage.getItem('role'),
+          name: localStorage.getItem('fullname'),
+        };
+        return <NotificationsView user={parentUser} />;
+      }
 
       case 'messages':
         return (

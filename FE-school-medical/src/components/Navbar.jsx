@@ -6,14 +6,18 @@ import {
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
   UserIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline';
 import logo from '../assets/img/2.png';
 import authApi from '../api/authApi';
+import NotificationBell from './NotificationBell';
 
 const AuthNavbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showNotification, setShowNotification] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -249,38 +253,62 @@ const AuthNavbar = () => {
 
           {/* User Menu / Auth Buttons */}
           <div className="flex items-center space-x-4">
+            {/* Notification Bell: nằm bên trái avatar/tài khoản */}
+            {isAuthenticated && (
+              <div className="notification-bell-dropdown relative">
+                <NotificationBell
+                  user={user}
+                  show={showNotification}
+                  setShow={(v) => {
+                    setShowNotification(v);
+                    if (v) setShowAccount(false);
+                  }}
+                />
+              </div>
+            )}
             {isAuthenticated ? (
-              <Menu as="div" className="relative">
-                <div>                  <Menu.Button className="flex items-center space-x-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50 rounded-xl p-2 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15">
-                    {user?.avatar ? (
-                      <img
-                        className="h-8 w-8 rounded-full object-cover border border-white/30"
-                        src={user.avatar}
-                        alt={user.name}
-                      />
-                    ) : (
-                      <UserCircleIcon className="h-8 w-8 text-blue-400" />
-                    )}
-                    <div className="text-left">
-                      <div className="text-sm font-medium text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">
-                        {user?.name || user?.username}
-                      </div>
-                      <div className="text-xs bg-white/10 px-2 py-1 rounded-full backdrop-blur-sm border border-white/20 text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">
-                        {user?.role}
-                      </div>
+              <div className="account-menu-dropdown relative">
+                <button
+                  className="flex items-center space-x-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50 rounded-xl p-2 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15"
+                  onClick={() => {
+                    setShowAccount((v) => {
+                      if (!v) setShowNotification(false);
+                      return !v;
+                    });
+                  }}
+                >
+                  {user?.avatar ? (
+                    <img
+                      className="h-8 w-8 rounded-full object-cover border border-white/30"
+                      src={user.avatar}
+                      alt={user.name}
+                    />
+                  ) : (
+                    <UserCircleIcon className="h-8 w-8 text-blue-400" />
+                  )}
+                  <div className="text-left">
+                    <div className="text-sm font-medium text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">
+                      {user?.name || user?.username}
                     </div>
-                  </Menu.Button>
-                </div>
+                    <div className="text-xs bg-white/10 px-2 py-1 rounded-full backdrop-blur-sm border border-white/20 text-transparent bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text">
+                      {user?.role}
+                    </div>
+                  </div>
+                </button>
+                {/* Account Dropdown */}
                 <Transition
                   as={Fragment}
+                  show={showAccount}
                   enter="transition ease-out duration-100"
                   enterFrom="transform opacity-0 scale-95"
                   enterTo="transform opacity-100 scale-100"
                   leave="transition ease-in duration-75"
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
-                >                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right bg-white rounded-3xl shadow-2xl focus:outline-none border border-gray-200">
-                    <div className="p-2">                      <div className="px-3 py-2 border-b border-gray-200">
+                >
+                  <div className="absolute right-0 z-10 mt-2 w-56 origin-top-right bg-white rounded-3xl shadow-2xl focus:outline-none border border-gray-200">
+                    <div className="p-2">
+                      <div className="px-3 py-2 border-b border-gray-200">
                         <p className="text-sm font-medium text-gray-800">{user?.name}</p>
                         <p className="text-sm text-gray-600">{user?.email}</p>
                         {user?.username && (
@@ -292,59 +320,48 @@ const AuthNavbar = () => {
                         <span className="inline-block mt-1 text-xs bg-blue-100 px-2 py-1 rounded-full border border-blue-200 text-blue-700">
                           {user?.role}
                         </span>
-                      </div><Menu.Item>
-                        {({ active }) => (
-                          <Link
-                            to="/profile"                            className={classNames(
-                              active ? 'bg-blue-50' : 'hover:bg-gray-50',
-                              'group flex items-center px-3 py-2 text-sm rounded-xl mt-2 transition-all duration-300'
-                            )}                          >
-                            <UserIcon className="mr-3 h-4 w-4 text-blue-500" />
-                            <span className="text-gray-800">Profile</span>
-                          </Link>
-                        )}
-                      </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <Link
-                            to="/settings"                            className={classNames(
-                              active ? 'bg-blue-50' : 'hover:bg-gray-50',
-                              'group flex items-center px-3 py-2 text-sm rounded-xl transition-all duration-300'
-                            )}                          >
-                            <Cog6ToothIcon className="mr-3 h-4 w-4 text-blue-500" />
-                            <span className="text-gray-800">Settings</span>
-                          </Link>
-                        )}
-                      </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <button
-                            onClick={handleLogout}                            className={classNames(
-                              active ? 'bg-red-50' : 'hover:bg-red-50',
-                              'group flex items-center w-full px-3 py-2 text-sm rounded-xl transition-all duration-300'
-                            )}                          >
-                            <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4 text-red-500" />
-                            <span className="text-red-600">Sign out</span>
-                          </button>
-                        )}
-                      </Menu.Item>
+                      </div>
+                      <Link
+                        to="/profile"
+                        className="group flex items-center px-3 py-2 text-sm rounded-xl mt-2 transition-all duration-300 hover:bg-gray-50"
+                      >
+                        <UserIcon className="mr-3 h-4 w-4 text-blue-500" />
+                        <span className="text-gray-800">Profile</span>
+                      </Link>
+                      <Link
+                        to="/settings"
+                        className="group flex items-center px-3 py-2 text-sm rounded-xl transition-all duration-300 hover:bg-gray-50"
+                      >
+                        <Cog6ToothIcon className="mr-3 h-4 w-4 text-blue-500" />
+                        <span className="text-gray-800">Settings</span>
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="group flex items-center w-full px-3 py-2 text-sm rounded-xl transition-all duration-300 hover:bg-red-50"
+                      >
+                        <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4 text-red-500" />
+                        <span className="text-red-600">Sign out</span>
+                      </button>
                     </div>
-                  </Menu.Items>
+                  </div>
                 </Transition>
-              </Menu>
-            ) : (              <div className="flex items-center space-x-2">
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={handleLogin}
                   className="bg-white/10 hover:bg-white/15 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 border border-white/20 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50"
                 >
                   <span className="text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">Sign In</span>
-                </button>                <Link
+                </button>
+                <Link
                   to="/signup"
                   className="bg-white/10 hover:bg-white/15 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 border border-white/20 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50"
                 >
                   <span className="text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">Sign Up</span>
                 </Link>
-              </div>)}
+              </div>
+            )}
           </div>
         </div>
       </div>
