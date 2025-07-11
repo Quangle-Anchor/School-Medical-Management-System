@@ -2,7 +2,6 @@ import AdminDashboard from "./pages/adminDashboard/AdminDashboard";
 import PrincipalDashboard from "./pages/principalDashboard/PrincipalDashboard";
 import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
-import StudentDashboard from "./pages/studentDashboard/StudentDashboardNew";
 import Profile from "./pages/profile/Profile";
 import Settings from "./pages/Settings/Settings";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
@@ -134,7 +133,7 @@ function AppContent() {
             }
           />
           <Route
-            path="/principalDashboard"
+            path="/principalDashboard/*"
             element={
               <ProtectedRoute requiredRole="Principal">
                 <PrincipalDashboard />
@@ -146,14 +145,6 @@ function AppContent() {
             element={
               <ProtectedRoute requiredRole="Parent">
                 <ParentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/studentDashboard"
-            element={
-              <ProtectedRoute requiredRole="Student">
-                <StudentDashboard />
               </ProtectedRoute>
             }
           />

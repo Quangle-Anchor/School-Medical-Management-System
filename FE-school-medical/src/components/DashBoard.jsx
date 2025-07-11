@@ -13,37 +13,6 @@ const Dashboard = ({ cardData, userRole = 'parent', customActions, activeMenu = 
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Default card data if none provided
-  const defaultCardData = [
-    {
-      title: 'Total Patients',
-      value: '1,247',
-      change: '+12% from last month',
-      changeType: 'positive',
-      icon: Users,
-    },
-    {
-      title: 'Health Events Today',
-      value: '89',
-      change: '+5 from yesterday',
-      changeType: 'positive',
-      icon: Calendar,
-    },
-    {
-      title: 'Active Cases',
-      value: '156',
-      change: '+8% from last week',
-      changeType: 'positive',
-      icon: Activity,
-    },
-    {
-      title: 'Emergency Cases',
-      value: '23',
-      change: '-2 from yesterday',
-      changeType: 'negative',
-      icon: Stethoscope,
-    },
-  ];
 
   const displayCardData = cardData || defaultCardData;
  return (
