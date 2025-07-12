@@ -79,6 +79,66 @@ public class NotificationServiceImpl implements NotificationService {
                 .map(this::toDto);
     }
 
+    @Override
+    @Transactional
+    public void updateReadStatus(Long notificationId, boolean readStatus) {
+        User currentUser = userUtilService.getCurrentUser();
+
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new NoSuchElementException("Notification not found"));
+
+        // Đảm bảo user chỉ được cập nhật noti của mình
+        if (!notification.getUser().getUserId().equals(currentUser.getUserId())) {
+            throw new SecurityException("You are not allowed to update this notification.");
+        }
+
+        notification.setReadStatus(readStatus);
+        notificationRepository.save(notification);
+    }
+
+    @Override
+    @Transactional
+    public void markAllAsReadForCurrentUser() {
+        User user = userUtilService.getCurrentUser();
+        List<Notification> notifications = notificationRepository.findByUser(user);
+
+        for (Notification n : notifications) {
+            if (!n.getReadStatus()) {
+                n.setReadStatus(true);
+            }
+        }
+        notificationRepository.saveAll(notifications);
+    }
+
+    @Override
+    @Transactional
+    public void createNotificationForNurses(NotificationRequest request) {
+        User principal = userUtilService.getCurrentUser();
+
+        // Kiểm tra quyền Principal
+        if (!"Principal".equalsIgnoreCase(principal.getRole().getRoleName())) {
+            throw new RuntimeException("Only Principal can send notifications to Nurses");
+        }
+
+        List<User> nurses = userRepository.findByRoleName("Nurse");
+
+        for (User nurse : nurses) {
+            Notification noti = new Notification();
+            noti.setTitle(request.getTitle());
+            noti.setContent(request.getContent());
+            noti.setCreatedBy(principal);
+            noti.setUser(nurse);
+            noti.setCreatedAt(ZonedDateTime.now());
+            noti.setReadStatus(false);
+            noti.setEmailSent(false);
+            noti.setNotificationType("INTERNAL_ANNOUNCEMENT");
+
+            notificationRepository.save(noti);
+        }
+    }
+
+
+
 
     private NotificationResponse toDto(Notification n) {
         NotificationResponse dto = new NotificationResponse();

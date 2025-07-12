@@ -13,6 +13,7 @@ public interface NotificationService {
     void deleteNotification(Long id);
     Page<NotificationResponse> getAllNotifications(Pageable pageable);
     Page<NotificationResponse> getNotificationsForCurrentUser(Pageable pageable);
-
-
+    void updateReadStatus(Long notificationId, boolean readStatus);
+    void markAllAsReadForCurrentUser();
+    void createNotificationForNurses(NotificationRequest request);
 }
