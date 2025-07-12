@@ -39,7 +39,6 @@ const AuthNavbar = () => {
 
     // Also listen for custom events from login/logout
     const handleAuthChange = () => {
-      console.log("Auth change event detected"); // Debug log
       checkAuthStatus();
     };
 
@@ -57,8 +56,6 @@ const AuthNavbar = () => {
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("role");
 
-      console.log("Checking auth status:", { token: !!token, role }); // Debug log
-
       if (token && role) {
         try {
           // Validate token and get current user from backend
@@ -67,8 +64,6 @@ const AuthNavbar = () => {
           if (isValidToken) {
             // Fetch current user profile from backend
             const userProfile = await authApi.getCurrentUser();
-
-            console.log("Fetched user profile from backend:", userProfile); // Debug log
 
             // Create user object from backend response
             const userData = {
@@ -80,12 +75,10 @@ const AuthNavbar = () => {
               role: userProfile.role,
             };
 
-            console.log("Setting authenticated user:", userData); // Debug log
             setIsAuthenticated(true);
             setUser(userData);
           } else {
             // Token is invalid, clear auth state
-            console.log("Token validation failed, clearing auth state"); // Debug log
             localStorage.removeItem("token");
             localStorage.removeItem("role");
             localStorage.removeItem("userId");
@@ -95,7 +88,6 @@ const AuthNavbar = () => {
             setUser(null);
           }
         } catch (error) {
-          console.error("Error validating token or fetching user:", error);
           // If API call fails, fall back to stored data but with a warning
           const email = localStorage.getItem("email");
           const userId = localStorage.getItem("userId");
@@ -121,17 +113,14 @@ const AuthNavbar = () => {
             avatar: null,
           };
 
-          console.log("API failed, using stored data:", userData); // Debug log
           setIsAuthenticated(true);
           setUser(userData);
         }
       } else {
-        console.log("No token or role found, setting unauthenticated"); // Debug log
         setIsAuthenticated(false);
         setUser(null);
       }
     } catch (error) {
-      console.error("Error checking auth status:", error);
       setIsAuthenticated(false);
       setUser(null);
     } finally {
@@ -167,7 +156,7 @@ const AuthNavbar = () => {
   const getRoleBasedNavigation = (role) => {
     const baseNavigation = [
       { name: "Home", href: "/home" },
-      { name: "Health Lookup", href: "/health-lookup" },
+      // Không thêm Health Lookup vào menu khi đã đăng nhập
       { name: "About", href: "/about" },
       { name: "Contact", href: "/contact" },
     ];
@@ -198,6 +187,7 @@ const AuthNavbar = () => {
     return roleSpecificNavigation[role] || baseNavigation;
   };
 
+  // Nếu chưa đăng nhập thì có Health Lookup, đã đăng nhập thì không có
   const navigation =
     isAuthenticated && user
       ? getRoleBasedNavigation(user.role)

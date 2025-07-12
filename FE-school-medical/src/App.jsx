@@ -4,7 +4,13 @@ import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
 import Profile from "./pages/profile/Profile";
 import Settings from "./pages/Settings/Settings";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom"; // Thêm Navigate
 import { useState, useEffect } from "react";
 
 import AboutPage from "./pages/about/About";
@@ -29,6 +35,9 @@ function AppContent() {
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMouseNearTop, setIsMouseNearTop] = useState(false);
+
+  // Lấy trạng thái đăng nhập từ localStorage
+  const isAuthenticated = !!localStorage.getItem("token");
 
   useEffect(() => {
     if (hideFooter) return; // Don't apply scroll behavior on login/signup pages
@@ -90,7 +99,17 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
-          <Route path="/health-lookup" element={<HealthLookupPage />} />
+          {/* Chỉ cho phép truy cập Health Lookup khi chưa đăng nhập */}
+          <Route
+            path="/health-lookup"
+            element={
+              !isAuthenticated ? (
+                <HealthLookupPage />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<LoginPage />} />
@@ -149,7 +168,7 @@ function AppContent() {
                 <ParentDashboard />
               </ProtectedRoute>
             }
-          />         
+          />
         </Routes>
 
         {/* Footer - hidden on login/signup pages */}
