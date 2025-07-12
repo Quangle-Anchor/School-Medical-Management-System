@@ -620,7 +620,7 @@ const StudentsView = () => {
                       className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Patient
+                      Delete Student
                     </button>
                     <button
                       onClick={() => handleEditPatient(patientData)}

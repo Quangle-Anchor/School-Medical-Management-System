@@ -135,7 +135,7 @@ function AppContent() {
             }
           />
           <Route
-            path="/principalDashboard"
+            path="/principalDashboard/*"
             element={
               <ProtectedRoute requiredRole="Principal">
                 <PrincipalDashboard />
