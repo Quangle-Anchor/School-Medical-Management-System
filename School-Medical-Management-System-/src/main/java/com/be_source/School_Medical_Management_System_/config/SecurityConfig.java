@@ -117,18 +117,19 @@ public class SecurityConfig {
 
                         // --- Principal APIs ---
                         .requestMatchers(PRINCIPAL_ENDPOINTS).hasRole("PRINCIPAL")
+                        .requestMatchers(HttpMethod.POST, "/api/notifications/to-nurses").hasRole("PRINCIPAL")
 
                         // --- Nurse APIs ---
                         .requestMatchers(NURSE_ENDPOINTS).hasRole("NURSE")
 
                         // --- Parent APIs ---
                         .requestMatchers(PARENT_ENDPOINTS).hasRole("PARENT")
-
+                        .requestMatchers(HttpMethod.GET, "/api/notifications/my").hasRole("PARENT")
+                        .requestMatchers(HttpMethod.PUT, "/api/notifications/{notificationId}/read-status","/api/notifications/mark-all-read").hasRole("PARENT")
+                        .requestMatchers(HttpMethod.GET, "/api/schedules/my-students").hasRole("PARENT")
                         // --- Common APIs ---
                         .requestMatchers(SHARED_ENDPOINTS_4ROLE).hasAnyRole("ADMIN", "PRINCIPAL", "NURSE", "PARENT")
-                        .requestMatchers(HttpMethod.GET, "/api/notifications/my").hasRole("PARENT")
                         .requestMatchers("/api/notifications/**").hasAnyRole("PRINCIPAL", "NURSE")
-                        .requestMatchers(HttpMethod.GET, "/api/schedules/my-students").hasRole("PARENT")
                         .requestMatchers("/api/schedules/**").hasRole("NURSE")
 
 
