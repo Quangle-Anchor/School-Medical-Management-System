@@ -24,6 +24,7 @@ const PrincipalDashboard = () => {
     if (path.includes('/inventory')) return 'inventory';
     return 'dashboard'; // default view
   };
+  
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeView, setActiveView] = useState(getCurrentViewFromURL());
@@ -494,7 +495,7 @@ const PrincipalDashboard = () => {
       <Sidebar 
         isCollapsed={sidebarCollapsed} 
         onToggle={toggleSidebar} 
-        userRole="principal"
+        userRole="Principal"
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />

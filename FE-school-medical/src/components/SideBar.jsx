@@ -55,7 +55,7 @@ const Sidebar = ({ isCollapsed, onToggle, userRole = 'parent', onMenuClick, acti
       ];
     }
     
-    if (userRole === 'principal') {
+    if (userRole === 'Principal') {
       return [
         { id: 'dashboard', icon: Activity, label: 'Dashboard' },
         { id: 'nurse-management', icon: Users, label: 'Staff Management' },
