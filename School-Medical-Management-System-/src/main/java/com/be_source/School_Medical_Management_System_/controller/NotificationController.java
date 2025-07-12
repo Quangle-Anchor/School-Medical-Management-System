@@ -18,6 +18,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
+    // Tạo Noti cho full Parent
     @PostMapping
     public ResponseEntity<Void> create(@RequestBody NotificationRequest request) {
         notificationService.createNotification(request);
@@ -38,6 +39,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotificationsForCurrentUser(pageable));
     }
 
+    // Tạo Noti cho full Nurse
     @PostMapping("/to-nurses")
     public ResponseEntity<String> createNotificationForNurses(@RequestBody NotificationRequest request) {
         notificationService.createNotificationForNurses(request);
