@@ -95,11 +95,25 @@ const NotificationBell = ({ user, show, setShow }) => {
   // Gom nhóm thông báo
   const groups = groupNotifications(filteredNotifications);
 
-  // Xem chi tiết thông báo (popup tại chỗ, không chuyển trang)
+  // Xem chi tiết thông báo (popup tại chỗ, hoặc chuyển trang nếu là parent)
   const handleViewDetail = (n) => {
-    setSelected(n);
     setShowList(false);
     if (!n.readStatus) handleMarkRead(n.notificationId);
+    // Nếu là parent, điều hướng theo notificationType (chuẩn hóa theo dữ liệu thực tế)
+    if (user.role === "Parent" && n.notificationType) {
+      if (n.notificationType === "HEALTH_INCIDENT") {
+        navigate("/parentDashboard/medical-records");
+        return;
+      } else if (n.notificationType === "HEALTH_EVENT") {
+        navigate("/parentDashboard/health-event");
+        return;
+      }
+      // Có thể mở rộng thêm các loại khác ở đây
+      navigate("/parentDashboard/notifications");
+      return;
+    }
+    // Nếu không phải parent hoặc không có type, hiển thị popup chi tiết
+    setSelected(n);
   };
 
   // Xem tất cả

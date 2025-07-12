@@ -114,7 +114,6 @@ const HealthLookup = () => {
               <thead>
                 <tr className="bg-blue-100">
                   <th className="border px-2 py-1">Health Info ID</th>
-                  <th className="border px-2 py-1">Student ID</th>
                   <th className="border px-2 py-1">Medical Conditions</th>
                   <th className="border px-2 py-1">Allergies</th>
                   <th className="border px-2 py-1">Notes</th>
@@ -125,7 +124,6 @@ const HealthLookup = () => {
                 {student.healthInfoList.map((info, idx) => (
                   <tr key={idx}>
                     <td className="border px-2 py-1">{info.healthInfoId}</td>
-                    <td className="border px-2 py-1">{info.studentId}</td>
                     <td className="border px-2 py-1">
                       {info.medicalConditions || ""}
                     </td>
