@@ -112,7 +112,7 @@ public class SecurityConfig {
                         .requestMatchers(SHARED_ENDPOINTS_3ROLE).hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
 
                         // --- Admin APIs ---
-                        .requestMatchers(HttpMethod.GET, "/api/admin/users").hasRole("PRINCIPAL")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/users").hasRole("ADMIN")
                         .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
 
                         // --- Principal APIs ---

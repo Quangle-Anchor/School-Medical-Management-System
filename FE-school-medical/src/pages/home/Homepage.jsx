@@ -70,44 +70,70 @@ const HomePage = () => {
       </section>
 
       {/* Services Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-6">
-          <h3 className="text-3xl font-bold text-center text-blue-800 mb-12">
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <h3 className="text-4xl font-bold text-center text-gray-900 mb-12">
             Our Services
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {SERVICES.map((svc) => (
-              <Card key={svc.title} className="p-6 text-center shadow-md">
-                <h4 className="text-xl font-semibold mb-2">{svc.title}</h4>
-                <p className="text-gray-600 mb-4">{svc.description}</p>
-                <ul className="text-left list-disc list-inside text-gray-700">
-                  <li>Operating hours: 08:00 AM - 04:00 PM</li>
-                  <li>Applicable for all students</li>
-                  <li>Location: School Health Office</li>
+            {SERVICES.map((svc, idx) => (
+              <div
+                key={svc.title}
+                className={
+                  `shadow-xl border-l-4 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl px-8 py-8 flex flex-col items-center text-center transform transition-transform hover:scale-105 ` +
+                  (idx === 0
+                    ? "bg-blue-50 border-l-blue-500"
+                    : idx === 1
+                    ? "bg-pink-50 border-l-pink-500"
+                    : "bg-green-50 border-l-green-500")
+                }
+              >
+                <h4 className="text-2xl font-semibold mb-4 text-blue-800">
+                  {svc.title}
+                </h4>
+                <p className="text-gray-600 mb-4 text-base leading-relaxed">
+                  {svc.description}
+                </p>
+                <ul className="text-left text-gray-700 space-y-1 text-sm">
+                  <li>• Operating hours: 08:00 AM - 04:00 PM</li>
+                  <li>• Applicable for all students</li>
+                  <li>• Location: School Health Office</li>
                 </ul>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Knowledge Section */}
-      <section className="py-16 bg-gray-100">
-        <div className="container mx-auto px-6">
-          <h3 className="text-3xl font-bold text-center text-blue-800 mb-12">
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <h3 className="text-4xl font-bold text-center text-gray-900 mb-12">
             Health Knowledge
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {ARTICLES.map((art) => (
-              <Card key={art.title} className="p-6 shadow-md">
-                <h4 className="text-xl font-semibold mb-2">{art.title}</h4>
-                <p className="text-gray-600 mb-4">{art.description}</p>
-                <ul className="list-decimal list-inside mb-4 text-gray-700">
+            {ARTICLES.map((art, idx) => (
+              <div
+                key={art.title}
+                className={
+                  `shadow-xl border-l-4 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl px-8 py-8 transform transition-transform hover:scale-105 ` +
+                  (idx === 0
+                    ? "bg-blue-50 border-l-blue-400"
+                    : "bg-pink-50 border-l-pink-400")
+                }
+              >
+                <h4 className="text-2xl font-semibold mb-4 text-blue-800">
+                  {art.title}
+                </h4>
+                <p className="text-gray-600 mb-4 text-base leading-relaxed">
+                  {art.description}
+                </p>
+                <ul className="list-decimal list-inside mb-4 text-gray-700 space-y-1 text-sm">
                   {art.tips.map((tip, idx) => (
                     <li key={idx}>{tip}</li>
                   ))}
                 </ul>
-              </Card>
+              </div>
             ))}
           </div>
         </div>

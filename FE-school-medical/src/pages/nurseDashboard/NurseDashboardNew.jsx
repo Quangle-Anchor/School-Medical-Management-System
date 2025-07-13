@@ -1,6 +1,6 @@
 import NotificationsView from "./NotificationsView";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/SideBar";
 import DashboardCard from "../../components/DashboardCard";
@@ -27,11 +27,6 @@ import { healthIncidentAPI } from "../../api/healthIncidentApi";
 import { studentAPI } from "../../api/studentsApi";
 import { healthEventAPI } from "../../api/healthEventApi";
 import { medicationAPI } from "../../api/medicationApi";
-import {
-  formatEventDate,
-  getCategoryStyle,
-  safeDisplay,
-} from "../../utils/dashboardUtils";
 
 const NurseDashboard = () => {
   const navigate = useNavigate();
@@ -41,14 +36,12 @@ const NurseDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const [healthEvents, setHealthEvents] = useState([]);
-  const [medicationRequests, setMedicationRequests] = useState([]);
   const [pendingMedicationRequests, setPendingMedicationRequests] = useState(
     []
   );
   // Get current view from URL
   const getCurrentView = () => {
-    const path = location.pathname;
-    console.log("Current path:", path); // Debug log
+    const path = location.pathname;    
 
     // More precise matching to avoid conflicts
     if (path === "/nurseDashboard/students") return "students";
@@ -151,20 +144,29 @@ const NurseDashboard = () => {
   const fetchMedicationRequests = async () => {
     try {
       // Fetch all medication requests
-      const allRequests = await medicationAPI.getAllRequests();
-      setMedicationRequests(Array.isArray(allRequests) ? allRequests : []);
-
-      // Fetch pending medication requests
       const pendingRequests = await medicationAPI.getPendingRequests();
       setPendingMedicationRequests(
         Array.isArray(pendingRequests) ? pendingRequests : []
       );
     } catch (error) {
       console.error("Error fetching medication requests:", error);
-      setMedicationRequests([]);
+      // setMedicationRequests([]); // Removed as per edit hint
       setPendingMedicationRequests([]);
     }
   };
+
+  // Đặt ở đầu component
+  const nurseId = localStorage.getItem("userId");
+  const nurseRole = localStorage.getItem("role");
+  const nurseName = localStorage.getItem("fullname");
+  const nurseUser = useMemo(
+    () => ({
+      id: nurseId,
+      role: nurseRole,
+      name: nurseName,
+    }),
+    [nurseId, nurseRole, nurseName]
+  );
 
   // Nurse dashboard data
   const nurseCardData = [
@@ -221,12 +223,6 @@ const NurseDashboard = () => {
         return <HealthIncidentsView />;
 
       case "notifications": {
-        // Lấy user nurse hiện tại từ localStorage
-        const nurseUser = {
-          id: localStorage.getItem("userId"),
-          role: localStorage.getItem("role"),
-          name: localStorage.getItem("fullname"),
-        };
         return <NotificationsView user={nurseUser} />;
       }
 
