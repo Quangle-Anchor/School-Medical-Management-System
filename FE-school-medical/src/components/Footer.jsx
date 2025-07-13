@@ -41,7 +41,7 @@ const Footer = () => {
           <div className="mx-auto max-w-xs">
             <h4 className="text-lg font-semibold mb-4 flex items-center justify-start gap-2">
               <FileText size={20} />
-              Quick Links
+              Quick Link
             </h4>
             <div className="space-y-3 text-sm">
               <a
