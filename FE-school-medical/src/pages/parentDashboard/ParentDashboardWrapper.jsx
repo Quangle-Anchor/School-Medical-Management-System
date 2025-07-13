@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import Sidebar from '../../components/SideBar';
-import ChartCard from '../../components/ChartCard';
-import DashboardCard from '../../components/DashboardCard';
-import HealthEventsView from '../../components/HealthEventsView';
-import UpcomingHealthEventsCard from '../../components/UpcomingHealthEventsCard';
-import MyChildView from './MyChildView';
-import AddStudentForm from './AddStudentForm';
-import MyMedicationRequests from './MyMedicationRequests';
-import HealthIncidentsView from '../nurseDashboard/HealthIncidentsView';
-import NotificationsView from '../nurseDashboard/NotificationsView';
-import { User, Calendar, FileText, Heart, Plus } from 'lucide-react';
-import { studentAPI } from '../../api/studentsApi';
-import  { healthIncidentAPI } from '../../api/healthIncidentApi';  
-import { medicationAPI } from '../../api/medicationApi';
-import { healthEventAPI } from '../../api/healthEventApi';
-import { formatEventDate, getCategoryStyle, safeDisplay } from '../../utils/dashboardUtils';
-
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Sidebar from "../../components/SideBar";
+import ChartCard from "../../components/ChartCard";
+import DashboardCard from "../../components/DashboardCard";
+import HealthEventsView from "../../components/HealthEventsView";
+import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard";
+import MyChildView from "./MyChildView";
+import AddStudentForm from "./AddStudentForm";
+import MyMedicationRequests from "./MyMedicationRequests";
+import HealthIncidentsView from "../nurseDashboard/HealthIncidentsView";
+import NotificationsView from "../nurseDashboard/NotificationsView";
+import { User, Calendar, FileText, Heart, Plus } from "lucide-react";
+import { studentAPI } from "../../api/studentsApi";
+import { healthIncidentAPI } from "../../api/healthIncidentApi";
+import { medicationAPI } from "../../api/medicationApi";
+import { healthEventAPI } from "../../api/healthEventApi";
+import {
+  formatEventDate,
+  getCategoryStyle,
+  safeDisplay,
+} from "../../utils/dashboardUtils";
 
 const ParentDashboardWrapper = () => {
   const navigate = useNavigate();
@@ -32,14 +35,14 @@ const ParentDashboardWrapper = () => {
   // Get current view from URL
   const getCurrentView = () => {
     const path = location.pathname;
-    if (path.includes('/my-child')) return 'my-child';
-    if (path.includes('/health-event')) return 'health-event';
-    if (path.includes('/medical-records')) return 'medical-records';
-    if (path.includes('/medication-requests')) return 'medication-requests';
-    if (path.includes('/notifications')) return 'notifications';
-    if (path.includes('/messages')) return 'messages';
-    if (path.includes('/medical-request')) return 'medical-request';
-    return 'dashboard';
+    if (path.includes("/my-child")) return "my-child";
+    if (path.includes("/health-event")) return "health-event";
+    if (path.includes("/medical-records")) return "medical-records";
+    if (path.includes("/medication-requests")) return "medication-requests";
+    if (path.includes("/notifications")) return "notifications";
+    if (path.includes("/messages")) return "messages";
+    if (path.includes("/medical-request")) return "medical-request";
+    return "dashboard";
   };
 
   const [activeView, setActiveView] = useState(getCurrentView());
@@ -68,11 +71,12 @@ const ParentDashboardWrapper = () => {
       const studentsData = await studentAPI.getMyStudents();
       setStudents(studentsData);
     } catch (error) {
-      console.error('Error fetching students:', error);
+      console.error("Error fetching students:", error);
     } finally {
       setLoading(false);
     }
-  };  const fetchHealthIncidents = async () => {
+  };
+  const fetchHealthIncidents = async () => {
     try {
       if (students.length === 0) {
         setHealthIncidentsCount(0);
@@ -83,16 +87,21 @@ const ParentDashboardWrapper = () => {
       // Fetch health incidents for each student
       for (const student of students) {
         try {
-          const incidents = await healthIncidentAPI.getHealthIncidentsByStudent(student.studentId);
+          const incidents = await healthIncidentAPI.getHealthIncidentsByStudent(
+            student.studentId
+          );
           totalCount += incidents ? incidents.length : 0;
         } catch (error) {
-          console.error(`Error fetching health incidents for student ${student.studentId}:`, error);
+          console.error(
+            `Error fetching health incidents for student ${student.studentId}:`,
+            error
+          );
           // Continue with other students even if one fails
         }
       }
       setHealthIncidentsCount(totalCount);
     } catch (error) {
-      console.error('Error fetching health incidents:', error);
+      console.error("Error fetching health incidents:", error);
       setHealthIncidentsCount(0);
     }
   };
@@ -100,9 +109,11 @@ const ParentDashboardWrapper = () => {
   const fetchMedicationRequests = async () => {
     try {
       const medicationRequests = await medicationAPI.getMyMedicationRequests();
-      setMedicationRequestsCount(medicationRequests ? medicationRequests.length : 0);
+      setMedicationRequestsCount(
+        medicationRequests ? medicationRequests.length : 0
+      );
     } catch (error) {
-      console.error('Error fetching medication requests:', error);
+      console.error("Error fetching medication requests:", error);
       setMedicationRequestsCount(0);
     }
   };
@@ -112,12 +123,12 @@ const ParentDashboardWrapper = () => {
       const events = await healthEventAPI.getUpcomingEvents(); // Get all upcoming events
       setFutureHealthEventsCount(events ? events.length : 0);
     } catch (error) {
-      console.error('Error fetching future health events count:', error);
+      console.error("Error fetching future health events count:", error);
       setFutureHealthEventsCount(0);
     }
   };
   const handleStudentAdded = (newStudent) => {
-    setStudents(prev => [...prev, newStudent]);
+    setStudents((prev) => [...prev, newStudent]);
     // Refresh health incidents count after adding a new student
     // The useEffect will handle fetching incidents for the new student
   };
@@ -130,61 +141,61 @@ const ParentDashboardWrapper = () => {
   const handleMenuClick = (menuId) => {
     // Update URL and let React Router handle the navigation
     switch (menuId) {
-      case 'dashboard':
-        navigate('/parentDashboard');
+      case "dashboard":
+        navigate("/parentDashboard");
         break;
-      case 'my-child':
-        navigate('/parentDashboard/my-child');
+      case "my-child":
+        navigate("/parentDashboard/my-child");
         break;
-      case 'health-event':
-        navigate('/parentDashboard/health-event');
+      case "health-event":
+        navigate("/parentDashboard/health-event");
         break;
-      case 'medical-records':
-        navigate('/parentDashboard/medical-records');
+      case "medical-records":
+        navigate("/parentDashboard/medical-records");
         break;
-      case 'notifications':
-        navigate('/parentDashboard/notifications');
+      case "notifications":
+        navigate("/parentDashboard/notifications");
         break;
-      case 'messages':
-        navigate('/parentDashboard/messages');
+      case "messages":
+        navigate("/parentDashboard/messages");
         break;
-      case 'medical-request':
-        navigate('/parentDashboard/medical-request');
+      case "medical-request":
+        navigate("/parentDashboard/medical-request");
         break;
       default:
-        navigate('/parentDashboard');
+        navigate("/parentDashboard");
     }
   };
 
-
   // Dashboard cards data
   const parentCardData = [
-    { 
-      title: 'My Children', 
-      value: loading ? '...' : students.length.toString(), 
-      change: 'Active students',
-      changeType: 'neutral',
-      icon: User
+    {
+      title: "My Children",
+      value: loading ? "..." : students.length.toString(),
+      change: "Active students",
+      changeType: "neutral",
+      icon: User,
     },
-    { 
-      title: 'Upcoming Health Events', 
-      value: loading ? '...' : futureHealthEventsCount.toString(), 
-      change: 'Scheduled events',
-      changeType: 'positive',
-      icon: Calendar
-    },    { 
-      title: 'Health Incidents', 
-      value: loading ? '...' : healthIncidentsCount.toString(),
-      change: 'Health incidents',
-      changeType: 'neutral',
-      icon: FileText
+    {
+      title: "Upcoming Health Events",
+      value: loading ? "..." : futureHealthEventsCount.toString(),
+      change: "Scheduled events",
+      changeType: "positive",
+      icon: Calendar,
     },
-    { 
-      title: 'Medication Requests', 
-      value: loading ? '...' : medicationRequestsCount.toString(),
-      change: 'Total requests sent',
-      changeType: 'neutral',
-      icon: Heart
+    {
+      title: "Health Incidents",
+      value: loading ? "..." : healthIncidentsCount.toString(),
+      change: "Health incidents",
+      changeType: "neutral",
+      icon: FileText,
+    },
+    {
+      title: "Medication Requests",
+      value: loading ? "..." : medicationRequestsCount.toString(),
+      change: "Total requests sent",
+      changeType: "neutral",
+      icon: Heart,
     },
   ];
 
@@ -192,45 +203,62 @@ const ParentDashboardWrapper = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-// Content rendering in Siderbar
-  const renderContent = () => {  
+  // Đặt ở đầu component
+  const userId = localStorage.getItem("userId");
+  const role = localStorage.getItem("role");
+  const name = localStorage.getItem("fullname");
+  const parentUser = useMemo(
+    () => ({
+      id: userId,
+      role,
+      name,
+    }),
+    [userId, role, name]
+  );
+
+  // Content rendering in Siderbar
+  const renderContent = () => {
     switch (activeView) {
-      case 'my-child':
+      case "my-child":
         return (
-          <MyChildView 
-            students={students} 
+          <MyChildView
+            students={students}
             onStudentAdded={handleStudentAdded}
             onAddStudent={() => setShowAddForm(true)}
           />
         );
-      case 'health-event':
-        return <HealthEventsView userRole="parent" />;      
+      case "health-event":
+        return <HealthEventsView userRole="parent" />;
 
-        
-        case 'medical-records':
-        return <HealthIncidentsView isParentView={true} students={students} parentLoading={loading} />;
-      case 'notifications': {
-        // Lấy user parent hiện tại từ localStorage
-        const parentUser = {
-          id: localStorage.getItem('userId'),
-          role: localStorage.getItem('role'),
-          name: localStorage.getItem('fullname'),
-        };
+      case "medical-records":
+        return (
+          <HealthIncidentsView
+            isParentView={true}
+            students={students}
+            parentLoading={loading}
+          />
+        );
+      case "notifications": {
         return <NotificationsView user={parentUser} />;
       }
 
-      case 'messages':
+      case "messages":
         return (
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Messages</h1>
             <p>Messages content coming soon...</p>
-          </div>        );
+          </div>
+        );
 
-      case 'medical-request':
-        return <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />;
+      case "medical-request":
+        return (
+          <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />
+        );
 
-      case 'medication-requests':
-        return <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />;   
+      case "medication-requests":
+        return (
+          <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />
+        );
       default:
         return (
           <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -242,10 +270,11 @@ const ParentDashboardWrapper = () => {
                     Parent Dashboard
                   </h1>
                   <p className="text-gray-600 mt-2">
-                    Welcome back! Here's your child's health overview and updates.
+                    Welcome back! Here's your child's health overview and
+                    updates.
                   </p>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowAddForm(true)}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center space-x-2"
                 >
@@ -266,30 +295,29 @@ const ParentDashboardWrapper = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Calendar Card */}
               <ChartCard userRole="parent" />
-              
+
               {/* Upcoming Health Events */}
-              <UpcomingHealthEventsCard 
+              <UpcomingHealthEventsCard
                 userRole="parent"
-                onViewAll={() => handleMenuClick('health-event')}
+                onViewAll={() => handleMenuClick("health-event")}
               />
             </div>
           </div>
         );
     }
-  };  return (
+  };
+  return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar 
-        isCollapsed={sidebarCollapsed} 
-        onToggle={toggleSidebar} 
+      <Sidebar
+        isCollapsed={sidebarCollapsed}
+        onToggle={toggleSidebar}
         userRole="parent"
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-      
-      <main className="flex-1">
-        {renderContent()}
-      </main>
-      
+
+      <main className="flex-1">{renderContent()}</main>
+
       <AddStudentForm
         isOpen={showAddForm}
         onClose={() => setShowAddForm(false)}

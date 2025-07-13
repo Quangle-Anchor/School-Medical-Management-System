@@ -1,14 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/SideBar";
 import DashboardCard from "../../components/DashboardCard";
 import ChartCard from "../../components/ChartCard";
 import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard";
 import { Users, Settings, FileText, Bell, Activity } from "lucide-react";
 import UserManagement from "./UserManagement";
+import { userApi } from "../../api/userApi";
 
 const AdminDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeView, setActiveView] = useState("dashboard");
+  const [totalUsers, setTotalUsers] = useState(0);
+
+  useEffect(() => {
+    // Lấy số lượng user thực tế từ API
+    const fetchUsers = async () => {
+      try {
+        const users = await userApi.getAll();
+        setTotalUsers(users.length);
+      } catch {
+        setTotalUsers(0);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -22,7 +37,7 @@ const AdminDashboard = () => {
   const adminCardData = [
     {
       title: "Total Users",
-      value: "2,847",
+      value: totalUsers,
       change: "+12% from last month",
       changeType: "positive",
       icon: Users,
@@ -57,13 +72,6 @@ const AdminDashboard = () => {
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">User Management</h1>
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4 text-red-600">
-                Manage User
-              </h2>
-              <p className="text-red-600 mb-4">
-                This use case allows principal to add, delete, update the user
-                and assign their role
-              </p>
               <UserManagement />
             </div>
           </div>

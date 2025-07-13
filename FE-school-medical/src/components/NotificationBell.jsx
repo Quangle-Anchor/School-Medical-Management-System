@@ -52,6 +52,7 @@ const NotificationBell = ({ user, show, setShow }) => {
   const bellRef = useRef();
   const popupRef = useRef();
 
+  // Đặt ở đầu component, trước return hoặc trước renderContent
   // Lấy notification từ API
   useEffect(() => {
     if (!user) return;
@@ -74,14 +75,18 @@ const NotificationBell = ({ user, show, setShow }) => {
     fetchData();
   }, [user]);
 
-  // Đánh dấu đã đọc (giả lập, cần API nếu có)
-  const handleMarkRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.notificationId === id ? { ...n, readStatus: true } : n
-      )
-    );
-    // TODO: Gọi API cập nhật trạng thái nếu backend hỗ trợ
+  // Đánh dấu đã đọc (gọi API cập nhật trạng thái đã đọc)
+  const handleMarkRead = async (id) => {
+    try {
+      await notificationApi.updateReadStatus(id, true);
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.notificationId === id ? { ...n, readStatus: true } : n
+        )
+      );
+    } catch {
+      setError("Không thể đánh dấu đã đọc");
+    }
   };
 
   // Lọc notification theo quyền
@@ -95,11 +100,41 @@ const NotificationBell = ({ user, show, setShow }) => {
   // Gom nhóm thông báo
   const groups = groupNotifications(filteredNotifications);
 
-  // Xem chi tiết thông báo (popup tại chỗ, hoặc chuyển trang nếu là parent)
-  const handleViewDetail = (n) => {
+  // Xem chi tiết thông báo (vừa hiện popup vừa link tới trang tương ứng nếu có notificationType)
+  const handleViewDetail = async (n) => {
     setShowList(false);
-    if (!n.readStatus) handleMarkRead(n.notificationId);
-    // Nếu là parent, điều hướng theo notificationType (chuẩn hóa theo dữ liệu thực tế)
+    if (!n.readStatus) await handleMarkRead(n.notificationId);
+    // Luôn hiển thị popup chi tiết
+    setSelected(n);
+    // Nếu có notificationType, điều hướng tới trang tương ứng
+    if (user.role === "Nurse" && n.notificationType) {
+      if (n.notificationType === "HEALTH_INCIDENT") {
+        navigate("/nurseDashboard/health-incidents");
+        return;
+      } else if (n.notificationType === "HEALTH_EVENT") {
+        navigate("/nurseDashboard/health-events");
+        return;
+      } else if (n.notificationType === "MEDICATION_REQUEST") {
+        navigate("/nurseDashboard/medication-requests");
+        return;
+      }
+      navigate("/nurseDashboard/notifications");
+      return;
+    }    
+    if (user.role === "Principal" && n.notificationType) {
+      if (n.notificationType === "HEALTH_INCIDENT") {
+        navigate("/principalDashboard/health-incidents");
+        return;
+      } else if (n.notificationType === "HEALTH_EVENT") {
+        navigate("/principalDashboard/health-events");
+        return;
+      } else if (n.notificationType === "MEDICATION_REQUEST") {
+        navigate("/principalDashboard/medication-requests");
+        return;
+      }
+      navigate("/principalDashboard/notifications");
+      return;
+    }
     if (user.role === "Parent" && n.notificationType) {
       if (n.notificationType === "HEALTH_INCIDENT") {
         navigate("/parentDashboard/medical-records");
@@ -108,12 +143,9 @@ const NotificationBell = ({ user, show, setShow }) => {
         navigate("/parentDashboard/health-event");
         return;
       }
-      // Có thể mở rộng thêm các loại khác ở đây
       navigate("/parentDashboard/notifications");
       return;
     }
-    // Nếu không phải parent hoặc không có type, hiển thị popup chi tiết
-    setSelected(n);
   };
 
   // Xem tất cả

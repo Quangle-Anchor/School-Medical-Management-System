@@ -21,6 +21,16 @@ const notificationApi = {
 
   // Xóa notification
   delete: (id) => axiosInstance.delete(`/api/notifications/${id}`),
+
+  // Cập nhật trạng thái đã đọc cho notification
+  updateReadStatus: (notificationId, read) =>
+    axiosInstance.put(
+      `/api/notifications/${notificationId}/read-status`,
+      null,
+      {
+        params: { read },
+      }
+    ),
 };
 
 export default notificationApi;
