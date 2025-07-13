@@ -51,9 +51,6 @@ const AuthNavbar = () => {
     };
   }, []);
 
-  useEffect(() => {
-    setShowAccount(false); // Đóng menu mỗi khi route thay đổi hoặc sau đăng nhập
-  }, [location.pathname, isAuthenticated]);
 
   const checkAuthStatus = async () => {
     try {
