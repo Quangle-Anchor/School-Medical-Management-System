@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Activity, Calendar, X } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
+import { validateBirthdate, formatDateForInput } from '../../utils/dateUtils';
 
 const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null, isEditing = false }) => {  const [formData, setFormData] = useState({
     fullName: '',
@@ -17,6 +18,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
   });
     const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [dateError, setDateError] = useState('');
   const [loadingHealthInfo, setLoadingHealthInfo] = useState(false);  // Initialize form data when editing
   useEffect(() => {
     const loadFormData = async () => {
@@ -26,7 +28,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         // Load basic student data
         const basicData = {
           fullName: editingStudent.fullName || '',
-          dateOfBirth: editingStudent.dateOfBirth || '',
+          dateOfBirth: editingStudent.dateOfBirth ? formatDateForInput(editingStudent.dateOfBirth) : '',
           gender: editingStudent.gender || '',
           className: editingStudent.className || '',
           bloodType: editingStudent.bloodType || '',
@@ -72,6 +74,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         });
       }
       setError('');
+      setDateError('');
     };
 
     loadFormData();
@@ -79,6 +82,13 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Validate date of birth
+    if (name === 'dateOfBirth') {
+      const dateValidation = validateBirthdate(value);
+      setDateError(dateValidation.isValid ? '' : dateValidation.error);
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -87,6 +97,14 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Validate birthdate before submission
+    const dateValidation = validateBirthdate(formData.dateOfBirth);
+    if (!dateValidation.isValid) {
+      setError(dateValidation.error);
+      setLoading(false);
+      return;
+    }
 
     try {
       const studentData = {
@@ -265,9 +283,18 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
+                  max={new Date().toISOString().split('T')[0]} // No future dates
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                    dateError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 />
+                {dateError && (
+                  <p className="mt-1 text-sm text-red-600">{dateError}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter the student's birth date 
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Gender *</label>

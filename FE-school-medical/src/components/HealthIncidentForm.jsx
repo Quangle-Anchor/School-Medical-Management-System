@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { healthIncidentAPI } from '../api/healthIncidentApi';
 import { studentAPI } from '../api/studentsApi';
 import { X, AlertTriangle, Calendar, User, FileText, Save, Search, ChevronDown } from 'lucide-react';
+import { validateIncidentDate, formatDateForInput } from '../utils/dateUtils';
 
 const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident = null, isEditing = false }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
   const [loading, setLoading] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [error, setError] = useState('');
+  const [dateError, setDateError] = useState('');
   
   // Search functionality state
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,7 +52,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       const studentId = editingIncident.student?.studentId || editingIncident.studentId || '';
       setFormData({
         studentId: String(studentId), // Ensure it's always a string
-        incidentDate: editingIncident.incidentDate || '',
+        incidentDate: editingIncident.incidentDate ? formatDateForInput(editingIncident.incidentDate) : '',
         description: editingIncident.description || '',
       });
       
@@ -69,6 +71,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       setSearchTerm('');
     }
     setError('');
+    setDateError('');
     setIsDropdownOpen(false);
   }, [isEditing, editingIncident, isOpen]);
 
@@ -141,6 +144,13 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     console.log(`Form field changed: ${name} = "${value}"`);
+    
+    // Validate incident date
+    if (name === 'incidentDate') {
+      const dateValidation = validateIncidentDate(value);
+      setDateError(dateValidation.isValid ? '' : dateValidation.error);
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: String(value) // Ensure all values are strings
@@ -495,8 +505,16 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                   onChange={handleInputChange}
                   required
                   max={new Date().toISOString().split('T')[0]} // Can't select future dates
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    dateError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {dateError && (
+                  <p className="mt-1 text-sm text-red-600">{dateError}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter incident date (today or earlier)
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">

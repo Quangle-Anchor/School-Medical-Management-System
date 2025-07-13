@@ -4,7 +4,7 @@ import Sidebar from './SideBar';
 import DashboardCard from './DashboardCard';
 import ChartCard from './ChartCard';
 
-const Dashboard = ({ cardData, userRole = 'parent', customActions, activeMenu = 'dashboard', onMenuClick }) => {
+const Dashboard = ({ cardData = [], userRole = 'parent', customActions, activeMenu = 'dashboard', onMenuClick, recentActivity = [] }) => {
   console.log('Dashboard props:', { userRole, hasCustomActions: !!customActions });
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -13,8 +13,7 @@ const Dashboard = ({ cardData, userRole = 'parent', customActions, activeMenu = 
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-
-  const displayCardData = cardData || defaultCardData;
+  const displayCardData = cardData;
  return (
     <div className="flex min-h-screen bg-background">
       <Sidebar 
@@ -82,17 +81,7 @@ const Dashboard = ({ cardData, userRole = 'parent', customActions, activeMenu = 
                 </p>
               </div>
               <div className="space-y-4">
-                {(userRole === 'parent' ? [
-                  { action: 'Health checkup completed', time: '2 days ago', type: 'checkup' },
-                  { action: 'Vaccination reminder', time: '1 week ago', type: 'reminder' },
-                  { action: 'Medical report available', time: '2 weeks ago', type: 'report' },
-                  { action: 'Appointment scheduled', time: '3 weeks ago', type: 'appointment' },
-                ] : [
-                  { action: 'New patient registered', time: '2 minutes ago', type: 'patient' },
-                  { action: 'Appointment #1234 completed', time: '5 minutes ago', type: 'appointment' },
-                  { action: 'Lab results received', time: '10 minutes ago', type: 'lab' },
-                  { action: 'Emergency alert received', time: '15 minutes ago', type: 'emergency' },
-                ]).map((item, index) => (
+                {recentActivity.length > 0 ? recentActivity.map((item, index) => (
                   <div key={index} className="flex items-center space-x-3 p-3 rounded-md hover:bg-accent transition-colors">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <div className="flex-1">
@@ -100,7 +89,19 @@ const Dashboard = ({ cardData, userRole = 'parent', customActions, activeMenu = 
                       <p className="text-xs text-muted-foreground">{item.time}</p>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Activity className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {userRole === 'parent' 
+                        ? "No recent health activity to display"
+                        : "No recent medical center activity to display"
+                      }
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

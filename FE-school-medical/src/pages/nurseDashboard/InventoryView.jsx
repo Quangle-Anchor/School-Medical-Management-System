@@ -12,6 +12,7 @@ import {
 
 // Add CSS animation style in index.css
 import { inventoryAPI } from '../../api/inventoryApi';
+import { validateExpiryDate, formatDateForInput, getMinExpiryDate } from '../../utils/dateUtils';
 
 const InventoryView = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -34,6 +35,7 @@ const InventoryView = () => {
   const [medicalItemSearchTerm, setMedicalItemSearchTerm] = useState('');
   const [selectedMedicalItem, setSelectedMedicalItem] = useState(null);
   const [showAddQuantityForm, setShowAddQuantityForm] = useState(false);
+  const [dateError, setDateError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     category: 'medications',
@@ -149,7 +151,7 @@ const InventoryView = () => {
           quantity: inventoryItem.totalQuantity || 0,
           unit: inventoryItem.item?.unit || 'units',
           manufacturer: inventoryItem.item?.manufacturer || '',
-          expiryDate: inventoryItem.item?.expiryDate || '',
+          expiryDate: inventoryItem.item?.expiryDate ? formatDateForInput(inventoryItem.item.expiryDate) : '',
           storageInstructions: inventoryItem.item?.storageInstructions || '',
           minThreshold: 10, // Default values since these aren't in the backend model
           maxThreshold: 50, // Default values since these aren't in the backend model
@@ -422,11 +424,12 @@ const InventoryView = () => {
       unit: item.unit || '',
       description: item.description || '',
       manufacturer: item.manufacturer || '',
-      expiryDate: item.expiryDate || '',
+      expiryDate: item.expiryDate ? formatDateForInput(item.expiryDate) : '',
       storageInstructions: item.storageInstructions || '',
       minThreshold: item.minThreshold || 10,
       maxThreshold: item.maxThreshold || 50,
     });
+    setDateError('');
     setShowEditModal(true);
   };
 
@@ -561,6 +564,19 @@ const InventoryView = () => {
                 <div className="py-1">
                   <button
                     onClick={() => {
+                      setFormData({
+                        name: '',
+                        category: 'medications',
+                        quantity: 0,
+                        unit: '',
+                        description: '',
+                        manufacturer: '',
+                        expiryDate: '',
+                        storageInstructions: '',
+                        minThreshold: 10,
+                        maxThreshold: 50,
+                      });
+                      setDateError('');
                       setShowAddModal(true);
                       setShowAddDropdown(false);
                     }}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Plus, Edit, Trash2, X } from 'lucide-react';
 import { healthEventAPI } from '../api/healthEventApi';
 import { formatEventDate, getCategoryStyle, safeDisplay } from '../utils/dashboardUtils';
+import { getMinScheduleDate, getMaxScheduleDate, validateScheduleDate, formatDateForInput } from '../utils/dateUtils';
 import ChartCard from './ChartCard';
 
 const HealthEventsCRUD = ({ title, description }) => {
@@ -11,6 +12,7 @@ const HealthEventsCRUD = ({ title, description }) => {
   const [currentEvent, setCurrentEvent] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [dateError, setDateError] = useState('');
   
   const [formData, setFormData] = useState({
     title: '',
@@ -39,12 +41,18 @@ const HealthEventsCRUD = ({ title, description }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Validate date input
+    if (name === 'scheduleDate') {
+      const validation = validateScheduleDate(value);
+      setDateError(validation.isValid ? '' : validation.error);
+    }
   };
 
   const openCreateModal = (selectedDate = null) => {
     const defaultDate = selectedDate 
-      ? selectedDate.toISOString().substr(0, 10)
-      : new Date().toISOString().substr(0, 10);
+      ? formatDateForInput(selectedDate)
+      : getMinScheduleDate(); // Default to today
       
     setFormData({
       title: '',
@@ -53,6 +61,7 @@ const HealthEventsCRUD = ({ title, description }) => {
       category: 'Checkup',
     });
     setIsEditing(false);
+    setDateError('');
     setShowEventModal(true);
   };
 
@@ -60,16 +69,25 @@ const HealthEventsCRUD = ({ title, description }) => {
     setFormData({
       title: event.title || event.eventName || '',
       description: event.description || '',
-      scheduleDate: new Date(event.scheduleDate).toISOString().substr(0, 10),
+      scheduleDate: formatDateForInput(event.scheduleDate),
       category: event.category || 'Checkup',
     });
     setCurrentEvent(event);
     setIsEditing(true);
+    setDateError('');
     setShowEventModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate date before submission
+    const dateValidation = validateScheduleDate(formData.scheduleDate);
+    if (!dateValidation.isValid) {
+      setDateError(dateValidation.error);
+      return;
+    }
+    
     try {
       if (isEditing && currentEvent) {
         await healthEventAPI.updateEvent(currentEvent.eventId, formData);
@@ -77,6 +95,7 @@ const HealthEventsCRUD = ({ title, description }) => {
         await healthEventAPI.createEvent(formData);
       }
       setShowEventModal(false);
+      setDateError('');
       fetchEvents();
     } catch (error) {
       console.error('Error saving event:', error);
@@ -144,9 +163,19 @@ const HealthEventsCRUD = ({ title, description }) => {
                 name="scheduleDate"
                 value={formData.scheduleDate}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                min={getMinScheduleDate()}
+                max={getMaxScheduleDate()}
+                className={`w-full px-3 py-2 border rounded-md ${
+                  dateError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
+                }`}
                 required
               />
+              {dateError && (
+                <p className="mt-1 text-sm text-red-600">{dateError}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                Select a date from today up to 5 years in the future
+              </p>
             </div>
             
             <div>
