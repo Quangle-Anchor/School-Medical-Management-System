@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, UserPlus, CheckCircle, Clock, AlertCircle, Eye, Filter } from 'lucide-react';
+import { Calendar, Users, UserPlus, CheckCircle, Clock, AlertCircle, Eye, Filter, X } from 'lucide-react';
 import { healthEventAPI } from '../api/healthEventApi';
 import { eventSignupAPI } from '../api/eventSignupApi';
 import { formatEventDate, getCategoryStyle, safeDisplay } from '../utils/dashboardUtils';
@@ -15,7 +15,7 @@ const NurseHealthEventsView = ({ title, description }) => {
   const [processingSignup, setProcessingSignup] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending', 'confirmed'
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending', 'confirmed', 'rejected'
 
   useEffect(() => {
     fetchHealthEvents();
@@ -153,6 +153,13 @@ const NurseHealthEventsView = ({ title, description }) => {
             Confirmed
           </span>
         );
+      case 'REJECTED':
+        return (
+          <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+            <X className="w-3 h-3 mr-1" />
+            Rejected
+          </span>
+        );
       case 'PENDING':
       default:
         return (
@@ -199,6 +206,10 @@ const NurseHealthEventsView = ({ title, description }) => {
   const confirmedCount = signups.filter(s => {
     const isConfirmed = s.status?.toUpperCase() === 'APPROVED' || s.status?.toUpperCase() === 'CONFIRMED';
     return selectedEvent ? (s.eventId === selectedEvent.eventId && isConfirmed) : isConfirmed;
+  }).length;
+  const rejectedCount = signups.filter(s => {
+    const isRejected = s.status?.toUpperCase() === 'REJECTED';
+    return selectedEvent ? (s.eventId === selectedEvent.eventId && isRejected) : isRejected;
   }).length;
 
   if (loading) {
@@ -449,6 +460,7 @@ const NurseHealthEventsView = ({ title, description }) => {
                       <option value="all">All Status</option>
                       <option value="pending">Pending</option>
                       <option value="confirmed">Confirmed</option>
+                      <option value="rejected">Rejected</option>
                     </select>
                     <Filter className="absolute right-2 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
                   </div>
@@ -469,7 +481,7 @@ const NurseHealthEventsView = ({ title, description }) => {
               </div>
 
               {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                   <div className="flex items-center">
                     <Clock className="h-8 w-8 text-yellow-600" />
@@ -489,6 +501,17 @@ const NurseHealthEventsView = ({ title, description }) => {
                         Confirmed{selectedEvent ? ` (${selectedEvent.title || selectedEvent.eventName})` : ''}
                       </p>
                       <p className="text-2xl font-bold text-green-900">{confirmedCount}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                  <div className="flex items-center">
+                    <X className="h-8 w-8 text-red-600" />
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-red-800">
+                        Rejected{selectedEvent ? ` (${selectedEvent.title || selectedEvent.eventName})` : ''}
+                      </p>
+                      <p className="text-2xl font-bold text-red-900">{rejectedCount}</p>
                     </div>
                   </div>
                 </div>
@@ -556,25 +579,46 @@ const NurseHealthEventsView = ({ title, description }) => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex items-center space-x-3">
-                              {(signup.status?.toUpperCase() === 'PENDING' || !signup.status || (signup.status?.toUpperCase() !== 'APPROVED' && signup.status?.toUpperCase() !== 'CONFIRMED')) && (
-                                <button
-                                  onClick={() => handleSignupStatusUpdate(signup.signupId, 'APPROVED')}
-                                  disabled={processingSignup === signup.signupId}
-                                  className="text-green-600 hover:text-green-900 inline-flex items-center disabled:opacity-50 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors border border-green-200"
-                                >
-                                  {processingSignup === signup.signupId ? (
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
-                                  ) : (
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                  )}
-                                  Confirm
-                                </button>
+                              {(signup.status?.toUpperCase() === 'PENDING' || !signup.status) && (
+                                <>
+                                  <button
+                                    onClick={() => handleSignupStatusUpdate(signup.signupId, 'APPROVED')}
+                                    disabled={processingSignup === signup.signupId}
+                                    className="text-green-600 hover:text-green-900 inline-flex items-center disabled:opacity-50 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors border border-green-200"
+                                  >
+                                    {processingSignup === signup.signupId ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
+                                    ) : (
+                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                    )}
+                                    Confirm
+                                  </button>
+                                  <button
+                                    onClick={() => handleSignupStatusUpdate(signup.signupId, 'REJECTED')}
+                                    disabled={processingSignup === signup.signupId}
+                                    className="text-red-600 hover:text-red-900 inline-flex items-center disabled:opacity-50 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors border border-red-200"
+                                  >
+                                    {processingSignup === signup.signupId ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1"></div>
+                                    ) : (
+                                      <X className="h-4 w-4 mr-1" />
+                                    )}
+                                    Reject
+                                  </button>
+                                </>
                               )}
                               
                               {(signup.status?.toUpperCase() === 'APPROVED' || signup.status?.toUpperCase() === 'CONFIRMED') && (
                                 <span className="text-green-600 inline-flex items-center bg-green-50 px-3 py-1 rounded-md border border-green-200">
                                   <CheckCircle className="h-4 w-4 mr-1" />
                                   Confirmed
+                                </span>
+                              )}
+                              
+                              {signup.status?.toUpperCase() === 'REJECTED' && (
+                                <span className="text-red-600 inline-flex items-center bg-red-50 px-3 py-1 rounded-md border border-red-200">
+                                  <X className="h-4 w-4 mr-1" />
+                                  Rejected
                                 </span>
                               )}
                             </div>
@@ -595,7 +639,9 @@ const NurseHealthEventsView = ({ title, description }) => {
                       ? 'Event signups will appear here when parents submit requests.'
                       : filterStatus === 'pending'
                       ? 'No pending signups at this time.'
-                      : 'No confirmed signups at this time.'
+                      : filterStatus === 'confirmed'
+                      ? 'No confirmed signups at this time.'
+                      : 'No rejected signups at this time.'
                     }
                   </p>
                 </div>

@@ -51,6 +51,36 @@ const AuthNavbar = () => {
     };
   }, []);
 
+  // Close dropdowns when authentication status changes
+  useEffect(() => {
+    setShowAccount(false);
+    setShowNotification(false);
+  }, [isAuthenticated]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if click is outside both dropdowns
+      const accountDropdown = document.querySelector('.account-menu-dropdown');
+      const notificationDropdown = document.querySelector('.notification-bell-dropdown');
+      
+      if (accountDropdown && !accountDropdown.contains(event.target)) {
+        setShowAccount(false);
+      }
+      
+      if (notificationDropdown && !notificationDropdown.contains(event.target)) {
+        setShowNotification(false);
+      }
+    };
+
+    if (showAccount || showNotification) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showAccount, showNotification]);
+
   const checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem("token");
