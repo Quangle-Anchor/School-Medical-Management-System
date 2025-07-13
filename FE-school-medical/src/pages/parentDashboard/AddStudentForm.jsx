@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { User, Activity, Calendar, X } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
 import { validateBirthdate, formatDateForInput } from '../../utils/dateUtils';
@@ -230,11 +231,17 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">        <div className="flex items-center justify-between mb-6">
+  const modalContent = (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" 
+      style={{ zIndex: 99999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+    >
+      <div 
+        className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
+        style={{ zIndex: 99999, position: 'relative' }}
+      >        <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-foreground">
-            {isEditing ? 'Edit Student' : 'Add New Student'}
+            {isEditing ? 'Edit Student' : 'Add New Children'}
           </h2>
           <button
             onClick={onClose}
@@ -447,6 +454,9 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
       </div>
     </div>
   );
+
+  // Use React portal to render the modal at the root level
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default AddStudentForm;

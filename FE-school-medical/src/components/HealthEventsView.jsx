@@ -109,9 +109,6 @@ const HealthEventsView = ({ userRole = 'parent', title, description }) => {
             <h1 className="text-3xl font-bold text-gray-900">{finalTitle}</h1>
             <p className="text-gray-600 mt-2">{finalDescription}</p>
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-            Filter Events
-          </button>
         </div>
       </div>
 

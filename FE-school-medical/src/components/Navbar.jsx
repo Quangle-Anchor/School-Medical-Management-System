@@ -353,7 +353,7 @@ const AuthNavbar = () => {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <div className="absolute right-0 z-10 mt-2 w-56 origin-top-right bg-white rounded-3xl shadow-2xl focus:outline-none border border-gray-200">
+                  <div className="absolute left-1/2 transform -translate-x-1/2 z-50 mt-2 w-56 origin-top bg-white rounded-3xl shadow-2xl focus:outline-none border border-gray-200">
                     <div className="p-2">
                       <div className="px-3 py-2 border-b border-gray-200">
                         <p className="text-sm font-medium text-gray-800">
