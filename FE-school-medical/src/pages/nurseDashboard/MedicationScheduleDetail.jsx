@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
 import { medicationAPI } from '../../api/medicationApi';
 import { inventoryAPI } from '../../api/inventoryApi';
@@ -22,6 +22,7 @@ import {
 const MedicationScheduleDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   
   const [schedule, setSchedule] = useState(null);
   const [medicationRequest, setMedicationRequest] = useState(null);
@@ -29,35 +30,66 @@ const MedicationScheduleDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Extract ID from URL path manually since we're using custom routing
+  const getScheduleIdFromPath = () => {
+    const path = location.pathname;
+    const match = path.match(/\/nurseDashboard\/medication-schedules\/view\/(\d+)/);
+    return match ? match[1] : null;
+  };
+
+  const scheduleId = id || getScheduleIdFromPath();
+
   useEffect(() => {
+    console.log('MedicationScheduleDetail component mounted');
+    console.log('Schedule ID from useParams:', id);
+    console.log('Schedule ID from path parsing:', getScheduleIdFromPath());
+    console.log('Final schedule ID to use:', scheduleId);
+    console.log('Current URL:', window.location.pathname);
+    console.log('Location object:', location);
+    
+    if (!scheduleId) {
+      setError('No schedule ID provided');
+      setLoading(false);
+      return;
+    }
+    
     fetchScheduleDetails();
-  }, [id]);
+  }, [scheduleId, location.pathname]);
 
   const fetchScheduleDetails = async () => {
     try {
-      // Fetch all schedules and find the one we need
-      const schedules = await medicationScheduleAPI.getAllSchedulesForNurse();
-      const foundSchedule = schedules.find(s => s.scheduleId.toString() === id);
+      console.log('Fetching schedule details for ID:', scheduleId);
+      
+      // Use the existing getScheduleById API method
+      const foundSchedule = await medicationScheduleAPI.getScheduleById(scheduleId);
       
       if (!foundSchedule) {
         setError('Schedule not found');
         return;
       }
       
+      console.log('Schedule details loaded:', foundSchedule);
       setSchedule(foundSchedule);
       
-      // Fetch the related medication request
+      // Fetch the related medication request using the requestId
       try {
         const allRequests = await medicationAPI.getAllRequests();
+        console.log('All medication requests:', allRequests.length);
+        
         const relatedRequest = allRequests.find(req => 
           req.requestId.toString() === foundSchedule.requestId.toString()
         );
+        
+        console.log('Looking for request ID:', foundSchedule.requestId);
+        console.log('Found related request:', relatedRequest);
         
         if (relatedRequest) {
           setMedicationRequest(relatedRequest);
           
           // Check inventory for this medication
           await checkInventoryStock(relatedRequest.medicationName);
+        } else {
+          console.warn('No related medication request found for requestId:', foundSchedule.requestId);
         }
       } catch (requestError) {
         console.error('Error fetching medication request:', requestError);
@@ -65,7 +97,17 @@ const MedicationScheduleDetail = () => {
       }
     } catch (error) {
       console.error('Error fetching schedule details:', error);
-      setError('Failed to fetch schedule details');
+      
+      // Provide more specific error messages
+      if (error.response?.status === 404) {
+        setError(`Schedule with ID ${scheduleId} not found`);
+      } else if (error.response?.status === 403) {
+        setError('You do not have permission to view this schedule');
+      } else if (error.response?.status === 500) {
+        setError('Server error occurred while fetching schedule details');
+      } else {
+        setError(`Failed to fetch schedule details: ${error.message || 'Unknown error'}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -170,9 +212,17 @@ const MedicationScheduleDetail = () => {
           <h2 className="text-xl font-semibold text-red-900 mb-2">
             {error || 'Schedule Not Found'}
           </h2>
-          <p className="text-red-700">
+          <p className="text-red-700 mb-4">
             The medication schedule you're looking for could not be found or loaded.
           </p>
+          <div className="text-sm text-red-600 bg-red-100 border border-red-300 rounded p-3">
+            <p><strong>Debug Info:</strong></p>
+            <p>Schedule ID from useParams: {id}</p>
+            <p>Schedule ID from path: {getScheduleIdFromPath()}</p>
+            <p>Final schedule ID: {scheduleId}</p>
+            <p>URL: {window.location.pathname}</p>
+            {error && <p>Error: {error}</p>}
+          </div>
         </div>
       </div>
     );

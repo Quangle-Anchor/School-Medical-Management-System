@@ -50,6 +50,16 @@ const medicationScheduleAPI = {
       throw error;
     }
   },
+
+  // Get medication schedule by ID
+  getScheduleById: async (id) => {
+    try {
+      const response = await axiosInstance.get(`/api/schedules/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export { medicationScheduleAPI };

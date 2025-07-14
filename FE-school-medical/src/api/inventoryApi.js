@@ -15,6 +15,15 @@ const checkAuth = () => {
   return { token, role };
 };
 
+// Helper function to check if role has permission for inventory operations
+const hasInventoryPermission = (role) => {
+  // Normalize role to handle different case formats
+  const normalizedRole = role?.toLowerCase();
+  const allowedRoles = ['nurse', 'principal', 'admin'];
+  
+  return allowedRoles.includes(normalizedRole);
+};
+
 export const inventoryAPI = {
   // Get all inventory items
   getAllInventory: async () => {
@@ -40,8 +49,8 @@ export const inventoryAPI = {
     try {
       const { token, role } = checkAuth();
       
-      // Check if user has permission to add inventory (backend expects NURSE and PRINCIPAL, also allowing Admin)
-      if (!['Nurse', 'Principal', 'Admin'].includes(role)) {
+      // Check if user has permission to add inventory
+      if (!hasInventoryPermission(role)) {
         throw new Error(`Role ${role} is not authorized to add inventory items. Allowed: Nurse, Principal, Admin`);
       }
       
@@ -86,8 +95,8 @@ export const inventoryAPI = {
     try {
       const { token, role } = checkAuth();
       
-      // Check if user has permission to update inventory (allowing Nurse, Principal, and Admin)
-      if (!['Nurse', 'Principal', 'Admin'].includes(role)) {
+      // Check if user has permission to update inventory
+      if (!hasInventoryPermission(role)) {
         throw new Error(`Only Nurse, Principal, Admin roles are authorized to update inventory items. Your role: ${role}`);
       }
       
@@ -112,7 +121,11 @@ export const inventoryAPI = {
         unit: itemData.unit || 'units'
       };
       
-      await axiosInstance.put(`/api/medical-items/${itemId}`, medicalItemRequest);
+      try {
+        await axiosInstance.put(`/api/medical-items/${itemId}`, medicalItemRequest);
+      } catch (medicalItemError) {
+        throw new Error(`Failed to update medical item: ${medicalItemError.response?.data?.message || medicalItemError.message}`);
+      }
       
       // Step 2: Update inventory quantity
       const inventoryRequest = {
@@ -120,18 +133,22 @@ export const inventoryAPI = {
         totalQuantity: itemData.totalQuantity || 0
       };
       
-      const inventoryResponse = await axiosInstance.put(`/api/inventory/${inventoryId}`, inventoryRequest);
-      
-      return inventoryResponse.data;
+      try {
+        const inventoryResponse = await axiosInstance.put(`/api/inventory/${inventoryId}`, inventoryRequest);
+        return inventoryResponse.data;
+      } catch (inventoryError) {
+        throw new Error(`Failed to update inventory quantity: ${inventoryError.response?.data?.message || inventoryError.message}`);
+      }
     } catch (error) {
       console.error('Error in updateInventoryItem:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
       
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         window.location.href = '/login';
+      } else if (error.response?.status === 403) {
+        const errorMessage = error.response?.data?.message || 'Access denied. You may not have permission to update inventory items.';
+        throw new Error(errorMessage);
       }
       throw error;
     }
@@ -142,8 +159,8 @@ export const inventoryAPI = {
     try {
       const { token, role } = checkAuth();
       
-      // Check if user has permission to delete inventory (allowing Nurse, Principal, and Admin)
-      if (!['Nurse', 'Principal', 'Admin'].includes(role)) {
+      // Check if user has permission to delete inventory
+      if (!hasInventoryPermission(role)) {
         throw new Error(`Role ${role} is not authorized to delete inventory items. Allowed: Nurse, Principal, Admin`);
       }
       
@@ -239,7 +256,7 @@ export const inventoryAPI = {
       const { token, role } = checkAuth();
       
       // Check if user has permission
-      if (!['Nurse', 'Principal', 'Admin'].includes(role)) {
+      if (!hasInventoryPermission(role)) {
         throw new Error(`Role ${role} is not authorized to add inventory items. Allowed: Nurse, Principal, Admin`);
       }
       
