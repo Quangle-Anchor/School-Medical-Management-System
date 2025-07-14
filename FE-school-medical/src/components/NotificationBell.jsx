@@ -60,7 +60,8 @@ const NotificationBell = ({ user, show, setShow }) => {
     const fetchData = async () => {
       try {
         let res;
-        if (user.role === "Parent") {
+        // Luôn dùng getMy cho nurse, principal, parent
+        if (["Parent", "Nurse", "Principal"].includes(user.role)) {
           res = await notificationApi.getMy(0, 20);
         } else {
           res = await notificationApi.getAll(0, 20);
@@ -76,10 +77,10 @@ const NotificationBell = ({ user, show, setShow }) => {
   }, [user]);
 
   // Lọc notification theo quyền
-  const filteredNotifications =
-    user && user.role === "Parent"
-      ? notifications.filter((n) => n.userId === user.id)
-      : notifications;
+  let filteredNotifications = notifications;
+  if (user && user.role === "Parent") {
+    filteredNotifications = notifications.filter((n) => n.userId === user.id);
+  }
   const unread = filteredNotifications.filter((n) => !n.readStatus);
   const unreadCount = unread.length;
 

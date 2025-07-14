@@ -63,7 +63,7 @@ const NotificationsView = ({ user }) => {
       if (editing) {
         await notificationApi.update(editing.notificationId, data);
       } else {
-        if (user && user.role === "Principal") {
+        if (editing) {
           await notificationApi.sendToNurses(data);
         } else {
           await notificationApi.create(data);
@@ -85,11 +85,6 @@ const NotificationsView = ({ user }) => {
 
   // Chỉ hiển thị thông báo phù hợp với từng role
   let filteredNotifications = notifications;
-  if (user && user.role === "Nurse") {
-    filteredNotifications = notifications.filter((n) => n.createdBy === 2);
-  } else if (user && user.role === "Principal") {
-    filteredNotifications = notifications.filter((n) => n.createdBy === 2);
-  }
 
   const getTypeColor = (type) => {
     if (type === "ALERT") return "text-red-600 bg-red-100";
