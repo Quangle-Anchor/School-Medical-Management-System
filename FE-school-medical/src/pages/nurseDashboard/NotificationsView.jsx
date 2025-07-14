@@ -16,8 +16,8 @@ const NotificationsView = ({ user }) => {
 
   useEffect(() => {
     setLoading(true);
-    // Nếu là parent thì chỉ lấy notification của parent
-    if (user && user.role === "Parent") {
+    // Nếu là parent hoặc nurse thì chỉ lấy notification của user đó
+    if (user && (user.role === "Parent" || user.role === "Nurse")) {
       notificationApi
         .getMy(0, 30)
         .then((res) => setNotifications(res.data.content || []))
@@ -63,7 +63,11 @@ const NotificationsView = ({ user }) => {
       if (editing) {
         await notificationApi.update(editing.notificationId, data);
       } else {
-        await notificationApi.create(data);
+        if (user && user.role === "Principal") {
+          await notificationApi.sendToNurses(data);
+        } else {
+          await notificationApi.create(data);
+        }
       }
       setFormOpen(false);
       setEditing(null);
@@ -79,8 +83,13 @@ const NotificationsView = ({ user }) => {
     setViewing(noti);
   };
 
-  // Không filter, hiển thị toàn bộ notifications
-  const filteredNotifications = notifications;
+  // Chỉ hiển thị thông báo phù hợp với từng role
+  let filteredNotifications = notifications;
+  if (user && user.role === "Nurse") {
+    filteredNotifications = notifications.filter((n) => n.createdBy === 2);
+  } else if (user && user.role === "Principal") {
+    filteredNotifications = notifications.filter((n) => n.createdBy === 2);
+  }
 
   const getTypeColor = (type) => {
     if (type === "ALERT") return "text-red-600 bg-red-100";

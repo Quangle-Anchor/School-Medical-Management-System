@@ -72,7 +72,8 @@ const Sidebar = ({
         { id: "dashboard", icon: Activity, label: "Dashboard" },
         { id: "nurse-management", icon: Users, label: "Staff Management" },
         { id: "scheduling", icon: Calendar, label: "Scheduling" },
-        { id: "inventory", icon: Warehouse, label: "Inventory" },
+        { id: "notifications", icon: Bell, label: "Notifications" },
+        { id: "inventory", icon: Warehouse, label: "Inventory" },        
       ];
     }
     return [];

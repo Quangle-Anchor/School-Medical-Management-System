@@ -75,6 +75,14 @@ const NotificationBell = ({ user, show, setShow }) => {
     fetchData();
   }, [user]);
 
+  // Lọc notification theo quyền
+  const filteredNotifications =
+    user && user.role === "Parent"
+      ? notifications.filter((n) => n.userId === user.id)
+      : notifications;
+  const unread = filteredNotifications.filter((n) => !n.readStatus);
+  const unreadCount = unread.length;
+
   // Đánh dấu đã đọc (gọi API cập nhật trạng thái đã đọc)
   const handleMarkRead = async (id) => {
     try {
@@ -88,14 +96,6 @@ const NotificationBell = ({ user, show, setShow }) => {
       setError("Không thể đánh dấu đã đọc");
     }
   };
-
-  // Lọc notification theo quyền
-  const filteredNotifications =
-    user.role === "Parent"
-      ? notifications.filter((n) => n.userId === user.id)
-      : notifications;
-  const unread = filteredNotifications.filter((n) => !n.readStatus);
-  const unreadCount = unread.length;
 
   // Gom nhóm thông báo
   const groups = groupNotifications(filteredNotifications);
@@ -120,7 +120,7 @@ const NotificationBell = ({ user, show, setShow }) => {
       }
       navigate("/nurseDashboard/notifications");
       return;
-    }    
+    }
     if (user.role === "Principal" && n.notificationType) {
       if (n.notificationType === "HEALTH_INCIDENT") {
         navigate("/principalDashboard/health-incidents");

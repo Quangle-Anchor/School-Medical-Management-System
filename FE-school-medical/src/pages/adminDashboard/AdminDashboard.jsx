@@ -37,29 +37,29 @@ const AdminDashboard = () => {
   const adminCardData = [
     {
       title: "Total Users",
-      value: totalUsers,
-      change: "+12% from last month",
-      changeType: "positive",
+      value: totalUsers || 0,
+      change: totalUsers > 0 ? "" : "",
+      changeType: totalUsers > 0 ? "positive" : "neutral",
       icon: Users,
     },
     {
       title: "System Health",
-      value: "99.9%",
-      change: "Operational",
-      changeType: "positive",
+      value: 0, // Show 0 if no real data
+      change: "",
+      changeType: "neutral",
       icon: Activity,
     },
     {
       title: "Reports Generated",
-      value: "156",
-      change: "+23 this week",
-      changeType: "positive",
+      value: 0, // Show 0 if no real data
+      change: "",
+      changeType: "neutral",
       icon: FileText,
     },
     {
       title: "Active Alerts",
-      value: "3",
-      change: "2 resolved today",
+      value: 0, // Show 0 if no real data
+      change: "",
       changeType: "neutral",
       icon: Bell,
     },
@@ -118,32 +118,8 @@ const AdminDashboard = () => {
                   Recent System Activities
                 </h2>
                 <div className="space-y-3">
-                  <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        System backup completed successfully
-                      </p>
-                      <p className="text-xs text-gray-600">5 minutes ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        New user registration approved
-                      </p>
-                      <p className="text-xs text-gray-600">12 minutes ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        System maintenance scheduled
-                      </p>
-                      <p className="text-xs text-gray-600">2 hours ago</p>
-                    </div>
+                  <div className="text-center py-8 text-gray-400">
+                    Không có hoạt động hệ thống gần đây
                   </div>
                 </div>
               </div>
