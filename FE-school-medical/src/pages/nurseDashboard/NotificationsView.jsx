@@ -63,7 +63,7 @@ const NotificationsView = ({ user }) => {
       if (editing) {
         await notificationApi.update(editing.notificationId, data);
       } else {
-        if (editing) {
+        if (user && user.role === "Principal") {
           await notificationApi.sendToNurses(data);
         } else {
           await notificationApi.create(data);
