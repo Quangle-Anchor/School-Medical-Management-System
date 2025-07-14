@@ -44,7 +44,6 @@ public class SecurityConfig {
     private static final String[] PRINCIPAL_ENDPOINTS = {
             "/api/principal/**",
             "/api/health-events/**",
-            "/api/event-signups/**"
     };
 
     // NURSE role APIs
@@ -103,10 +102,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/health-events/**").hasRole("PRINCIPAL")
 
                         // --- Event Signups ---
-                        .requestMatchers(HttpMethod.POST, "/api/event-signups/**").hasRole("PARENT")
+                        .requestMatchers(HttpMethod.POST, "/api/event-signups").hasRole("PARENT")
                         .requestMatchers(HttpMethod.GET, "/api/event-signups/my").hasRole("PARENT")
-                        .requestMatchers(HttpMethod.GET, "/api/event-signups/event/**").hasAnyRole("NURSE", "PRINCIPAL")
-                        .requestMatchers(HttpMethod.PUT, "/api/event-signups/**").hasAnyRole("NURSE", "PRINCIPAL")
+                        .requestMatchers(HttpMethod.GET, "/api/event-signups/event/**").hasAnyRole("PRINCIPAL", "NURSE", "PARENT")
+                        .requestMatchers(HttpMethod.PUT, "/api/event-signups/event/*/approve-all").hasAnyRole("PRINCIPAL", "NURSE")
+                        .requestMatchers(HttpMethod.PUT, "/api/event-signups/*/status").hasAnyRole("PRINCIPAL", "NURSE")
 
                         // --- Inventory & Medical Items ---
                         .requestMatchers(SHARED_ENDPOINTS_3ROLE).hasAnyRole("NURSE", "PRINCIPAL", "PARENT")
