@@ -128,8 +128,8 @@ public class SecurityConfig {
                         // --- Common APIs ---
                         .requestMatchers(SHARED_ENDPOINTS_4ROLE).hasAnyRole("ADMIN", "PRINCIPAL", "NURSE", "PARENT")
                         .requestMatchers(HttpMethod.POST, "/api/notifications/to-nurses").hasRole("PRINCIPAL")
-                        .requestMatchers(HttpMethod.GET, "/api/notifications/my").hasRole("PARENT")
-                        .requestMatchers(HttpMethod.PUT, "/api/notifications/{notificationId}/read-status","/api/notifications/mark-all-read").hasRole("PARENT")
+                        .requestMatchers(HttpMethod.GET, "/api/notifications/my").hasAnyRole("PARENT", "NURSE", "PRINCIPAL", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/notifications/{notificationId}/read-status","/api/notifications/mark-all-read").hasAnyRole("PARENT", "NURSE", "PRINCIPAL", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/schedules/my-students").hasRole("PARENT")
                         .requestMatchers("/api/notifications/**").hasAnyRole("PRINCIPAL", "NURSE")
                         .requestMatchers("/api/schedules/**").hasRole("NURSE")
