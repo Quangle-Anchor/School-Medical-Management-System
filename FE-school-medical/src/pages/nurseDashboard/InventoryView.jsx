@@ -134,7 +134,6 @@ const InventoryView = () => {
     try {
       setLoading(true);
       const inventoryItems = await inventoryAPI.getAllInventory();
-      console.log('Raw inventory data:', inventoryItems);
       
       // Transform the nested data structure to flat structure
       const transformedItems = inventoryItems.map(inventoryItem => {
@@ -168,9 +167,7 @@ const InventoryView = () => {
         };
       });
       
-      console.log('Transformed inventory data:', transformedItems);
       const categorizedData = inventoryAPI.categorizeInventory(transformedItems);
-      console.log('Categorized inventory data:', categorizedData);
       setInventoryData(categorizedData);
     } catch (error) {
       console.error('Error fetching inventory:', error);
@@ -190,7 +187,6 @@ const InventoryView = () => {
       setLoadingMedicalItems(true);
       const items = await inventoryAPI.getMedicalItems();
       setMedicalItems(items);
-      console.log('Fetched medical items:', items);
     } catch (error) {
       console.error('Error fetching medical items:', error);
       alert('Failed to fetch medical items. Please try again later.');
@@ -261,7 +257,6 @@ const InventoryView = () => {
     try {
       setLoading(true);
       const searchResults = await inventoryAPI.searchInventory(searchTerm);
-      console.log('Raw search results:', searchResults);
       
       // Transform the nested data structure to flat structure
       const transformedItems = searchResults.map(inventoryItem => {
@@ -373,8 +368,6 @@ const InventoryView = () => {
   const handleAddItem = async (e) => {
     e.preventDefault();
     try {
-      console.log('Adding item with data:', formData);
-      
       // Map frontend category back to backend category
       let backendCategory = formData.category;
       if (formData.category === 'medications') {
@@ -400,7 +393,6 @@ const InventoryView = () => {
         totalQuantity: formData.quantity
       };
       
-      console.log('Sending add request with data:', itemData);
       await inventoryAPI.addInventoryItem(itemData);
       setShowAddModal(false);
       resetForm();
@@ -414,9 +406,6 @@ const InventoryView = () => {
   const handleEditItem = async (e) => {
     e.preventDefault();
     try {
-      console.log('Editing item with data:', formData);
-      console.log('Selected item:', selectedItem);
-      
       // Map frontend category back to backend category
       let backendCategory = formData.category;
       if (formData.category === 'medications') {
@@ -428,9 +417,6 @@ const InventoryView = () => {
       }
       
       // Structure the data for updating both medical item and inventory quantity
-      // The API expects:
-      // 1. Medical item details (name, category, etc.)
-      // 2. Inventory quantity update
       const itemData = {
         itemName: formData.name,
         category: backendCategory,
@@ -442,14 +428,31 @@ const InventoryView = () => {
         totalQuantity: formData.quantity
       };
       
-      console.log('Sending update request with data:', itemData);
       await inventoryAPI.updateInventoryItem(selectedItem.id, itemData);
+      
       setShowEditModal(false);
       resetForm();
-      fetchInventory();
+      await fetchInventory(); // Refresh the inventory data
+      
+      // Show success message
+      alert('Item updated successfully!');
     } catch (error) {
       console.error('Error updating item:', error);
-      alert(`Failed to update item: ${error.message || 'Please check your permissions.'}`);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to update item. ';
+      
+      if (error.message.includes('403') || error.message.includes('Access denied')) {
+        errorMessage += 'You do not have permission to update inventory items. Please check with your administrator.';
+      } else if (error.message.includes('404')) {
+        errorMessage += 'The item was not found. It may have been deleted.';
+      } else if (error.message.includes('Network Error')) {
+        errorMessage += 'Network connection issue. Please check your internet connection.';
+      } else {
+        errorMessage += error.message || 'Please try again or contact support.';
+      }
+      
+      alert(errorMessage);
     }
   };
 
@@ -898,8 +901,7 @@ const InventoryView = () => {
                           return (
                             <div
                               key={item.id}
-                              className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                              onClick={() => openEditModal(item)}
+                              className="p-4 hover:bg-gray-50 transition-colors"
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1 min-w-0">
@@ -1011,13 +1013,6 @@ const InventoryView = () => {
                     )}
                   </div>
                   <div className="flex space-x-2">
-                    <button 
-                      onClick={() => openEditModal(item)}
-                      className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 flex items-center space-x-1"
-                    >
-                      <PencilIcon className="h-3 w-3" />
-                      <span>Edit</span>
-                    </button>
                     <button 
                       onClick={() => openDeleteModal(item)}
                       className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 flex items-center space-x-1"

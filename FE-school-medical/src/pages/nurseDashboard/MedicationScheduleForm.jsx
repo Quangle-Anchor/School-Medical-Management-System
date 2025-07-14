@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
 import { medicationAPI } from '../../api/medicationApi';
 import { inventoryAPI } from '../../api/inventoryApi';
@@ -9,7 +9,17 @@ import { Calendar, Clock, User, Pill, Save, ArrowLeft, AlertCircle, CheckCircle,
 const MedicationScheduleForm = () => {
   const navigate = useNavigate();
   const { id } = useParams(); // For edit mode
-  const isEditMode = Boolean(id);
+  const location = useLocation();
+  
+  // Extract ID from URL path manually since we're using custom routing
+  const getScheduleIdFromPath = () => {
+    const path = location.pathname;
+    const match = path.match(/\/nurseDashboard\/medication-schedules\/edit\/(\d+)/);
+    return match ? match[1] : null;
+  };
+
+  const scheduleId = id || getScheduleIdFromPath();
+  const isEditMode = Boolean(scheduleId);
   
   const [confirmedRequests, setConfirmedRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,11 +38,17 @@ const MedicationScheduleForm = () => {
   });
 
   useEffect(() => {
+    console.log('MedicationScheduleForm component mounted');
+    console.log('Schedule ID from useParams:', id);
+    console.log('Schedule ID from path parsing:', getScheduleIdFromPath());
+    console.log('Final schedule ID to use:', scheduleId);
+    console.log('Is edit mode:', isEditMode);
+    
     fetchConfirmedRequests();
-    if (isEditMode) {
+    if (isEditMode && scheduleId) {
       fetchScheduleDetails();
     }
-  }, [id, isEditMode]);
+  }, [scheduleId, isEditMode, location.pathname]);
 
   const fetchConfirmedRequests = async () => {
     try {
@@ -50,22 +66,53 @@ const MedicationScheduleForm = () => {
 
   const fetchScheduleDetails = async () => {
     try {
-      // Note: You may need to add a get single schedule API endpoint
-      // For now, we'll fetch all and find the one we need
-      const schedules = await medicationScheduleAPI.getAllSchedulesForNurse();
-      const schedule = schedules.find(s => s.scheduleId.toString() === id);        if (schedule) {
-          setFormData({
-            requestId: schedule.requestId.toString(),
-            scheduledDate: schedule.scheduledDate,
-            scheduledTime: schedule.scheduledTime,
-            notes: schedule.notes || ''
-          });
+      console.log('Fetching schedule details for edit, ID:', scheduleId);
+      
+      // Use the existing getScheduleById API method
+      const schedule = await medicationScheduleAPI.getScheduleById(scheduleId);
+      
+      if (schedule) {
+        console.log('Schedule loaded for editing:', schedule);
+        
+        // Format the date properly for the input field
+        const formattedDate = schedule.scheduledDate ? 
+          new Date(schedule.scheduledDate).toISOString().split('T')[0] : '';
+          
+        setFormData({
+          requestId: schedule.requestId.toString(),
+          scheduledDate: formattedDate,
+          scheduledTime: schedule.scheduledTime || '',
+          notes: schedule.notes || ''
+        });
+        
+        // Also check inventory for the medication if we have the request details
+        if (schedule.requestId) {
+          try {
+            const allRequests = await medicationAPI.getAllRequests();
+            const relatedRequest = allRequests.find(req => 
+              req.requestId.toString() === schedule.requestId.toString()
+            );
+            
+            if (relatedRequest && relatedRequest.medicationName) {
+              await checkInventoryStock(relatedRequest.medicationName);
+            }
+          } catch (requestError) {
+            console.error('Error fetching related medication request:', requestError);
+          }
+        }
       } else {
         setError('Schedule not found');
       }
     } catch (error) {
       console.error('Error fetching schedule details:', error);
-      setError('Failed to fetch schedule details');
+      
+      if (error.response?.status === 404) {
+        setError(`Schedule with ID ${scheduleId} not found`);
+      } else if (error.response?.status === 403) {
+        setError('You do not have permission to edit this schedule');
+      } else {
+        setError('Failed to fetch schedule details for editing');
+      }
     }
   };
 
@@ -120,56 +167,6 @@ const MedicationScheduleForm = () => {
     }
   };
 
-  const updateInventoryQuantity = async (medicationName, quantityToDeduct) => {
-    try {
-      console.log('Starting inventory update for:', medicationName, 'quantity to deduct:', quantityToDeduct);
-      
-      // Search for the medication in inventory
-      const inventoryItems = await inventoryAPI.getAllInventory();
-      console.log('Total inventory items found:', inventoryItems.length);
-      
-      const medicationItem = inventoryItems.find(item => 
-        item.item?.itemName?.toLowerCase().includes(medicationName.toLowerCase())
-      );
-
-      if (!medicationItem) {
-        console.warn(`Medication "${medicationName}" not found in inventory`);
-        console.log('Available medications:', inventoryItems.map(item => item.item?.itemName));
-        return false;
-      }
-
-      console.log('Found medication item:', medicationItem);
-      
-      const currentQuantity = medicationItem.totalQuantity || 0;
-      const newQuantity = Math.max(0, currentQuantity - quantityToDeduct);
-
-      console.log(`Updating quantity: ${currentQuantity} - ${quantityToDeduct} = ${newQuantity}`);
-
-      // Update the inventory with reduced quantity
-      const updateData = {
-        itemName: medicationItem.item.itemName,
-        category: medicationItem.item.category,
-        description: medicationItem.item.description || '',
-        manufacturer: medicationItem.item.manufacturer || '',
-        expiryDate: medicationItem.item.expiryDate || null,
-        storageInstructions: medicationItem.item.storageInstructions || '',
-        unit: medicationItem.item.unit || 'units',
-        totalQuantity: newQuantity
-      };
-
-      console.log('Sending update request with data:', updateData);
-      
-      await inventoryAPI.updateInventoryItem(medicationItem.inventoryId, updateData);
-      
-      console.log(`✅ Inventory updated successfully: ${medicationName} quantity reduced from ${currentQuantity} to ${newQuantity}`);
-      return true;
-    } catch (error) {
-      console.error('❌ Error updating inventory quantity:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      return false;
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -206,7 +203,7 @@ const MedicationScheduleForm = () => {
       }
 
       if (isEditMode) {
-        await medicationScheduleAPI.updateSchedule(id, formData);
+        await medicationScheduleAPI.updateSchedule(scheduleId, formData);
         setSuccess('Medication schedule updated successfully');
       } else {
         // Find the selected medication request to get medication details
@@ -217,36 +214,7 @@ const MedicationScheduleForm = () => {
         if (selectedRequest) {
           // Create the schedule first
           await medicationScheduleAPI.createSchedule(formData);
-          
-          // Then update inventory quantity (only if medication was found in inventory)
-          if (inventoryInfo && inventoryInfo.found && inventoryInfo.currentQuantity > 0) {
-            const medicationName = selectedRequest.medicationName;
-            
-            // Use the totalQuantity from the medication request
-            const quantityToDeduct = parseInt(selectedRequest.totalQuantity) || 1;
-            
-            console.log('Attempting to deduct inventory:', {
-              medicationName,
-              originalDosage: selectedRequest.dosage,
-              totalQuantityFromRequest: selectedRequest.totalQuantity,
-              quantityToDeduct,
-              currentStock: inventoryInfo.currentQuantity
-            });
-            
-            const inventoryUpdated = await updateInventoryQuantity(medicationName, quantityToDeduct);
-            
-            if (inventoryUpdated) {
-              setSuccess(`Medication schedule created successfully. Inventory updated: ${quantityToDeduct} ${inventoryInfo.unit} of ${medicationName} deducted from stock.`);
-            } else {
-              setSuccess('Medication schedule created successfully. Note: Inventory quantity could not be updated automatically.');
-            }
-          } else {
-            if (inventoryInfo && inventoryInfo.found && inventoryInfo.currentQuantity === 0) {
-              setSuccess('Medication schedule created successfully. Note: Inventory was at 0 stock, no deduction made.');
-            } else {
-              setSuccess('Medication schedule created successfully. Note: Inventory was not updated (medication not found in stock).');
-            }
-          }
+          setSuccess('Medication schedule created successfully');
         } else {
           await medicationScheduleAPI.createSchedule(formData);
           setSuccess('Medication schedule created successfully');
@@ -288,6 +256,38 @@ const MedicationScheduleForm = () => {
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-2 text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Check for missing schedule ID in edit mode
+  if (isEditMode && !scheduleId) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/nurseDashboard/medication-schedules')}
+            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Schedules
+          </button>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-red-900 mb-2">
+            No Schedule ID Provided
+          </h2>
+          <p className="text-red-700 mb-4">
+            Unable to edit schedule without a valid schedule ID.
+          </p>
+          <div className="text-sm text-red-600 bg-red-100 border border-red-300 rounded p-3">
+            <p><strong>Debug Info:</strong></p>
+            <p>Schedule ID from useParams: {id}</p>
+            <p>Schedule ID from path: {getScheduleIdFromPath()}</p>
+            <p>URL: {window.location.pathname}</p>
+          </div>
         </div>
       </div>
     );
