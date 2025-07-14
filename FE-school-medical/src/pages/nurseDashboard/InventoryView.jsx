@@ -23,12 +23,15 @@ const InventoryView = () => {
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showExistingItemsModal, setShowExistingItemsModal] = useState(false);
   const [showAddDropdown, setShowAddDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const searchRef = useRef(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [medicalItems, setMedicalItems] = useState([]);
   const [loadingMedicalItems, setLoadingMedicalItems] = useState(false);
@@ -70,13 +73,18 @@ const InventoryView = () => {
       if (showAddDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowAddDropdown(false);
       }
+      
+      // Close search results when clicking outside
+      if (showSearchResults && searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearchResults(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showAddDropdown]);
+  }, [showAddDropdown, showSearchResults]);
 
   // Handle keyboard events for the dropdown
   const handleDropdownKeyDown = (e) => {
@@ -246,6 +254,7 @@ const InventoryView = () => {
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       fetchInventory();
+      setShowSearchResults(false);
       return;
     }
     
@@ -287,6 +296,9 @@ const InventoryView = () => {
         };
       });
       
+      setSearchResults(transformedItems);
+      setShowSearchResults(true);
+      
       const categorizedData = inventoryAPI.categorizeInventory(transformedItems);
       setInventoryData(categorizedData);
       
@@ -301,6 +313,60 @@ const InventoryView = () => {
       console.error('Error searching inventory:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle live search as user types
+  const handleLiveSearch = async (term) => {
+    setSearchTerm(term);
+    
+    if (!term.trim()) {
+      setShowSearchResults(false);
+      setSearchResults([]);
+      return;
+    }
+    
+    try {
+      const searchResults = await inventoryAPI.searchInventory(term);
+      
+      // Transform the nested data structure to flat structure
+      const transformedItems = searchResults.map(inventoryItem => {
+        // Map backend categories to frontend categories
+        let category = 'consumables'; // default
+        const backendCategory = inventoryItem.item?.category?.toLowerCase() || '';
+        
+        if (backendCategory.includes('medicine') || backendCategory.includes('medication') || backendCategory.includes('drug')) {
+          category = 'medications';
+        } else if (backendCategory.includes('equipment') || backendCategory.includes('device') || backendCategory.includes('instrument')) {
+          category = 'equipment';
+        } else {
+          category = 'consumables';
+        }
+        
+        return {
+          id: inventoryItem.inventoryId,
+          name: inventoryItem.item?.itemName || 'Unknown Item',
+          itemName: inventoryItem.item?.itemName || 'Unknown Item',
+          category: category,
+          description: inventoryItem.item?.description || '',
+          quantity: inventoryItem.totalQuantity || 0,
+          unit: inventoryItem.item?.unit || 'units',
+          manufacturer: inventoryItem.item?.manufacturer || '',
+          expiryDate: inventoryItem.item?.expiryDate || '',
+          storageInstructions: inventoryItem.item?.storageInstructions || '',
+          minThreshold: 10,
+          maxThreshold: 50,
+          updatedAt: inventoryItem.updatedAt,
+          createdAt: inventoryItem.item?.createdAt || inventoryItem.updatedAt
+        };
+      });
+      
+      setSearchResults(transformedItems);
+      setShowSearchResults(true);
+    } catch (error) {
+      console.error('Error in live search:', error);
+      setSearchResults([]);
+      setShowSearchResults(false);
     }
   };
 
@@ -503,7 +569,7 @@ const InventoryView = () => {
         
         <div className="flex items-center space-x-4">
           {/* Search */}
-          <div className="relative flex-grow max-w-md">
+          <div className="relative flex-grow max-w-md" ref={searchRef}>
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
             </div>
@@ -511,7 +577,7 @@ const InventoryView = () => {
               type="text"
               placeholder="Search"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleLiveSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -520,6 +586,8 @@ const InventoryView = () => {
                 className="absolute inset-y-0 right-12 flex items-center pr-2 text-gray-500 hover:text-gray-700"
                 onClick={() => {
                   setSearchTerm('');
+                  setShowSearchResults(false);
+                  setSearchResults([]);
                   fetchInventory();
                 }}
               >
@@ -532,6 +600,84 @@ const InventoryView = () => {
             >
               <span className="text-sm font-medium">Search</span>
             </button>
+            
+            {/* Search Results Dropdown */}
+            {showSearchResults && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                <div className="p-3 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-900">Search Results</h3>
+                    <span className="text-xs text-gray-500">{searchResults.length} items found</span>
+                  </div>
+                </div>
+                <div className="py-2">
+                  {searchResults.map((item) => {
+                    const stockInfo = inventoryAPI.getStockStatus(item.quantity);
+                    return (
+                      <div
+                        key={item.id}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-b-0"
+                        onClick={() => {
+                          openEditModal(item);
+                          setShowSearchResults(false);
+                        }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-medium text-gray-900 truncate">
+                              {item.name || item.itemName}
+                            </h4>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {item.description || 'No description available'}
+                            </p>
+                            <div className="flex items-center mt-1 space-x-2">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                ${item.category === 'medications' ? 'bg-blue-100 text-blue-800' : 
+                                  item.category === 'equipment' ? 'bg-green-100 text-green-800' : 
+                                  'bg-purple-100 text-purple-800'}`}>
+                                {item.category}
+                              </span>
+                              {item.manufacturer && (
+                                <span className="text-xs text-gray-500">
+                                  {item.manufacturer}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="ml-3 text-right">
+                            <div className="flex items-center justify-end mb-1">
+                              <span className="text-sm font-semibold text-gray-900">
+                                {item.quantity}
+                              </span>
+                              <span className="text-xs text-gray-500 ml-1">
+                                {item.unit || 'units'}
+                              </span>
+                            </div>
+                            <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                              ${stockInfo === 'good' ? 'bg-green-100 text-green-800' : 
+                                stockInfo === 'moderate' ? 'bg-yellow-100 text-yellow-800' : 
+                                'bg-red-100 text-red-800'}`}>
+                              {stockInfo === 'good' ? 'In Stock' : stockInfo === 'moderate' ? 'Low Stock' : 'Out of Stock'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="p-3 border-t border-gray-100 bg-gray-50">
+                  <button
+                    onClick={() => {
+                      handleSearch();
+                      setShowSearchResults(false);
+                    }}
+                    className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    View all {searchResults.length} results →
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           
           <div className="relative add-item-dropdown" ref={dropdownRef}>
@@ -675,64 +821,146 @@ const InventoryView = () => {
           {/* Category Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {Object.entries(inventoryData).map(([category, items]) => {
-              if (items.length === 0) return null;
+              if (items.length === 0 && !searchTerm.trim()) return null;
               
               return (
-                <div 
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow border-2 ${getCategoryColor(category)} hover:border-opacity-80`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <span className="text-2xl mr-3">{getCategoryIcon(category)}</span>
-                      <h3 className="text-xl font-semibold text-gray-800 capitalize">{category}</h3>
-                    </div>
-                    <span className="bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm font-medium">
-                      {items.length}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm text-gray-600">Low Stock:</p>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        items.filter(item => {
-                          const status = item.status || inventoryAPI.getStockStatus(item.quantity);
-                          return status === 'low';
-                        }).length > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                      }`}>
-                        {items.filter(item => {
-                          const status = item.status || inventoryAPI.getStockStatus(item.quantity);
-                          return status === 'low';
-                        }).length} items
+                <div key={category} className="space-y-4">
+                  {/* Category Header Card */}
+                  <div 
+                    onClick={() => setSelectedCategory(category)}
+                    className={`bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow border-2 ${getCategoryColor(category)} hover:border-opacity-80`}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center">
+                        <span className="text-2xl mr-3">{getCategoryIcon(category)}</span>
+                        <h3 className="text-xl font-semibold text-gray-800 capitalize">{category}</h3>
+                      </div>
+                      <span className="bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm font-medium">
+                        {items.length}
                       </span>
                     </div>
-                    <div className="mt-4">
-                      <div className="text-xs text-gray-500 mb-1">Recent items:</div>
-                      {searchTerm.trim() ? (
-                        <div className="space-y-1">
-                          {items.slice(0, 4).map(item => (
-                            <div key={item.id} className="text-sm flex items-center">
-                              {item.highlightMatch && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-1.5"></span>
-                              )}
-                              <span className={item.highlightMatch ? 'font-medium' : ''}>
-                                {item.name || item.itemName}
-                              </span>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-gray-600">Low Stock:</p>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          items.filter(item => {
+                            const status = item.status || inventoryAPI.getStockStatus(item.quantity);
+                            return status === 'low';
+                          }).length > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                        }`}>
+                          {items.filter(item => {
+                            const status = item.status || inventoryAPI.getStockStatus(item.quantity);
+                            return status === 'low';
+                          }).length} items
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        <div className="text-xs text-gray-500 mb-1">Recent items:</div>
+                        {searchTerm.trim() ? (
+                          <div className="space-y-1">
+                            {items.slice(0, 4).map(item => (
+                              <div key={item.id} className="text-sm flex items-center">
+                                {item.highlightMatch && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-1.5"></span>
+                                )}
+                                <span className={item.highlightMatch ? 'font-medium' : ''}>
+                                  {item.name || item.itemName}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-sm">
+                            {items.slice(0, 3).map(item => item.name || item.itemName).join(', ')}
+                            {items.length > 3 ? '...' : ''}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex items-center justify-center w-full px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 text-sm font-medium transition-colors">
+                      View all items →
+                    </div>
+                  </div>
+
+                  {/* Items List - Show when searching */}
+                  {searchTerm.trim() && items.length > 0 && (
+                    <div className="bg-white rounded-lg shadow border">
+                      <div className="p-4 border-b border-gray-200">
+                        <h4 className="font-medium text-gray-900 flex items-center">
+                          <span className="text-lg mr-2">{getCategoryIcon(category)}</span>
+                          {category.charAt(0).toUpperCase() + category.slice(1)} Items
+                          <span className="ml-2 text-sm text-gray-500">({items.length})</span>
+                        </h4>
+                      </div>
+                      <div className="divide-y divide-gray-100">
+                        {items.map((item) => {
+                          const stockStatus = inventoryAPI.getStockStatus(item.quantity);
+                          return (
+                            <div
+                              key={item.id}
+                              className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                              onClick={() => openEditModal(item)}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center">
+                                    {item.highlightMatch && (
+                                      <span className="w-2 h-2 rounded-full bg-yellow-400 mr-2"></span>
+                                    )}
+                                    <h5 className="text-sm font-medium text-gray-900 truncate">
+                                      {item.name || item.itemName}
+                                    </h5>
+                                  </div>
+                                  <p className="text-xs text-gray-600 mt-1 truncate">
+                                    {item.description || 'No description available'}
+                                  </p>
+                                  <div className="flex items-center mt-2 space-x-2">
+                                    {item.manufacturer && (
+                                      <span className="text-xs text-gray-500">
+                                        {item.manufacturer}
+                                      </span>
+                                    )}
+                                    {item.expiryDate && (
+                                      <span className="text-xs text-gray-500">
+                                        • Exp: {new Date(item.expiryDate).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="ml-3 text-right">
+                                  <div className="flex items-center justify-end mb-1">
+                                    <span className="text-sm font-semibold text-gray-900">
+                                      {item.quantity}
+                                    </span>
+                                    <span className="text-xs text-gray-500 ml-1">
+                                      {item.unit || 'units'}
+                                    </span>
+                                  </div>
+                                  <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                    ${stockStatus === 'good' ? 'bg-green-100 text-green-800' : 
+                                      stockStatus === 'moderate' ? 'bg-yellow-100 text-yellow-800' : 
+                                      'bg-red-100 text-red-800'}`}>
+                                    {stockStatus === 'good' ? 'In Stock' : 
+                                     stockStatus === 'moderate' ? 'Low Stock' : 'Out of Stock'}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-sm">
-                          {items.slice(0, 3).map(item => item.name || item.itemName).join(', ')}
-                          {items.length > 3 ? '...' : ''}
+                          );
+                        })}
+                      </div>
+                      {items.length > 5 && (
+                        <div className="p-3 border-t border-gray-100 bg-gray-50">
+                          <button
+                            onClick={() => setSelectedCategory(category)}
+                            className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            View all {items.length} {category} items →
+                          </button>
                         </div>
                       )}
                     </div>
-                  </div>
-                  <div className="mt-4 flex items-center justify-center w-full px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 text-sm font-medium transition-colors">
-                    View all items →
-                  </div>
+                  )}
                 </div>
               );
             })}

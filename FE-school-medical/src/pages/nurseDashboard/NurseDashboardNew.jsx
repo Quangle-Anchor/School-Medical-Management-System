@@ -1,4 +1,7 @@
 import NotificationsView from "./NotificationsView";
+import MedicationScheduleManagement from "./MedicationScheduleManagement";
+import MedicationScheduleForm from "./MedicationScheduleForm";
+import MedicationScheduleDetail from "./MedicationScheduleDetail";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -49,6 +52,14 @@ const NurseDashboard = () => {
     if (path === "/nurseDashboard/health-incidents") return "health-incidents";
     if (path === "/nurseDashboard/medication-requests")
       return "medication-requests";
+    if (path === "/nurseDashboard/medication-schedules")
+      return "medication-schedules";
+    if (path === "/nurseDashboard/medication-schedules/create")
+      return "medication-schedule-form";
+    if (path.startsWith("/nurseDashboard/medication-schedules/edit/"))
+      return "medication-schedule-form";
+    if (path.startsWith("/nurseDashboard/medication-schedules/view/"))
+      return "medication-schedule-detail";
     if (path === "/nurseDashboard/notifications") return "notifications";
     if (path === "/nurseDashboard/inventory") return "inventory";
 
@@ -218,6 +229,15 @@ const NurseDashboard = () => {
 
       case "medication-requests":
         return <NurseMedicationRequests />;
+
+      case "medication-schedules":
+        return <MedicationScheduleManagement />;
+
+      case "medication-schedule-form":
+        return <MedicationScheduleForm />;
+
+      case "medication-schedule-detail":
+        return <MedicationScheduleDetail />;
 
       case "health-incidents":
         return <HealthIncidentsView />;

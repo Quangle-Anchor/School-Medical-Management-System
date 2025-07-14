@@ -102,6 +102,18 @@ const medicationAPI = {
       throw error;
     }
   },
+
+  // Nurse: Reject medication request
+  rejectMedicationRequest: async (id, reason) => {
+    try {
+      const response = await axiosInstance.put(`/api/medications/nurse/unconfirm/${id}`, {
+        reason: reason
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export { medicationAPI };

@@ -26,6 +26,14 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
     private final UserUtilService userUtilService;
 
     @Override
+    public MedicationScheduleResponse getById(Long id) {
+        MedicationSchedule schedule = scheduleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Schedule not found with id: " + id));
+
+        return mapToResponse(schedule);
+    }
+
+    @Override
     public MedicationScheduleResponse create(MedicationScheduleRequest request) {
         MedicationRequest medicationRequest = requestRepository.findById(request.getRequestId())
                 .orElseThrow(() -> new RuntimeException("Medication request not found"));

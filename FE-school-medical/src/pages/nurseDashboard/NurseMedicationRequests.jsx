@@ -9,9 +9,12 @@ const NurseMedicationRequests = () => {
   const [error, setError] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
   const [confirming, setConfirming] = useState(null);
+  const [rejecting, setRejecting] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'confirmed'
+  const [activeTab, setActiveTab] = useState('pending'); // 'pending', 'confirmed', or 'rejected'
   useEffect(() => {
     // Check if user is authenticated before fetching data
     const token = localStorage.getItem('token');
@@ -116,6 +119,39 @@ const NurseMedicationRequests = () => {
     } finally {
       setConfirming(null);
     }
+  };
+
+  const handleRejectRequest = async () => {
+    if (!rejectReason.trim()) {
+      setError('Please provide a reason for rejection.');
+      return;
+    }
+
+    try {
+      setRejecting(selectedRequest.requestId);
+      setError(null);
+      setSuccess(null);
+      await medicationAPI.rejectMedicationRequest(selectedRequest.requestId, rejectReason);
+      setSuccess('Medication request rejected successfully. Parent will be notified.');
+      setShowRejectModal(false);
+      setRejectReason('');
+      setSelectedRequest(null);
+      await fetchPendingRequests(); // Refresh the current list
+      await fetchAllRequestsForCounts(); // Refresh counts
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (error) {
+      setError('Failed to reject medication request. Please try again.');
+    } finally {
+      setRejecting(null);
+    }
+  };
+
+  const openRejectModal = (request) => {
+    setSelectedRequest(request);
+    setRejectReason('');
+    setShowRejectModal(true);
   };
 
   const handleViewRequest = (request) => {
@@ -296,7 +332,9 @@ const NurseMedicationRequests = () => {
           <span className="text-sm text-gray-600">
             {activeTab === 'pending' 
               ? `${allRequests.filter(r => r.confirmationStatus === 'pending').length} pending requests`
-              : `${allRequests.filter(r => r.confirmationStatus === 'confirmed').length} confirmed requests`
+              : activeTab === 'confirmed'
+              ? `${allRequests.filter(r => r.confirmationStatus === 'confirmed').length} confirmed requests`
+              : `${allRequests.filter(r => r.confirmationStatus === 'unconfirmed').length} rejected requests`
             }
           </span>
           <button
@@ -342,6 +380,19 @@ const NurseMedicationRequests = () => {
               Confirmed Requests
               <span className="ml-2 bg-green-100 text-green-800 py-1 px-2 rounded-full text-xs">
                 {allRequests.filter(r => r.confirmationStatus === 'confirmed').length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('rejected')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'rejected'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Rejected Requests
+              <span className="ml-2 bg-red-100 text-red-800 py-1 px-2 rounded-full text-xs">
+                {allRequests.filter(r => r.confirmationStatus === 'unconfirmed').length}
               </span>
             </button>
           </nav>
@@ -393,19 +444,28 @@ const NurseMedicationRequests = () => {
         {(() => {
           const filteredRequests = activeTab === 'pending' 
             ? requests.filter(r => r.confirmationStatus === 'pending')
-            : requests.filter(r => r.confirmationStatus === 'confirmed');
+            : activeTab === 'confirmed'
+            ? requests.filter(r => r.confirmationStatus === 'confirmed')
+            : requests.filter(r => r.confirmationStatus === 'unconfirmed');
           
           if (filteredRequests.length === 0) {
             return (
               <div className="p-12 text-center">
                 <Pill className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-lg font-medium text-gray-900 mb-2">
-                  {activeTab === 'pending' ? 'No pending requests' : 'No confirmed requests'}
+                  {activeTab === 'pending' 
+                    ? 'No pending requests' 
+                    : activeTab === 'confirmed'
+                    ? 'No confirmed requests'
+                    : 'No rejected requests'
+                  }
                 </p>
                 <p className="text-gray-600">
                   {activeTab === 'pending' 
                     ? 'All medication requests have been processed.' 
-                    : 'No requests have been confirmed yet.'
+                    : activeTab === 'confirmed'
+                    ? 'No requests have been confirmed yet.'
+                    : 'No requests have been rejected yet.'
                   }
                 </p>
               </div>
@@ -430,7 +490,12 @@ const NurseMedicationRequests = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {activeTab === 'pending' ? 'Submitted' : 'Confirmed'}
+                      {activeTab === 'pending' 
+                        ? 'Submitted' 
+                        : activeTab === 'confirmed'
+                        ? 'Confirmed'
+                        : 'Rejected'
+                      }
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -482,7 +547,9 @@ const NurseMedicationRequests = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {activeTab === 'pending' 
                           ? formatDate(request.createdAt)
-                          : formatDate(request.confirmedAt || request.createdAt)
+                          : activeTab === 'confirmed'
+                          ? formatDate(request.confirmedAt || request.createdAt)
+                          : formatDate(request.createdAt)
                         }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -495,18 +562,32 @@ const NurseMedicationRequests = () => {
                             View
                           </button>
                           {request.confirmationStatus === 'pending' && (
-                            <button
-                              onClick={() => handleConfirmRequest(request.requestId)}
-                              disabled={confirming === request.requestId}
-                              className="text-green-600 hover:text-green-900 inline-flex items-center disabled:opacity-50"
-                            >
-                              {confirming === request.requestId ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
-                              ) : (
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                              )}
-                              Confirm
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleConfirmRequest(request.requestId)}
+                                disabled={confirming === request.requestId}
+                                className="text-green-600 hover:text-green-900 inline-flex items-center disabled:opacity-50"
+                              >
+                                {confirming === request.requestId ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
+                                ) : (
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                )}
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => openRejectModal(request)}
+                                disabled={rejecting === request.requestId}
+                                className="text-red-600 hover:text-red-900 inline-flex items-center disabled:opacity-50"
+                              >
+                                {rejecting === request.requestId ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1"></div>
+                                ) : (
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                )}
+                                Reject
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>
@@ -627,6 +708,17 @@ const NurseMedicationRequests = () => {
                     <span className="text-gray-900">{formatDate(selectedRequest.confirmedAt)}</span>
                   </div>
                 )}
+                {selectedRequest.confirmationStatus === 'unconfirmed' && selectedRequest.unconfirmReason && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-start space-x-2">
+                      <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <span className="font-medium text-red-700 block mb-1">Rejection Reason:</span>
+                        <p className="text-red-600 text-sm leading-relaxed">{selectedRequest.unconfirmReason}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -649,6 +741,82 @@ const NurseMedicationRequests = () => {
                   Confirm Request
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Modal */}
+      {showRejectModal && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Reject Medication Request</h2>
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectReason('');
+                  setSelectedRequest(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-4">
+                You are about to reject the medication request for:
+              </p>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="font-medium">{selectedRequest.studentName}</p>
+                <p className="text-sm text-gray-600">{selectedRequest.medicationName}</p>
+                <p className="text-sm text-gray-600">Parent: {selectedRequest.parentName}</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reason for rejection <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                placeholder="Please provide a clear reason for rejecting this medication request..."
+                required
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectReason('');
+                  setSelectedRequest(null);
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRejectRequest}
+                disabled={rejecting || !rejectReason.trim()}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center"
+              >
+                {rejecting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Rejecting...
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Reject Request
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
