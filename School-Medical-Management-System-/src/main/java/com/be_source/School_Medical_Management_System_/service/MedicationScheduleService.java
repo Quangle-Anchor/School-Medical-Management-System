@@ -11,6 +11,7 @@ public interface MedicationScheduleService {
     void delete(Long id);
     List<MedicationScheduleResponse> getAllForNurse();
     List<MedicationScheduleResponse> getForCurrentParentStudents();
+    MedicationScheduleResponse getById(Long id);
 
 }
 
