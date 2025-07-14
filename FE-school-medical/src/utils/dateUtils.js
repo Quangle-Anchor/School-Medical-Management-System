@@ -4,43 +4,57 @@
  * Get today's date in YYYY-MM-DD format
  */
 export const getTodayString = () => {
-  return new Date().toISOString().split('T')[0];
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 /**
- * Get a date string in YYYY-MM-DD format
+ * Get a date string in YYYY-MM-DD format without timezone conversion
  */
 export const formatDateForInput = (date) => {
-  if (!date) return '';
-  return new Date(date).toISOString().split('T')[0];
+  if (!date) return "";
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 /**
  * Validate birthdate - must be in the past and reasonable
  */
 export const validateBirthdate = (dateString) => {
-  if (!dateString) return { isValid: false, error: 'Birthdate is required' };
-  
+  if (!dateString) return { isValid: false, error: "Birthdate is required" };
+
   const inputDate = new Date(dateString);
   const today = new Date();
   const minDate = new Date();
   minDate.setFullYear(today.getFullYear() - 150); // Max 150 years old
-  
+
   // Check if date is valid
   if (isNaN(inputDate.getTime())) {
-    return { isValid: false, error: 'Please enter a valid date' };
+    return { isValid: false, error: "Please enter a valid date" };
   }
-  
+
   // Check if date is in the future
   if (inputDate >= today) {
-    return { isValid: false, error: 'Birthdate cannot be today or in the future' };
+    return {
+      isValid: false,
+      error: "Birthdate cannot be today or in the future",
+    };
   }
-  
+
   // Check if date is too far in the past
   if (inputDate < minDate) {
-    return { isValid: false, error: 'Birthdate cannot be more than 150 years ago' };
+    return {
+      isValid: false,
+      error: "Birthdate cannot be more than 150 years ago",
+    };
   }
-  
+
   return { isValid: true, error: null };
 };
 
@@ -48,23 +62,27 @@ export const validateBirthdate = (dateString) => {
  * Validate schedule date - can be today or future, but reasonable
  */
 export const validateScheduleDate = (dateString) => {
-  if (!dateString) return { isValid: false, error: 'Schedule date is required' };
-  
+  if (!dateString)
+    return { isValid: false, error: "Schedule date is required" };
+
   const inputDate = new Date(dateString);
   const today = new Date();
   const maxDate = new Date();
   maxDate.setFullYear(today.getFullYear() + 5); // Max 5 years in future
-  
+
   // Check if date is valid
   if (isNaN(inputDate.getTime())) {
-    return { isValid: false, error: 'Please enter a valid date' };
+    return { isValid: false, error: "Please enter a valid date" };
   }
-  
+
   // Check if date is too far in the future
   if (inputDate > maxDate) {
-    return { isValid: false, error: 'Schedule date cannot be more than 5 years in the future' };
+    return {
+      isValid: false,
+      error: "Schedule date cannot be more than 5 years in the future",
+    };
   }
-  
+
   return { isValid: true, error: null };
 };
 
@@ -72,28 +90,31 @@ export const validateScheduleDate = (dateString) => {
  * Validate expiry date - must be future date
  */
 export const validateExpiryDate = (dateString) => {
-  if (!dateString) return { isValid: false, error: 'Expiry date is required' };
-  
+  if (!dateString) return { isValid: false, error: "Expiry date is required" };
+
   const inputDate = new Date(dateString);
   const today = new Date();
   const maxDate = new Date();
   maxDate.setFullYear(today.getFullYear() + 50); // Max 50 years in future
-  
+
   // Check if date is valid
   if (isNaN(inputDate.getTime())) {
-    return { isValid: false, error: 'Please enter a valid date' };
+    return { isValid: false, error: "Please enter a valid date" };
   }
-  
+
   // Check if date is in the past
   if (inputDate < today) {
-    return { isValid: false, error: 'Expiry date cannot be in the past' };
+    return { isValid: false, error: "Expiry date cannot be in the past" };
   }
-  
+
   // Check if date is too far in the future
   if (inputDate > maxDate) {
-    return { isValid: false, error: 'Expiry date cannot be more than 50 years in the future' };
+    return {
+      isValid: false,
+      error: "Expiry date cannot be more than 50 years in the future",
+    };
   }
-  
+
   return { isValid: true, error: null };
 };
 
@@ -101,28 +122,32 @@ export const validateExpiryDate = (dateString) => {
  * Validate incident date - can be past or today, but not future
  */
 export const validateIncidentDate = (dateString) => {
-  if (!dateString) return { isValid: false, error: 'Incident date is required' };
-  
+  if (!dateString)
+    return { isValid: false, error: "Incident date is required" };
+
   const inputDate = new Date(dateString);
   const today = new Date();
   const minDate = new Date();
   minDate.setFullYear(today.getFullYear() - 10); // Max 10 years ago
-  
+
   // Check if date is valid
   if (isNaN(inputDate.getTime())) {
-    return { isValid: false, error: 'Please enter a valid date' };
+    return { isValid: false, error: "Please enter a valid date" };
   }
-  
+
   // Check if date is in the future
   if (inputDate > today) {
-    return { isValid: false, error: 'Incident date cannot be in the future' };
+    return { isValid: false, error: "Incident date cannot be in the future" };
   }
-  
+
   // Check if date is too far in the past
   if (inputDate < minDate) {
-    return { isValid: false, error: 'Incident date cannot be more than 10 years ago' };
+    return {
+      isValid: false,
+      error: "Incident date cannot be more than 10 years ago",
+    };
   }
-  
+
   return { isValid: true, error: null };
 };
 
@@ -186,16 +211,16 @@ export const getMinIncidentDate = () => {
  */
 export const calculateAge = (birthdate) => {
   if (!birthdate) return null;
-  
+
   const birth = new Date(birthdate);
   const today = new Date();
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
     age--;
   }
-  
+
   return age;
 };
 
@@ -203,14 +228,14 @@ export const calculateAge = (birthdate) => {
  * Format date for display
  */
 export const formatDateForDisplay = (dateString, options = {}) => {
-  if (!dateString) return 'N/A';
-  
+  if (!dateString) return "N/A";
+
   const defaultOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    ...options
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    ...options,
   };
-  
-  return new Date(dateString).toLocaleDateString('en-US', defaultOptions);
+
+  return new Date(dateString).toLocaleDateString("en-US", defaultOptions);
 };

@@ -42,27 +42,6 @@ const AdminDashboard = () => {
       changeType: totalUsers > 0 ? "positive" : "neutral",
       icon: Users,
     },
-    {
-      title: "System Health",
-      value: 0, // Show 0 if no real data
-      change: "",
-      changeType: "neutral",
-      icon: Activity,
-    },
-    {
-      title: "Reports Generated",
-      value: 0, // Show 0 if no real data
-      change: "",
-      changeType: "neutral",
-      icon: FileText,
-    },
-    {
-      title: "Active Alerts",
-      value: 0, // Show 0 if no real data
-      change: "",
-      changeType: "neutral",
-      icon: Bell,
-    },
   ];
 
   const renderContent = () => {
@@ -107,26 +86,9 @@ const AdminDashboard = () => {
             </div>
 
             {/* System Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div
-                className="bg-white rounded-lg shadow p-6"
-                style={{
-                  background: "radial-gradient(at center, #E8FEFF, #FFFFFF)",
-                }}
-              >
-                <h2 className="text-xl font-bold mb-4">
-                  Recent System Activities
-                </h2>
-                <div className="space-y-3">
-                  <div className="text-center py-8 text-gray-400">
-                    Không có hoạt động hệ thống gần đây
-                  </div>
-                </div>
-              </div>
-
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Calendar Card */}
               <ChartCard userRole="admin" />
-
               {/* Upcoming Health Events Section */}
               <UpcomingHealthEventsCard userRole="admin" />
             </div>
