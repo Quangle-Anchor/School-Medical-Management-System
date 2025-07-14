@@ -32,6 +32,10 @@ public class MedicationScheduleController {
         return ResponseEntity.ok(scheduleService.getForCurrentParentStudents());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<MedicationScheduleResponse> getScheduleById(@PathVariable Long id) {
+        return ResponseEntity.ok(scheduleService.getById(id));
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('NURSE')")
