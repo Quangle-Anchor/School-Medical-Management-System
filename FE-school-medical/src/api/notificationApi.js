@@ -31,6 +31,10 @@ const notificationApi = {
         params: { read },
       }
     ),
+
+  // Gửi thông báo cho toàn bộ nurse (dùng cho Principal)
+  sendToNurses: (data) =>
+    axiosInstance.post("/api/notifications/to-nurses", data),
 };
 
 export default notificationApi;
