@@ -33,6 +33,7 @@ public class MedicationScheduleController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('NURSE')")
     public ResponseEntity<MedicationScheduleResponse> getScheduleById(@PathVariable Long id) {
         return ResponseEntity.ok(scheduleService.getById(id));
     }
