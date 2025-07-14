@@ -59,6 +59,22 @@ public class NotificationEmailScheduler {
                         typeLabel = "✅ Medication Administered";
                         emailHeader = "Đơn thuốc của học sinh đã được cấp phát.";
                     }
+                    case "EVENT_SIGNUP" -> {
+                        typeLabel = "📥 Event Signup Status";
+                        emailHeader = "Trạng thái đăng ký sự kiện vừa được thay đổi.";
+                    }
+                    case "EVENT_UPDATED" -> {
+                        typeLabel = "🔄 Event Updated";
+                        emailHeader = "Một sự kiện y tế đã được cập nhật.";
+                    }
+                    case "EVENT_DELETED" -> {
+                        typeLabel = "❌ Event Deleted";
+                        emailHeader = "Một sự kiện y tế đã bị hủy.";
+                    }
+                    case "INTERNAL_ANNOUNCEMENT" -> {
+                        typeLabel = "📩 Message from Principal";
+                        emailHeader = "Bạn có một thông báo mới từ hiệu trưởng.";
+                    }
                     case "CUSTOM" -> {
                         typeLabel = "📢 General Notification";
                         emailHeader = "Thông báo từ trường học.";
