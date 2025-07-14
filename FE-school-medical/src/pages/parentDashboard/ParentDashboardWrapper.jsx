@@ -8,6 +8,7 @@ import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard"
 import MyChildView from "./MyChildView";
 import AddStudentForm from "./AddStudentForm";
 import MyMedicationRequests from "./MyMedicationRequests";
+import ParentMedicationSchedules from "./ParentMedicationSchedules";
 import HealthIncidentsView from "../nurseDashboard/HealthIncidentsView";
 import NotificationsView from "../nurseDashboard/NotificationsView";
 import { User, Calendar, FileText, Heart, Plus } from "lucide-react";
@@ -39,8 +40,8 @@ const ParentDashboardWrapper = () => {
     if (path.includes("/health-event")) return "health-event";
     if (path.includes("/medical-records")) return "medical-records";
     if (path.includes("/medication-requests")) return "medication-requests";
+    if (path.includes("/medication-schedules")) return "medication-schedules";
     if (path.includes("/notifications")) return "notifications";
-    if (path.includes("/messages")) return "messages";
     if (path.includes("/medical-request")) return "medical-request";
     return "dashboard";
   };
@@ -156,8 +157,8 @@ const ParentDashboardWrapper = () => {
       case "notifications":
         navigate("/parentDashboard/notifications");
         break;
-      case "messages":
-        navigate("/parentDashboard/messages");
+      case "medication-schedules":
+        navigate("/parentDashboard/medication-schedules");
         break;
       case "medical-request":
         navigate("/parentDashboard/medical-request");
@@ -242,18 +243,13 @@ const ParentDashboardWrapper = () => {
         return <NotificationsView user={parentUser} />;
       }
 
-      case "messages":
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Messages</h1>
-            <p>Messages content coming soon...</p>
-          </div>
-        );
-
       case "medical-request":
         return (
           <MyMedicationRequests onRequestAdded={handleMedicationRequestAdded} />
         );
+
+      case "medication-schedules":
+        return <ParentMedicationSchedules />;
 
       case "medication-requests":
         return (

@@ -18,6 +18,7 @@ import {
   Warehouse,
   Syringe,
   AlertTriangle,
+  Clock,
 } from "lucide-react";
 
 const Sidebar = ({
@@ -36,8 +37,8 @@ const Sidebar = ({
         { id: "health-event", icon: Calendar, label: "Health Events" },
         { id: "medical-records", icon: FileText, label: "Medical Records" },
         { id: "notifications", icon: Bell, label: "Notifications" },
-        { id: "messages", icon: MessageSquare, label: "Messages" },
         { id: "medical-request", icon: Syringe, label: "Medical Request" },
+        { id: "medication-schedules", icon: Clock, label: "Medication Schedules" },
       ];
     }
 
@@ -61,6 +62,11 @@ const Sidebar = ({
           id: "medication-requests",
           icon: Syringe,
           label: "Medication Requests",
+        },
+        {
+          id: "medication-schedules",
+          icon: Clock,
+          label: "Medication Schedules",
         },
         { id: "notifications", icon: Bell, label: "Notifications" },
         { id: "inventory", icon: Warehouse, label: "Inventory" },
