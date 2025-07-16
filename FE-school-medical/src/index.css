@@ -1,3 +1,6 @@
+/* Import Nova styles first */
+@import url('./styles/nova-integration.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

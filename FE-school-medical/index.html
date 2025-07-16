@@ -5,9 +5,34 @@
     <link rel="icon" type="image/png" href="/src/assets/img/logoXoaNen.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>School Medical Health</title>
+    
+    <!-- Nova Bootstrap Template Assets -->
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap & Nova Styles -->
+    <link href="/nova-assets/vendors/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="/nova-assets/vendors/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/nova-assets/vendors/aos/aos.css" rel="stylesheet">
+    <link href="/nova-assets/css/style.css" rel="stylesheet">
+    
+    <!-- Theme Script -->
+    <script>
+      (function() {
+        const storedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', storedTheme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Essential Nova Bootstrap Scripts -->
+    <script src="/nova-assets/vendors/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="/nova-assets/vendors/aos/aos.js"></script>
+    <script src="/nova-assets/js/main.js"></script>
   </body>
 </html>

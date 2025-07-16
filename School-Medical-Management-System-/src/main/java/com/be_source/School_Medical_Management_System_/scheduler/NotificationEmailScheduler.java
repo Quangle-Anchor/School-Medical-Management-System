@@ -23,7 +23,7 @@ public class NotificationEmailScheduler {
 
     private final String PARENT_PORTAL_URL = "http://localhost:5173/";
 
-    @Scheduled(fixedRate = 60000) // every 60 seconds
+    @Scheduled(fixedRate = 5000) // every 60 seconds
     @Transactional
     public void sendNotificationEmails() {
         List<Notification> pending = notificationRepository.findByEmailSentFalse();

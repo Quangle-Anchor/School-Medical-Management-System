@@ -13,25 +13,24 @@ import {
 } from "react-router-dom"; // Thêm Navigate
 import { useState, useEffect } from "react";
 
-import AboutPage from "./pages/about/About";
-import HomePage from "./pages/home/Homepage";
-import Contact from "./pages/Contact/Contact";
+import AboutNova from "./pages/about/AboutNova";
+import HomePage from "./pages/home/HomepageNova";
+import ContactNova from "./pages/contact/ContactNova";
 import HealthLookupPage from "./pages/HealthLookupPage/HealthLookupPage";
 import LoginPage from "./pages/login/Login";
 import SignUp from "./pages/login/SignUp";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import NovaHeaderSimple from "./components/NovaHeaderSimple";
+import NovaFooter from "./components/NovaFooter";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ForgotPassword from "./pages/forgotPassword/ForgotPassword";
 import VerifyOtp from "./pages/forgotPassword/VerifyOtp";
 import ResetPassword from "./pages/forgotPassword/ResetPassword";
 import RecoverySuccess from "./pages/forgotPassword/RecoverySuccess";
 
-import backgroundImg from "./assets/img/back.png";
-
 function AppContent() {
   const location = useLocation();
   const hideFooter = ["/login", "/signup"].includes(location.pathname);
+  const hideNavbar = false; // Show Nova navbar on all pages
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMouseNearTop, setIsMouseNearTop] = useState(false);
@@ -86,16 +85,18 @@ function AppContent() {
       {/* <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div> */}
 
       {/* Smart Navbar - always visible, but smart behavior only on non-login/signup pages */}
-      <div
-        className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
-          hideFooter || isNavbarVisible ? "translate-y-0" : "-translate-y-full"
-        }`}
-      >
-        <Navbar />
-      </div>
+      {!hideNavbar && (
+        <div
+          className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
+            hideFooter || isNavbarVisible ? "translate-y-0" : "-translate-y-full"
+          }`}
+        >
+          <NovaHeaderSimple />
+        </div>
+      )}
 
       {/* Main content area with padding for navbar */}
-      <div className="relative z-10 pt-16">
+      <div className={`relative z-10 ${!hideNavbar ? 'pt-16' : ''}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
@@ -110,8 +111,8 @@ function AppContent() {
               )
             }
           />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<AboutNova />} />
+          <Route path="/contact" element={<ContactNova />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -171,8 +172,8 @@ function AppContent() {
           />
         </Routes>
 
-        {/* Footer - hidden on login/signup pages */}
-        {!hideFooter && <Footer />}
+        {/* Footer - hidden on login/signup pages and Nova pages */}
+        {!hideFooter && !hideNavbar && <NovaFooter />}
       </div>
     </div>
   );

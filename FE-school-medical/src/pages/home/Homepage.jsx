@@ -1,6 +1,8 @@
 import React from "react";
-import { Button, Card } from "antd";
-import Navbar from "../../components/Navbar";
+import NovaLayout from "../../components/NovaLayout";
+import NovaHeader from "../../components/NovaHeader";
+import NovaHero from "../../components/NovaHero";
+import NovaFooter from "../../components/NovaFooter";
 import BlogExperience from "./BlogExperience";
 
 const SERVICES = [
