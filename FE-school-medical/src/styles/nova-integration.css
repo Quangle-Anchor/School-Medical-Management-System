@@ -1,0 +1,182 @@
+/* Nova Bootstrap Integration Styles */
+
+/* Ensure Bootstrap components work properly alongside Tailwind */
+.site-wrap {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Custom Bootstrap color scheme matching the Nova template */
+:root {
+  --bs-primary: #215C5C;
+  --bs-primary-rgb: 33, 92, 92;
+  --bs-secondary: #CCE8C9;
+  --bs-secondary-rgb: 204, 232, 201;
+}
+
+/* Animation for bounce effect */
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0,0,0);
+  }
+  40%, 43% {
+    transform: translate3d(0,-15px,0);
+  }
+  70% {
+    transform: translate3d(0,-7px,0);
+  }
+  90% {
+    transform: translate3d(0,-2px,0);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+
+/* Ensure proper font loading */
+body {
+  font-family: "Inter", sans-serif !important;
+}
+
+/* Override some Tailwind resets that conflict with Bootstrap */
+.btn {
+  text-decoration: none !important;
+}
+
+.dropdown-menu {
+  z-index: 1050 !important;
+}
+
+/* Nova specific enhancements */
+.card {
+  transition: all 0.3s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* Ensure proper section spacing */
+.section {
+  padding: 70px 0;
+}
+
+@media (max-width: 767.98px) {
+  .section {
+    padding: 40px 0;
+  }
+}
+
+/* Hero section enhancements */
+.fbs__net-navbar {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Modern navigation styling */
+.navbar.fixed-top {
+  transition: all 0.3s ease-in-out;
+  backdrop-filter: blur(10px);
+}
+
+.navbar-light .navbar-nav .nav-link.active {
+  font-weight: 600;
+  position: relative;
+}
+
+.navbar-light .navbar-nav .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 2px;
+  background: var(--bs-primary);
+  border-radius: 2px;
+}
+
+/* Hero section enhancements */
+.hero-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Floating animation for cards */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.hero-image .card {
+  animation: float 3s ease-in-out infinite;
+}
+
+.hero-image .card:nth-child(2) {
+  animation-delay: 1s;
+}
+
+/* Button enhancements */
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(45deg, #5a67d8, #6b46c1);
+}
+
+/* Card styling */
+.card {
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+/* Custom shadows */
+.shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 80vh;
+  }
+  
+  .display-2 {
+    font-size: 2.5rem;
+  }
+  
+  .lead {
+    font-size: 1.1rem;
+  }
+}
