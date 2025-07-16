@@ -59,38 +59,37 @@ const AdminDashboard = () => {
       // ...other cases (system-settings, reports, etc.) giữ nguyên...
       default:
         return (
-          <div className="p-6 space-y-6 bg-gray-50 min-h-full">
+          <div className="dashboard-content">
             {/* Header */}
-            <div className="mb-8">
+            <div className="dashboard-header">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Admin Dashboard
-                  </h1>
-                  <p className="text-gray-600 mt-2">
-                    Welcome back! Here's your system overview and administration
-                    tools.
-                  </p>
+                  <h1>Admin Dashboard</h1>
+                  <p>Welcome back! Here's your system overview and administration tools.</p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                <button className="soft-btn">
                   System Status
                 </button>
               </div>
             </div>
 
             {/* Dashboard Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
               {adminCardData.map((card, index) => (
                 <DashboardCard key={index} {...card} />
               ))}
             </div>
 
             {/* System Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="dashboard-grid grid grid-cols-1 lg:grid-cols-2">
               {/* Calendar Card */}
-              <ChartCard userRole="admin" />
+              <div className="component-container">
+                <ChartCard userRole="admin" />
+              </div>
               {/* Upcoming Health Events Section */}
-              <UpcomingHealthEventsCard userRole="admin" />
+              <div className="component-container">
+                <UpcomingHealthEventsCard userRole="admin" />
+              </div>
             </div>
           </div>
         );
@@ -98,7 +97,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="dashboard-container">
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
@@ -106,8 +105,9 @@ const AdminDashboard = () => {
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-
-      <main className="flex-1 overflow-hidden">{renderContent()}</main>
+      <main className={`soft-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        {renderContent()}
+      </main>
     </div>
   );
 };

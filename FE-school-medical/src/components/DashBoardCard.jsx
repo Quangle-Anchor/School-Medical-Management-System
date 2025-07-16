@@ -1,27 +1,30 @@
 import React from 'react';
 
 const DashboardCard = ({ title, value, change, changeType, icon: Icon }) => {
+  // Define gradient colors for different card types
+  const getGradientClass = (index = 0) => {
+    const gradients = ['gradient-primary', 'gradient-info', 'gradient-success', 'gradient-warning', 'gradient-dark'];
+    return gradients[index % gradients.length];
+  };
+
   return (
-    <div 
-      className="rounded-lg border border-border p-6 hover:shadow-md transition-shadow"
-      style={{
-        background: 'radial-gradient(at center, #E8FEFF, #FFFFFF)'
-      }}
+    <div className="dashboard-card fade-in">
+      <div className={`card-icon ${getGradientClass(Math.floor(Math.random() * 5))}`}>
+        <Icon size={24} />
+      </div>
       
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold text-foreground mt-2">{value}</p>
-          <p className={`text-sm mt-2 ${
-            changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-          }`}>
-            {change}
-          </p>
-        </div>
-        <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-          <Icon className="w-6 h-6 text-primary" />
-        </div>
+      <div className="pt-4">
+        <p className="card-title">{title}</p>
+        <h4 className="card-value">{value}</h4>
+      </div>
+      
+      <hr className="my-4 border-gray-200" />
+      
+      <div className="flex items-center">
+        <span className={`card-change ${changeType === 'positive' ? 'change-positive' : 'change-negative'}`}>
+          {change}
+        </span>
+        <span className="ml-2 text-gray-500 text-sm">since last week</span>
       </div>
     </div>
   );

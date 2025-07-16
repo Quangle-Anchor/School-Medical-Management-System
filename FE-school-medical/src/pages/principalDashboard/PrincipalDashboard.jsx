@@ -546,36 +546,35 @@ const PrincipalDashboard = () => {
 
       default:
         return (
-          <div className="p-6 space-y-6 bg-gray-50 min-h-full">
+          <div className="dashboard-content">
             {/* Header */}
-            <div className="mb-8">
+            <div className="dashboard-header">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Principal Dashboard
-                  </h1>
-                  <p className="text-gray-600 mt-2">
-                    Welcome back! Here's your operational overview and
-                    administrative insights.
-                  </p>
+                  <h1>Principal Dashboard</h1>
+                  <p>Welcome back! Here's your operational overview and administrative insights.</p>
                 </div>
               </div>
             </div>
 
             {/* Dashboard Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
               {principalCardData.map((card, index) => (
                 <DashboardCard key={index} {...card} />
               ))}
             </div>
 
             {/* Principal Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="dashboard-grid grid grid-cols-1 lg:grid-cols-2">
               {/* Calendar Card */}
-              <ChartCard userRole="principal" />
+              <div className="component-container">
+                <ChartCard userRole="principal" />
+              </div>
 
               {/* Upcoming Health Events Section */}
-              <UpcomingHealthEventsCard userRole="principal" />
+              <div className="component-container">
+                <UpcomingHealthEventsCard userRole="principal" />
+              </div>
             </div>
           </div>
         );
@@ -583,7 +582,7 @@ const PrincipalDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="dashboard-container">
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
@@ -591,8 +590,9 @@ const PrincipalDashboard = () => {
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-
-      <main className="flex-1 overflow-hidden">{renderContent()}</main>
+      <main className={`soft-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        {renderContent()}
+      </main>
     </div>
   );
 };
