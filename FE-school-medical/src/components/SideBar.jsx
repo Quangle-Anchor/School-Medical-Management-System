@@ -103,54 +103,76 @@ const Sidebar = ({
   // const userInfo = getUserInfo();
 
   return (
-    <div
-      className={`bg-white border-r border-gray-200 transition-all duration-300 ${
-        isCollapsed ? "w-16" : "w-64"
-      } min-h-screen flex flex-col`}
-    >
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        {!isCollapsed && (
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Stethoscope className="w-5 h-5 text-white" />
+    <aside className={`soft-sidebar ${isCollapsed ? 'soft-sidebar-collapsed' : ''}`}>
+      {/* Logo/Header */}
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          {!isCollapsed && (
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center">
+                <Stethoscope className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-800">Medical System</h1>
+                <p className="text-sm text-gray-500 capitalize">{userRole} Dashboard</p>
+              </div>
             </div>
-            <span className="font-semibold text-lg">MediCare</span>
-          </div>
-        )}
+          )}
+          <button
+            onClick={onToggle}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            ) : (
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Navigation Menu */}
+      <nav className="px-4 py-6">
+        <ul className="space-y-2">
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = activeMenu === item.id;
+            return (
+              <li key={index}>
+                <button
+                  onClick={() => onMenuClick && onMenuClick(item.id)}
+                  className={`soft-menu-item w-full ${isActive ? 'active' : ''}`}
+                  title={isCollapsed ? item.label : ''}
+                >
+                  <div className="soft-menu-icon">
+                    <Icon size={16} />
+                  </div>
+                  {!isCollapsed && (
+                    <span className="font-medium">{item.label}</span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* Logout Button */}
+      <div className="absolute bottom-6 left-4 right-4">
         <button
-          onClick={onToggle}
-          className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+          onClick={handleLogout}
+          className="soft-menu-item w-full text-red-600 hover:bg-red-50"
+          title={isCollapsed ? 'Logout' : ''}
         >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <ChevronLeft className="w-4 h-4" />
+          <div className="soft-menu-icon">
+            <LogOut size={16} />
+          </div>
+          {!isCollapsed && (
+            <span className="font-medium">Logout</span>
           )}
         </button>
       </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 p-2">
-        <ul className="space-y-1">
-          {menuItems.map((item, index) => (
-            <li key={index}>
-              <button
-                onClick={() => onMenuClick && onMenuClick(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
-                  activeMenu === item.id
-                    ? "bg-blue-600 text-white"
-                    : "hover:bg-gray-100 text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                {!isCollapsed && <span>{item.label}</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </div>
+    </aside>
   );
 };
 

@@ -3,7 +3,6 @@ import PrincipalDashboard from "./pages/principalDashboard/PrincipalDashboard";
 import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
 import Profile from "./pages/profile/Profile";
-import Settings from "./pages/Settings/Settings";
 import {
   BrowserRouter,
   Routes,
@@ -29,8 +28,16 @@ import RecoverySuccess from "./pages/forgotPassword/RecoverySuccess";
 
 function AppContent() {
   const location = useLocation();
-  const hideFooter = ["/login", "/signup"].includes(location.pathname);
-  const hideNavbar = false; // Show Nova navbar on all pages
+  
+  // Check if current page is a dashboard
+  const isDashboardPage = location.pathname.includes('Dashboard') || 
+                          location.pathname.includes('/adminDashboard') ||
+                          location.pathname.includes('/nurseDashboard') ||
+                          location.pathname.includes('/principalDashboard') ||
+                          location.pathname.includes('/parentDashboard');
+  
+  const hideFooter = ["/login", "/signup"].includes(location.pathname) || isDashboardPage;
+  const hideNavbar = isDashboardPage; // Hide navbar on dashboard pages
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMouseNearTop, setIsMouseNearTop] = useState(false);
@@ -39,7 +46,7 @@ function AppContent() {
   const isAuthenticated = !!localStorage.getItem("token");
 
   useEffect(() => {
-    if (hideFooter) return; // Don't apply scroll behavior on login/signup pages
+    if (hideFooter || isDashboardPage) return; // Don't apply scroll behavior on login/signup/dashboard pages
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -131,14 +138,6 @@ function AppContent() {
             }
           />
           <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/adminDashboard"
             element={
               <ProtectedRoute requiredRole="Admin">
@@ -172,8 +171,8 @@ function AppContent() {
           />
         </Routes>
 
-        {/* Footer - hidden on login/signup pages and Nova pages */}
-        {!hideFooter && !hideNavbar && <NovaFooter />}
+        {/* Footer - hidden on login/signup pages and dashboard pages */}
+        {!hideFooter && <NovaFooter />}
       </div>
     </div>
   );

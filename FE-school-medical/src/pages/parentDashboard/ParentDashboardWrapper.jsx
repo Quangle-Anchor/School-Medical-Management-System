@@ -257,53 +257,52 @@ const ParentDashboardWrapper = () => {
         );
       default:
         return (
-          <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+          <div className="dashboard-content">
             {/* Header */}
-            <div className="mb-8">
+            <div className="dashboard-header">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Parent Dashboard
-                  </h1>
-                  <p className="text-gray-600 mt-2">
-                    Welcome back! Here's your child's health overview and
-                    updates.
-                  </p>
+                  <h1>Parent Dashboard</h1>
+                  <p>Welcome back! Here's your child's health overview and updates.</p>
                 </div>
                 <button
                   onClick={() => setShowAddForm(true)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center space-x-2"
+                  className="soft-btn"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 mr-2" />
                   <span>Add Student</span>
                 </button>
               </div>
             </div>
 
             {/* Dashboard Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
               {parentCardData.map((card, index) => (
                 <DashboardCard key={index} {...card} />
               ))}
             </div>
 
             {/* Charts and Calendar Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="dashboard-grid grid grid-cols-1 lg:grid-cols-2">
               {/* Calendar Card */}
-              <ChartCard userRole="parent" />
+              <div className="component-container">
+                <ChartCard userRole="parent" />
+              </div>
 
               {/* Upcoming Health Events */}
-              <UpcomingHealthEventsCard
-                userRole="parent"
-                onViewAll={() => handleMenuClick("health-event")}
-              />
+              <div className="component-container">
+                <UpcomingHealthEventsCard
+                  userRole="parent"
+                  onViewAll={() => handleMenuClick("health-event")}
+                />
+              </div>
             </div>
           </div>
         );
     }
   };
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="dashboard-container">
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
@@ -311,9 +310,9 @@ const ParentDashboardWrapper = () => {
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-
-      <main className="flex-1">{renderContent()}</main>
-
+      <main className={`soft-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        {renderContent()}
+      </main>
       <AddStudentForm
         isOpen={showAddForm}
         onClose={() => setShowAddForm(false)}

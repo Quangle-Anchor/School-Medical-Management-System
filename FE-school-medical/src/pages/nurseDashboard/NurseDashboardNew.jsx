@@ -251,37 +251,38 @@ const NurseDashboard = () => {
 
       default:
         return (
-          <div className="p-6 space-y-6 bg-gray-50 min-h-full">
-            {/* Header */}
-            <div className="mb-8">
+          <div className="dashboard-content">
+            {/* Header Section */}
+            <div className="dashboard-header">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Nurse Dashboard
-                  </h1>
-                  <p className="text-gray-600 mt-2">
-                    Welcome back! Here's your patient care overview and daily
-                    tasks.
-                  </p>
+                  <h1>Nurse Dashboard</h1>
+                  <p>Welcome back! Here's your patient care overview and daily tasks.</p>
                 </div>
               </div>
             </div>
 
             {/* Dashboard Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
               {nurseCardData.map((card, index) => (
                 <DashboardCard key={index} {...card} />
               ))}
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* Content Grid */}
+            <div className="dashboard-grid grid grid-cols-1 lg:grid-cols-2">
               {/* Calendar Card */}
-              <ChartCard userRole="nurse" />
+              <div className="component-container">
+                <ChartCard userRole="nurse" />
+              </div>
 
               {/* Upcoming Health Events Section */}
-              <UpcomingHealthEventsCard
-                userRole="nurse"
-                onViewAll={() => handleMenuClick("health-events")}
-              />
+              <div className="component-container">
+                <UpcomingHealthEventsCard
+                  userRole="nurse"
+                  onViewAll={() => handleMenuClick("health-events")}
+                />
+              </div>
             </div>
           </div>
         );
@@ -289,7 +290,7 @@ const NurseDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="dashboard-container">
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
@@ -297,8 +298,9 @@ const NurseDashboard = () => {
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-
-      <main className="flex-1 overflow-hidden">{renderContent()}</main>
+      <main className={`soft-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        {renderContent()}
+      </main>
     </div>
   );
 };
