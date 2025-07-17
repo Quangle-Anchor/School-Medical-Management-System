@@ -1,30 +1,34 @@
 import React from 'react';
 
-const DashboardCard = ({ title, value, change, changeType, icon: Icon }) => {
-  // Define gradient colors for different card types
-  const getGradientClass = (index = 0) => {
-    const gradients = ['gradient-primary', 'gradient-info', 'gradient-success', 'gradient-warning', 'gradient-dark'];
-    return gradients[index % gradients.length];
+const DashboardCard = ({ title, value, change, changeType, icon: Icon, priority = 'normal' }) => {
+  // Define gradient colors based on priority and card type
+  // Accent gradient: medical-friendly light blue
+  const getGradientClass = () => 'bg-gradient-to-tl from-sky-500 to-sky-600';
+
+  const getChangeColor = (changeType) => {
+    switch (changeType) {
+      case 'positive':
+        return 'text-green-500';
+      case 'negative':
+        return 'text-red-500';
+      default:
+        return 'text-slate-500';
+    }
   };
 
   return (
-    <div className="dashboard-card fade-in">
-      <div className={`card-icon ${getGradientClass(Math.floor(Math.random() * 5))}`}>
-        <Icon size={24} />
-      </div>
-      
-      <div className="pt-4">
-        <p className="card-title">{title}</p>
-        <h4 className="card-value">{value}</h4>
-      </div>
-      
-      <hr className="my-4 border-gray-200" />
-      
-      <div className="flex items-center">
-        <span className={`card-change ${changeType === 'positive' ? 'change-positive' : 'change-negative'}`}>
-          {change}
-        </span>
-        <span className="ml-2 text-gray-500 text-sm">since last week</span>
+    <div className="bg-white shadow-md rounded-xl p-4 transition-all duration-300 hover:shadow-lg">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase text-slate-500 mb-1">{title}</p>
+          <h3 className="text-3xl font-bold text-slate-700 mb-2">{value}</h3>
+          <p className="text-sm text-slate-400">
+            <span className={`font-semibold ${getChangeColor(changeType)}`}>{change}</span>
+          </p>
+        </div>
+        <div className={`flex items-center justify-center w-14 h-14 rounded-xl ${getGradientClass()} shadow-sm`}>
+          <Icon className="w-6 h-6 text-white" />
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import PrincipalDashboard from "./pages/principalDashboard/PrincipalDashboard";
 import NurseDashboard from "./pages/nurseDashboard/NurseDashboardNew";
 import ParentDashboard from "./pages/parentDashboard/ParentDashboardWrapper";
 import Profile from "./pages/profile/Profile";
+
 import {
   BrowserRouter,
   Routes,
@@ -169,6 +170,7 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+       
         </Routes>
 
         {/* Footer - hidden on login/signup pages and dashboard pages */}
