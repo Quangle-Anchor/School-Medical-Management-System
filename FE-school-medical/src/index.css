@@ -1,9 +1,43 @@
-/* Import Nova styles first */
+/* Import Soft UI Dashboard styles first for proper styling */
+@import url('./styles/soft-ui-dashboard.css');
+
+/* Import Nova styles second */
 @import url('./styles/nova-integration.css');
+
+/* Import Soft UI Dashboard template CSS for core components */
+/* Soft UI Dashboard: build assets */
+@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/nucleo-icons.css');
+@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/nucleo-svg.css');
+@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/perfect-scrollbar.css');
+@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/tooltips.css');
+@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/soft-ui-dashboard-tailwind.min.css');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Soft UI Dashboard overrides to ensure proper styling */
+.dashboard-container {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  background: #f8f9fa !important;
+  color: #67748e;
+}
+
+/* Ensure Soft UI layout takes precedence */
+.soft-main {
+  transition: all 0.3s ease;
+  position: relative;
+  margin-left: 17.125rem;
+  min-height: 100vh;
+  background: transparent;
+}
+
+.soft-main.sidebar-collapsed {
+  margin-left: 5rem;
+}
 
 /* Remove default password visibility icons from browsers */
 input[type="password"]::-ms-reveal,

@@ -546,35 +546,34 @@ const PrincipalDashboard = () => {
 
       default:
         return (
-          <div className="dashboard-content">
+          <div className="bg-gray-100 p-6">
             {/* Header */}
-            <div className="dashboard-header">
+            <div className="mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1>Principal Dashboard</h1>
-                  <p>Welcome back! Here's your operational overview and administrative insights.</p>
+                  <h1 className="text-2xl font-bold text-gray-900">Principal Dashboard</h1>
+                  <p className="text-gray-600">Welcome back! Here's your operational overview and administrative insights.</p>
                 </div>
               </div>
             </div>
 
             {/* Dashboard Cards */}
-            <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {principalCardData.map((card, index) => (
                 <DashboardCard key={index} {...card} />
               ))}
             </div>
 
             {/* Principal Overview */}
-            <div className="dashboard-grid grid grid-cols-1 lg:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               {/* Calendar Card */}
-              <div className="component-container">
-                <ChartCard userRole="principal" />
-              </div>
+              <ChartCard userRole="principal" />
 
               {/* Upcoming Health Events Section */}
-              <div className="component-container">
-                <UpcomingHealthEventsCard userRole="principal" />
-              </div>
+              <UpcomingHealthEventsCard 
+                userRole="principal"
+                onViewAll={() => setActiveView('scheduling')}
+              />
             </div>
           </div>
         );
@@ -582,7 +581,7 @@ const PrincipalDashboard = () => {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="bg-gray-100 p-6">
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
@@ -590,7 +589,7 @@ const PrincipalDashboard = () => {
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-      <main className={`soft-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <main className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${sidebarCollapsed ? 'xl:ml-20' : ''}`}>
         {renderContent()}
       </main>
     </div>

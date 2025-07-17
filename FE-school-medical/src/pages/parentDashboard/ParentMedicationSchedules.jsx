@@ -67,7 +67,7 @@ const ParentMedicationSchedules = () => {
   const groupedSchedules = groupSchedulesByStudent(schedules);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="bg-gray-100 p-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">My Children's Medication Schedules</h1>
@@ -84,7 +84,7 @@ const ParentMedicationSchedules = () => {
 
       {/* Schedules by Student */}
       {Object.keys(groupedSchedules).length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+        <div className="bg-white shadow-md rounded-xl p-4 text-center">
           <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Medication Schedules</h3>
           <p className="text-gray-600">No medication schedules found for your children.</p>
@@ -92,10 +92,10 @@ const ParentMedicationSchedules = () => {
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedSchedules).map(([studentName, studentSchedules]) => (
-            <div key={studentName} className="bg-white rounded-lg shadow-sm border">
+            <div key={studentName} className="bg-white shadow-md rounded-xl p-4">
               {/* Student Header */}
-              <div className="px-6 py-4 border-b bg-gray-50">
-                <div className="flex items-center">
+              <div className="px-2 py-2 border-b bg-gray-50 -mx-4 mb-4">
+                <div className="flex items-center px-4">
                   <User className="w-5 h-5 text-gray-500 mr-2" />
                   <h2 className="text-xl font-semibold text-gray-900">{studentName}</h2>
                   <span className="ml-2 text-sm text-gray-500">
@@ -105,7 +105,7 @@ const ParentMedicationSchedules = () => {
               </div>
 
               {/* Schedules List */}
-              <div className="p-6">
+              <div className="">
                 <div className="grid gap-4">
                   {studentSchedules
                     .sort((a, b) => new Date(`${a.scheduledDate}T${a.scheduledTime}`) - new Date(`${b.scheduledDate}T${b.scheduledTime}`))
@@ -114,7 +114,7 @@ const ParentMedicationSchedules = () => {
                       return (
                         <div 
                           key={schedule.scheduleId} 
-                          className={`border rounded-lg p-4 ${upcoming ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}
+                          className={`bg-white shadow-md rounded-xl p-4 ${upcoming ? 'border-blue-200 border-2' : ''}`}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -164,7 +164,7 @@ const ParentMedicationSchedules = () => {
 
       {/* Summary Section */}
       {Object.keys(groupedSchedules).length > 0 && (
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div className="mt-8 bg-white shadow-md rounded-xl p-4">
           <div className="flex items-center mb-4">
             <CheckCircle className="w-5 h-5 text-blue-600 mr-2" />
             <h3 className="text-lg font-semibold text-blue-900">Schedule Summary</h3>

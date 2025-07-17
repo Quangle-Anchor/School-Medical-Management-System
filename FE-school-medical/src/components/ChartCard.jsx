@@ -48,15 +48,14 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
         }
         eventsMap[dateKey].push({
           type: event.category?.toLowerCase() || 'checkup',
-          title: event.title || event.eventName,
-          description: event.description,
-          id: event.eventId
+          title: event.title || event.eventName || 'Health Event',
+          id: event.id
         });
       });
       
       setHealthEvents(eventsMap);
     } catch (error) {
-      console.error('Error fetching health events for calendar:', error);
+      console.error('Error fetching health events:', error);
       setHealthEvents({});
     } finally {
       setLoading(false);
@@ -92,17 +91,17 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
     // Get the primary event type for coloring
     const primaryEvent = events[0];
     const colors = {
-      'vaccination': 'bg-blue-100',
-      'general checkup': 'bg-green-100', 
-      'dental': 'bg-purple-100',
-      'vision': 'bg-orange-100',
-      'physical': 'bg-red-100',
-      'mental health': 'bg-indigo-100',
-      'checkup': 'bg-green-100',
-      'treatment': 'bg-orange-100',
-      'emergency': 'bg-red-100',
-      'other': 'bg-gray-100',
-      'default': 'bg-gray-100'
+      'vaccination': 'bg-blue-50 border border-blue-200',
+      'general checkup': 'bg-green-50 border border-green-200', 
+      'dental': 'bg-sky-50 border border-sky-200',
+      'vision': 'bg-orange-50 border border-orange-200',
+      'physical': 'bg-red-50 border border-red-200',
+      'mental health': 'bg-indigo-50 border border-indigo-200',
+      'checkup': 'bg-green-50 border border-green-200',
+      'treatment': 'bg-orange-50 border border-orange-200',
+      'emergency': 'bg-red-50 border border-red-200',
+      'other': 'bg-gray-50 border border-gray-200',
+      'default': 'bg-gray-50 border border-gray-200'
     };
     return colors[primaryEvent.type] || colors.default;
   };
@@ -130,7 +129,7 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
     for (let i = 0; i < firstDayWeekday; i++) {
       const prevMonthDay = new Date(currentYear, currentMonth, -firstDayWeekday + i + 1).getDate();
       days.push(
-        <div key={`prev-${i}`} className="p-2 text-gray-400 text-sm">
+        <div key={`prev-${i}`} className="p-2 text-slate-300 text-sm text-center">
           {prevMonthDay}
         </div>
       );
@@ -140,22 +139,22 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
     for (let day = 1; day <= daysInMonth; day++) {
       const events = getDateEvents(day);
       const hasEvents = events.length > 0;
-      const todayClass = isToday(day) ? 'bg-blue-500 text-white' : '';
-      const selectedClass = isSelected(day) ? 'ring-2 ring-blue-500' : '';
+      const todayClass = isToday(day) ? 'bg-sky-500 text-white shadow-sm' : '';
+      const selectedClass = isSelected(day) ? 'ring-2 ring-sky-400' : '';
       const eventBackgroundClass = hasEvents && !isToday(day) ? getDateBackgroundColor(events) : '';
       
       days.push(
         <div
           key={day}
           onClick={() => setSelectedDate(new Date(currentYear, currentMonth, day))}
-          className={`p-2 text-sm cursor-pointer hover:bg-blue-50 rounded transition-colors relative ${todayClass} ${selectedClass} ${eventBackgroundClass}`}
+          className={`p-2 text-sm cursor-pointer hover:bg-slate-50 rounded-lg transition-all duration-200 relative text-center ${todayClass} ${selectedClass} ${eventBackgroundClass}`}
         >
-          <span className={`${hasEvents && !isToday(day) ? 'font-semibold text-gray-800' : ''}`}>
+          <span className={`${hasEvents && !isToday(day) ? 'font-semibold text-slate-700' : 'text-slate-700'}`}>
             {day}
           </span>
           {hasEvents && events.length > 1 && (
-            <div className="absolute top-1 right-1">
-              <span className="text-xs bg-gray-600 text-white rounded-full px-1">
+            <div className="absolute -top-1 -right-1">
+              <span className="text-xs bg-gradient-to-tl from-slate-600 to-slate-400 text-white rounded-full px-1 shadow-sm">
                 {events.length}
               </span>
             </div>
@@ -168,13 +167,12 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow"
-    style={{
-        background: 'radial-gradient(at center, #E8FEFF, #FFFFFF)'
-      }}>
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-foreground">Calendar</h3>
-        <p className="text-sm text-muted-foreground">
+    <div className="relative flex flex-col min-w-0 break-words bg-white shadow-md rounded-2xl bg-clip-border">
+      <div className="p-6 pb-2 mb-2 bg-white border-b border-slate-100 rounded-t-2xl">
+        <div className="flex items-center justify-between">
+          <h6 className="mb-0 text-base font-semibold text-slate-700">Calendar</h6>
+        </div>
+        <p className="mt-1 text-sm text-slate-400">
           {userRole === 'parent' ? 'Health events and medical appointments calendar' :
            userRole === 'nurse' ? 'Health events and medical appointments calendar' :
            userRole === 'principal' ? 'Health events and medical appointments calendar' :
@@ -182,105 +180,109 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
         </p>
       </div>
       
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-xl font-semibold">
-            {months[currentMonth]} {currentYear}
-          </h2>
-          <button
-            onClick={() => setCurrentDate(new Date())}
-            className="px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors"
-          >
-            Today
-          </button>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => navigateMonth(-1)}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => navigateMonth(1)}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Days of week header */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {daysOfWeek.map(day => (
-          <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
-            {day}
-          </div>
-        ))}
-      </div>
-
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1 mb-4">
-        {generateCalendarDays()}
-      </div>
-
-      {/* Event Legend */}
-      <div className="flex justify-center space-x-6 text-sm">
-        <div className="flex items-center">
-          <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-          <span>Health Checkups</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-          <span>Vaccinations</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-          <span>Treatments</span>
-        </div>
-      </div>
-
-      {/* Selected Date Events */}
-      {selectedDate && (
-        <div className="mt-4 p-3 bg-gray-50 rounded-md">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="font-medium">
-              Events for {selectedDate.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </h4>
-            {onCreateEvent && (
+      <div className="flex-auto pb-0">
+        <div className="p-4">
+          {/* Calendar Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-lg font-semibold text-slate-700">
+                {months[currentMonth]} {currentYear}
+              </h2>
               <button
-                onClick={() => onCreateEvent(selectedDate)}
-                className="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors flex items-center"
+                onClick={() => setCurrentDate(new Date())}
+                className="inline-block px-4 py-2 mb-0 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-sm bg-sky-500 leading-pro ease-soft-in tracking-tight-soft shadow-sm"
               >
-                <span className="mr-1">+</span>
-                Add Event
+                Today
               </button>
-            )}
-          </div>
-          {getDateEvents(selectedDate.getDate()).length > 0 ? (
-            <div className="space-y-1">
-              {getDateEvents(selectedDate.getDate()).map((event, idx) => (
-                <div key={idx} className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    event.type === 'checkup' ? 'bg-green-500' :
-                    event.type === 'vaccination' ? 'bg-blue-500' :
-                    'bg-orange-500'
-                  }`} />
-                  <span className="text-sm">{event.title}</span>
-                </div>
-              ))}
             </div>
-          ) : (
-            <p className="text-sm text-gray-500">No events scheduled</p>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => navigateMonth(-1)}
+                className="inline-block p-2 text-slate-400 hover:text-slate-700 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => navigateMonth(1)}
+                className="inline-block p-2 text-slate-400 hover:text-slate-700 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Days of week header */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {daysOfWeek.map(day => (
+              <div key={day} className="p-2 text-center text-sm font-medium text-slate-400">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-1 mb-4">
+            {generateCalendarDays()}
+          </div>
+
+          {/* Event Legend */}
+          <div className="flex justify-center space-x-6 text-sm mb-4">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-gradient-to-tl from-green-600 to-lime-400 rounded-full mr-2"></div>
+              <span className="text-slate-700">Health Checkups</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-full mr-2"></div>
+              <span className="text-slate-700">Vaccinations</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-gradient-to-tl from-orange-500 to-yellow-400 rounded-full mr-2"></div>
+              <span className="text-slate-700">Treatments</span>
+            </div>
+          </div>
+
+          {/* Selected Date Events */}
+          {selectedDate && (
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <h6 className="font-semibold text-slate-700">
+                  Events for {selectedDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </h6>
+                {onCreateEvent && (
+                  <button
+                    onClick={() => onCreateEvent(selectedDate)}
+                    className="px-3 py-1 text-sm font-semibold text-white bg-sky-500 rounded-lg hover:bg-sky-600 transition"
+                  >
+                    <span className="mr-1">+</span>
+                    Add Event
+                  </button>
+                )}
+              </div>
+              {getDateEvents(selectedDate.getDate()).length > 0 ? (
+                <div className="space-y-2">
+                  {getDateEvents(selectedDate.getDate()).map((event, idx) => (
+                    <div key={idx} className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        event.type === 'checkup' ? 'bg-gradient-to-tl from-green-600 to-lime-400' :
+                        event.type === 'vaccination' ? 'bg-gradient-to-tl from-blue-600 to-cyan-400' :
+                        'bg-gradient-to-tl from-orange-500 to-yellow-400'
+                      }`} />
+                      <span className="text-sm text-slate-700">{event.title}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400">No events scheduled</p>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

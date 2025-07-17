@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/SideBar";
+import TopNavbar from "../../components/Navbar";
 import ChartCard from "../../components/ChartCard";
 import DashboardCard from "../../components/DashboardCard";
 import HealthEventsView from "../../components/HealthEventsView";
@@ -16,11 +17,6 @@ import { studentAPI } from "../../api/studentsApi";
 import { healthIncidentAPI } from "../../api/healthIncidentApi";
 import { medicationAPI } from "../../api/medicationApi";
 import { healthEventAPI } from "../../api/healthEventApi";
-import {
-  formatEventDate,
-  getCategoryStyle,
-  safeDisplay,
-} from "../../utils/dashboardUtils";
 
 const ParentDashboardWrapper = () => {
   const navigate = useNavigate();
@@ -176,6 +172,7 @@ const ParentDashboardWrapper = () => {
       change: "Active students",
       changeType: "neutral",
       icon: User,
+      priority: "normal"
     },
     {
       title: "Upcoming Health Events",
@@ -183,6 +180,7 @@ const ParentDashboardWrapper = () => {
       change: "Scheduled events",
       changeType: "positive",
       icon: Calendar,
+      priority: "normal"
     },
     {
       title: "Health Incidents",
@@ -190,6 +188,7 @@ const ParentDashboardWrapper = () => {
       change: "Health incidents",
       changeType: "neutral",
       icon: FileText,
+      priority: healthIncidentsCount > 0 ? "high" : "normal"
     },
     {
       title: "Medication Requests",
@@ -197,6 +196,7 @@ const ParentDashboardWrapper = () => {
       change: "Total requests sent",
       changeType: "neutral",
       icon: Heart,
+      priority: medicationRequestsCount > 5 ? "high" : "normal"
     },
   ];
 
@@ -257,52 +257,31 @@ const ParentDashboardWrapper = () => {
         );
       default:
         return (
-          <div className="dashboard-content">
-            {/* Header */}
-            <div className="dashboard-header">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1>Parent Dashboard</h1>
-                  <p>Welcome back! Here's your child's health overview and updates.</p>
-                </div>
-                <button
-                  onClick={() => setShowAddForm(true)}
-                  className="soft-btn"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  <span>Add Student</span>
-                </button>
-              </div>
-            </div>
-
+          <div className="bg-gray-100 p-6">
             {/* Dashboard Cards */}
-            <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {parentCardData.map((card, index) => (
                 <DashboardCard key={index} {...card} />
               ))}
             </div>
 
             {/* Charts and Calendar Section */}
-            <div className="dashboard-grid grid grid-cols-1 lg:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               {/* Calendar Card */}
-              <div className="component-container">
-                <ChartCard userRole="parent" />
-              </div>
+              <ChartCard userRole="parent" />
 
               {/* Upcoming Health Events */}
-              <div className="component-container">
-                <UpcomingHealthEventsCard
-                  userRole="parent"
-                  onViewAll={() => handleMenuClick("health-event")}
-                />
-              </div>
+              <UpcomingHealthEventsCard
+                userRole="parent"
+                onViewAll={() => handleMenuClick("health-event")}
+              />
             </div>
           </div>
         );
     }
   };
   return (
-    <div className="dashboard-container">
+    <div className="bg-gray-100 p-6">
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
@@ -310,9 +289,17 @@ const ParentDashboardWrapper = () => {
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-      <main className={`soft-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      
+      <main className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${sidebarCollapsed ? 'xl:ml-20' : ''}`}>
+        <TopNavbar 
+          title="Parent Dashboard"
+          breadcrumb={["Parent", "Dashboard"]}
+          userInfo={{ name: localStorage.getItem("fullname") || "Parent User" }}
+        />
+        
         {renderContent()}
       </main>
+      
       <AddStudentForm
         isOpen={showAddForm}
         onClose={() => setShowAddForm(false)}

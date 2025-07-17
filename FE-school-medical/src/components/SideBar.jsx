@@ -103,72 +103,93 @@ const Sidebar = ({
   // const userInfo = getUserInfo();
 
   return (
-    <aside className={`soft-sidebar ${isCollapsed ? 'soft-sidebar-collapsed' : ''}`}>
+    <aside className={`max-w-62.5 ease-nav-brand z-990 fixed inset-y-0 my-4 ml-4 block w-full -translate-x-full flex-wrap items-center justify-between bg-gray-50 shadow-sm overflow-y-auto overflow-x-hidden rounded-2xl border-0 p-0 antialiased transition-transform duration-200 xl:left-0 xl:translate-x-0 ${isCollapsed ? 'w-20' : 'w-64'}`}>
       {/* Logo/Header */}
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-center justify-between">
-          {!isCollapsed && (
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center">
-                <Stethoscope className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-800">Medical System</h1>
-                <p className="text-sm text-gray-500 capitalize">{userRole} Dashboard</p>
-              </div>
+      <div className="h-19.5">
+        <div className="block px-8 py-6 m-0 text-sm whitespace-nowrap text-slate-700">
+          <div className="flex items-center">
+            <div className={`w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center mr-2 ${isCollapsed ? 'mr-0' : 'mr-3'}`}>
+              <Stethoscope className="w-5 h-5 text-white" />
             </div>
-          )}
-          <button
-            onClick={onToggle}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            ) : (
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            {!isCollapsed && (
+              <div>
+                <span className="ml-1 font-semibold transition-all duration-200 ease-nav-brand text-slate-700">
+                  Medical System
+                </span>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mt-1">
+                  {userRole === "parent" ? "Parent Portal" : 
+                   userRole === "nurse" ? "Nurse Dashboard" :
+                   userRole === "admin" ? "Admin Panel" : 
+                   userRole === "Principal" ? "Principal Dashboard" : "Healthcare"}
+                </p>
+              </div>
             )}
-          </button>
+          </div>
         </div>
+        <button
+          onClick={onToggle}
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors xl:hidden"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-5 h-5 text-slate-600" />
+          ) : (
+            <ChevronLeft className="w-5 h-5 text-slate-600" />
+          )}
+        </button>
       </div>
 
+      <hr className="h-px mt-0 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent" />
+
       {/* Navigation Menu */}
-      <nav className="px-4 py-6">
-        <ul className="space-y-2">
+      <div className="items-center block w-auto max-h-screen overflow-y-auto overflow-x-hidden h-sidenav grow basis-full">
+        <ul className="flex flex-col pl-0 mb-0">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeMenu === item.id;
             return (
-              <li key={index}>
+              <li key={index} className="mt-0.5 w-full">
                 <button
                   onClick={() => onMenuClick && onMenuClick(item.id)}
-                  className={`soft-menu-item w-full ${isActive ? 'active' : ''}`}
+                  className={`flex items-center w-full py-2 px-4 my-1 text-sm font-medium rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'bg-sky-100 text-sky-600 border-l-4 border-sky-500'
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  }`}
                   title={isCollapsed ? item.label : ''}
                 >
-                  <div className="soft-menu-icon">
+                  <div className={`mr-3 flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'bg-sky-500 text-white shadow-sm'
+                      : 'bg-white fill-current text-slate-700 hover:bg-slate-50'
+                  }`}>
                     <Icon size={16} />
                   </div>
                   {!isCollapsed && (
-                    <span className="font-medium">{item.label}</span>
+                    <span className="ml-1 duration-300 pointer-events-none ease-soft">
+                      {item.label}
+                    </span>
                   )}
                 </button>
               </li>
             );
           })}
         </ul>
-      </nav>
+      </div>
 
       {/* Logout Button */}
       <div className="absolute bottom-6 left-4 right-4">
         <button
           onClick={handleLogout}
-          className="soft-menu-item w-full text-red-600 hover:bg-red-50"
+          className="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap rounded-lg px-4 font-medium transition-colors text-red-500 hover:text-red-600 w-full"
           title={isCollapsed ? 'Logout' : ''}
         >
-          <div className="soft-menu-icon">
+          <div className="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 bg-center stroke-0 text-center xl:p-2.5 text-red-500">
             <LogOut size={16} />
           </div>
           {!isCollapsed && (
-            <span className="font-medium">Logout</span>
+            <span className="ml-1 duration-300 pointer-events-none ease-soft">
+              Logout
+            </span>
           )}
         </button>
       </div>
