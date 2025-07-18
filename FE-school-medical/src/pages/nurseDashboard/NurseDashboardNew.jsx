@@ -1,11 +1,12 @@
 import NotificationsView from "./NotificationsView";
-import MedicationScheduleManagement from "./MedicationScheduleManagement";
+import MedicationScheduleManagement from "./MedicationScheduleView";
 import MedicationScheduleForm from "./MedicationScheduleForm";
 import MedicationScheduleDetail from "./MedicationScheduleDetail";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/SideBar";
+import TopNavbar from "../../components/Navbar";
 import DashboardCard from "../../components/DashboardCard";
 import ChartCard from "../../components/ChartCard";
 import HealthEventsView from "../../components/HealthEventsView";
@@ -295,6 +296,12 @@ const NurseDashboard = () => {
         onMenuClick={handleMenuClick}
       />
       <main className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${sidebarCollapsed ? 'xl:ml-20' : ''}`}>
+        <TopNavbar 
+          title="Nurse Dashboard"
+          breadcrumb={["Nurse", "Dashboard"]}
+          userInfo={{ name: localStorage.getItem("fullname") || "Nurse User" }}
+        />
+        
         {renderContent()}
       </main>
     </div>

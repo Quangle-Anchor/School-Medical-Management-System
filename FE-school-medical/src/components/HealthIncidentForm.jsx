@@ -50,6 +50,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
   useEffect(() => {
     if (isEditing && editingIncident) {
       const studentId = editingIncident.student?.studentId || editingIncident.studentId || '';
+      
       setFormData({
         studentId: String(studentId), // Ensure it's always a string
         incidentDate: editingIncident.incidentDate ? formatDateForInput(editingIncident.incidentDate) : '',
@@ -60,6 +61,17 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       if (editingIncident.student) {
         setSelectedStudent(editingIncident.student);
         setSearchTerm(editingIncident.student.fullName || '');
+      } else if (studentId && students.length > 0) {
+        // Try to find the student in the loaded students list
+        const foundStudent = students.find(s => String(s.studentId) === String(studentId));
+        if (foundStudent) {
+          setSelectedStudent(foundStudent);
+          setSearchTerm(foundStudent.fullName || '');
+        } else {
+          // Clear the selection to show the manual input field
+          setSelectedStudent(null);
+          setSearchTerm('');
+        }
       }
     } else {
       setFormData({
@@ -73,7 +85,21 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
     setError('');
     setDateError('');
     setIsDropdownOpen(false);
-  }, [isEditing, editingIncident, isOpen]);
+  }, [isEditing, editingIncident, isOpen, students]);
+
+  // Additional effect to set selected student after students are loaded
+  useEffect(() => {
+    if (isEditing && editingIncident && students.length > 0 && !selectedStudent) {
+      const studentId = editingIncident.student?.studentId || editingIncident.studentId || '';
+      if (studentId) {
+        const foundStudent = students.find(s => String(s.studentId) === String(studentId));
+        if (foundStudent) {
+          setSelectedStudent(foundStudent);
+          setSearchTerm(foundStudent.fullName || '');
+        }
+      }
+    }
+  }, [students, isEditing, editingIncident, selectedStudent]);
 
   const fetchAllStudents = async () => {
     try {
@@ -90,28 +116,21 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       console.log('Fetching students...');
         // Use getMyStudents which handles role-based access properly
       const response = await studentAPI.getMyStudents();
-      console.log('Students API response:', response);
       
       // getMyStudents returns an array directly, not a paginated response
       const studentsData = Array.isArray(response) ? response : [];
-      console.log('Processed students data:', studentsData);
       
       setStudents(studentsData);
       
       if (studentsData.length === 0) {
-        console.warn('No students found in the response');
         setError('No students found. Please make sure students are registered in the system.');
-      } else {
-        console.log(`Successfully loaded ${studentsData.length} students`);
       }
     } catch (error) {
-      console.error('Error fetching students:', error);
       
       // More detailed error handling
       if (error.response) {
         // Server responded with error status
         const status = error.response.status;
-        console.error('Server error status:', status, error.response.data);
         
         if (status === 401) {
           setError('Session expired. Please login again.');
@@ -126,11 +145,9 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
         }
       } else if (error.request) {
         // Request was made but no response received
-        console.error('Network error:', error.request);
         setError('Network error. Please check your connection and try again.');
       } else {
         // Something else happened
-        console.error('Unexpected error:', error.message);
         setError('An unexpected error occurred. Please try again.');
       }
       
@@ -143,7 +160,6 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Form field changed: ${name} = "${value}"`);
     
     // Validate incident date
     if (name === 'incidentDate') {
@@ -160,10 +176,13 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
   const handleStudentSelect = (student) => {
     setSelectedStudent(student);
     setSearchTerm(student.fullName);
-    setFormData(prev => ({
-      ...prev,
-      studentId: String(student.studentId)
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        studentId: String(student.studentId)
+      };
+      return updated;
+    });
     setIsDropdownOpen(false);
   };
 
@@ -175,10 +194,13 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
     // If search is cleared, clear the selection
     if (!value) {
       setSelectedStudent(null);
-      setFormData(prev => ({
-        ...prev,
-        studentId: ''
-      }));
+      setFormData(prev => {
+        const updated = {
+          ...prev,
+          studentId: ''
+        };
+        return updated;
+      });
     }
   };
 
@@ -191,8 +213,6 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
     setLoading(true);
     setError('');
 
-    console.log('Form submission started. Current form data:', formData);
-
     try {
       // Validate required fields - ensure all fields are strings
       const studentId = String(formData.studentId || '').trim();
@@ -204,12 +224,6 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
         return;
       }
 
-      console.log('Submitting health incident with data:', {
-        studentId: studentId,
-        incidentDate: formData.incidentDate,
-        description: description
-      });
-
       // Try both formats to see which one works
       const incidentData = {
         studentId: studentId,  // Direct field approach
@@ -218,22 +232,16 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
         description: description,
       };
 
-      console.log('Formatted incident data for API:', incidentData);
-
       let result;
       if (isEditing && editingIncident) {
         const incidentId = editingIncident.incidentId || editingIncident.id;
-        console.log('Updating existing incident with ID:', incidentId, 'Full incident object:', editingIncident);
         if (!incidentId) {
           throw new Error('Incident ID is missing from the editing incident object');
         }
         result = await healthIncidentAPI.updateHealthIncident(incidentId, incidentData);
       } else {
-        console.log('Creating new incident');
         result = await healthIncidentAPI.createHealthIncident(incidentData);
       }
-      
-      console.log('Health incident operation successful:', result);
 
       // Reset form
       setFormData({
@@ -250,13 +258,11 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       // Close modal
       onClose();
     } catch (err) {
-      console.error('Error submitting health incident:', err);
       
       // More detailed error handling for submission
       if (err.response) {
         const status = err.response.status;
         const errorData = err.response.data;
-        console.error('Server error:', status, errorData);
         
         if (status === 401) {
           setError('Session expired. Please login again.');
@@ -274,7 +280,6 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
           setError(`Failed to save health incident (Error ${status}). Please try again.`);
         }
       } else if (err.request) {
-        console.error('Network error:', err.request);
         setError('Network error. Please check your connection and try again.');
       } else if (err.message.includes('Authentication required') || err.message.includes('401')) {
         setError('Session expired. Please login again.');
@@ -285,7 +290,6 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       } else if (err.message.includes('500')) {
         setError('Server error occurred. Please try again later.');
       } else {
-        console.error('Unexpected error:', err.message);
         setError('Failed to save health incident. Please try again.');
       }
     } finally {
@@ -374,7 +378,10 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                               onClick={() => {
                                 setSelectedStudent(null);
                                 setSearchTerm('');
-                                setFormData(prev => ({ ...prev, studentId: '' }));
+                                setFormData(prev => {
+                                  const updated = { ...prev, studentId: '' };
+                                  return updated;
+                                });
                               }}
                               className="text-blue-600 hover:text-blue-800"
                             >
@@ -419,8 +426,8 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                     </div>
                   ) : (
                     <>
-                      {/* Show current student info prominently when editing */}
-                      {isEditing && editingIncident && (editingIncident.student || editingIncident.studentId) && (
+                      {/* Show current student info prominently when editing and student not found in dropdown */}
+                      {isEditing && editingIncident && (editingIncident.student || editingIncident.studentId) && !selectedStudent && (
                         <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
                           <div className="text-sm font-medium text-blue-900 mb-1">
                             Current Student Information:
@@ -441,7 +448,10 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                             )}
                           </div>
                           <div className="text-xs text-blue-600 mt-1">
-                            Student ID is pre-filled below. You can change it if needed.
+                            {safeStudents.length > 0 
+                              ? "This student was not found in the current student list. The student ID is pre-filled below. You can change it if needed."
+                              : "Student ID is pre-filled below. You can change it if needed."
+                            }
                           </div>
                         </div>
                       )}
@@ -456,7 +466,9 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                       />
                       <div className="mt-1 text-sm text-gray-600">
                         {isEditing ? (
-                          'Student list could not be loaded. The current student information is shown above.'
+                          formData.studentId ? 
+                            `Current student ID: ${formData.studentId}. You can change this if needed.` :
+                            'Student list could not be loaded. The current student information is shown above.'
                         ) : (
                           'Enter the student ID directly since the student list could not be loaded.'
                         )}

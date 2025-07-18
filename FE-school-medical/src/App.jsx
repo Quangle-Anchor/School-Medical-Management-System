@@ -10,8 +10,7 @@ import {
   Route,
   useLocation,
   Navigate,
-} from "react-router-dom"; // Thêm Navigate
-import { useState, useEffect } from "react";
+} from "react-router-dom";
 
 import AboutNova from "./pages/about/AboutNova";
 import HomePage from "./pages/home/HomepageNova";
@@ -39,66 +38,18 @@ function AppContent() {
   
   const hideFooter = ["/login", "/signup"].includes(location.pathname) || isDashboardPage;
   const hideNavbar = isDashboardPage; // Hide navbar on dashboard pages
-  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [isMouseNearTop, setIsMouseNearTop] = useState(false);
 
   // Lấy trạng thái đăng nhập từ localStorage
   const isAuthenticated = !!localStorage.getItem("token");
-
-  useEffect(() => {
-    if (hideFooter || isDashboardPage) return; // Don't apply scroll behavior on login/signup/dashboard pages
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      if (currentScrollY < 50) {
-        // Always show navbar at the top of the page
-        setIsNavbarVisible(true);
-      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scrolling down and past threshold - hide navbar
-        if (!isMouseNearTop) {
-          setIsNavbarVisible(false);
-        }
-      } else if (currentScrollY < lastScrollY) {
-        // Scrolling up - show navbar
-        setIsNavbarVisible(true);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
-    const handleMouseMove = (e) => {
-      // Show navbar when mouse is near the top 100px of the screen
-      const isNearTop = e.clientY <= 100;
-      setIsMouseNearTop(isNearTop);
-
-      if (isNearTop && !isNavbarVisible) {
-        setIsNavbarVisible(true);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, [lastScrollY, isNavbarVisible, isMouseNearTop, hideFooter]);
 
   return (
     <div className="min-h-screen relative">
       {/* Background overlay */}
       {/* <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div> */}
 
-      {/* Smart Navbar - always visible, but smart behavior only on non-login/signup pages */}
+      {/* Smart Navbar - always visible on non-dashboard pages */}
       {!hideNavbar && (
-        <div
-          className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
-            hideFooter || isNavbarVisible ? "translate-y-0" : "-translate-y-full"
-          }`}
-        >
+        <div className="fixed top-0 left-0 right-0 z-50">
           <NovaHeaderSimple />
         </div>
       )}

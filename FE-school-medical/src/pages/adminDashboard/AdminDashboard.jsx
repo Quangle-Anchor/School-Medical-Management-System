@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/SideBar";
+import TopNavbar from "../../components/Navbar";
 import DashboardCard from "../../components/DashboardCard";
 import ChartCard from "../../components/ChartCard";
 import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard";
@@ -102,6 +103,12 @@ const AdminDashboard = () => {
         onMenuClick={handleMenuClick}
       />
       <main className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${sidebarCollapsed ? 'xl:ml-20' : ''}`}>
+        <TopNavbar 
+          title="Admin Dashboard"
+          breadcrumb={["Admin", "Dashboard"]}
+          userInfo={{ name: localStorage.getItem("fullname") || "Admin User" }}
+        />
+        
         {renderContent()}
       </main>
     </div>

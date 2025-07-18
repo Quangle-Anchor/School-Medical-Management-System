@@ -4,13 +4,8 @@
 /* Import Nova styles second */
 @import url('./styles/nova-integration.css');
 
-/* Import Soft UI Dashboard template CSS for core components */
-/* Soft UI Dashboard: build assets */
-@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/nucleo-icons.css');
-@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/nucleo-svg.css');
-@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/perfect-scrollbar.css');
-@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/tooltips.css');
-@import url('../Soft-UI-Dashboard-Tailwind-1.0.0/build/assets/css/soft-ui-dashboard-tailwind.min.css');
+/* Import icon fonts from CDN instead of local files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
