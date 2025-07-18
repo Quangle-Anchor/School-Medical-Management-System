@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/SideBar";
+import TopNavbar from "../../components/Navbar";
 import DashboardCard from "../../components/DashboardCard";
 import ChartCard from "../../components/ChartCard";
 import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard";
@@ -590,6 +591,12 @@ const PrincipalDashboard = () => {
         onMenuClick={handleMenuClick}
       />
       <main className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${sidebarCollapsed ? 'xl:ml-20' : ''}`}>
+        <TopNavbar 
+          title="Principal Dashboard"
+          breadcrumb={["Principal", "Dashboard"]}
+          userInfo={{ name: localStorage.getItem("fullname") || "Principal User" }}
+        />
+        
         {renderContent()}
       </main>
     </div>

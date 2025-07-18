@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  UserCircleIcon,
   PencilIcon,
-  CameraIcon,
   EyeIcon,
   EyeSlashIcon,
   CheckIcon,
@@ -37,9 +35,6 @@ const Profile = () => {
     newPassword: '',
     confirmPassword: '',
   });
-
-  const [avatar, setAvatar] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
 
   useEffect(() => {
     fetchUserProfile();
@@ -82,28 +77,6 @@ const Profile = () => {
       ...prev,
       [name]: value
     }));
-  };
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setMessage({ type: 'error', text: 'File size must be less than 5MB' });
-        return;
-      }
-      
-      if (!file.type.startsWith('image/')) {
-        setMessage({ type: 'error', text: 'Please select a valid image file' });
-        return;
-      }
-      
-      setAvatar(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const validateProfileData = () => {
@@ -222,33 +195,6 @@ const Profile = () => {
     }
   };
 
-  const handleAvatarUpload = async () => {
-    if (!avatar) return;
-    
-    setUpdating(true);
-    setMessage({ type: '', text: '' });
-    
-    try {
-      const result = await authApi.uploadAvatar(avatar);
-      setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
-      setAvatar(null);
-      setAvatarPreview(null);
-      setMessage({ type: 'success', text: 'Profile picture updated successfully!' });
-      
-      // Dispatch event to update navbar
-      window.dispatchEvent(new CustomEvent('authChange'));
-      
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.message || 'Failed to upload profile picture. Please try again.' 
-      });
-    } finally {
-      setUpdating(false);
-    }
-  };
-
   const handleCancel = () => {
     setEditMode(false);
     setShowPasswordSection(false);
@@ -263,8 +209,6 @@ const Profile = () => {
       newPassword: '',
       confirmPassword: '',
     });
-    setAvatar(null);
-    setAvatarPreview(null);
     setMessage({ type: '', text: '' });
   };
 
@@ -307,71 +251,9 @@ const Profile = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Picture Section */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile Picture</h2>
-              
-              <div className="flex flex-col items-center space-y-4">
-                <div className="relative">
-                  {avatarPreview || user?.avatar ? (
-                    <img
-                      src={avatarPreview || user.avatar}
-                      alt="Profile"
-                      className="w-32 h-32 rounded-full object-cover border-4 border-blue-200"
-                    />
-                  ) : (
-                    <UserCircleIcon className="w-32 h-32 text-gray-400" />
-                  )}
-                  
-                  <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
-                    <CameraIcon className="h-4 w-4" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                      className="hidden"
-                      disabled={updating}
-                    />
-                  </label>
-                </div>
-                
-                {avatar && (
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={handleAvatarUpload}
-                      disabled={updating}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {updating ? 'Uploading...' : 'Upload'}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setAvatar(null);
-                        setAvatarPreview(null);
-                      }}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
-                
-                <div className="text-center">
-                  <h3 className="font-semibold text-gray-900">{user?.fullName || user?.username}</h3>
-                  <p className="text-sm text-gray-600">{user?.email}</p>
-                  <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                    {user?.role}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Profile Information Section */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Basic Information */}
+        {/* Profile Information Section */}
+        <div className="space-y-6">
+          {/* Basic Information */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Basic Information</h2>
@@ -626,8 +508,7 @@ const Profile = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
 };
 
 export default Profile;

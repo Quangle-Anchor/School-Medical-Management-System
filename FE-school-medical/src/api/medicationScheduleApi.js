@@ -31,6 +31,16 @@ const medicationScheduleAPI = {
     }
   },
 
+  // Create new medication schedule with inventory export
+  createScheduleWithInventory: async (payload) => {
+    try {
+      const response = await axiosInstance.post('/api/schedules/with-inventory', payload);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Update medication schedule
   updateSchedule: async (id, scheduleData) => {
     try {
