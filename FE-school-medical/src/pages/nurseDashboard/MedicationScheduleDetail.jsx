@@ -16,7 +16,10 @@ import {
   Edit,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  Sun,
+  Moon,
+  Sunset
 } from 'lucide-react';
 
 const MedicationScheduleDetail = () => {
@@ -40,13 +43,6 @@ const MedicationScheduleDetail = () => {
   const scheduleId = id || getScheduleIdFromPath();
 
   useEffect(() => {
-    console.log('MedicationScheduleDetail component mounted');
-    console.log('Schedule ID from useParams:', id);
-    console.log('Schedule ID from path parsing:', getScheduleIdFromPath());
-    console.log('Final schedule ID to use:', scheduleId);
-    console.log('Current URL:', window.location.pathname);
-    console.log('Location object:', location);
-    
     if (!scheduleId) {
       setError('No schedule ID provided');
       setLoading(false);
@@ -58,34 +54,26 @@ const MedicationScheduleDetail = () => {
 
   const fetchScheduleDetails = async () => {
     try {
-      console.log('Fetching schedule details for ID:', scheduleId);
-      
+
       // Use the existing getScheduleById API method
       const foundSchedule = await medicationScheduleAPI.getScheduleById(scheduleId);
-      
+      console.log('Fetched schedule:', foundSchedule);
       if (!foundSchedule) {
         setError('Schedule not found');
         return;
       }
-      
-      console.log('Schedule details loaded:', foundSchedule);
-      setSchedule(foundSchedule);
-      
+      setSchedule(foundSchedule);  
       // Fetch the related medication request using the requestId
       try {
         const allRequests = await medicationAPI.getAllRequests();
-        console.log('All medication requests:', allRequests.length);
+     
         
         const relatedRequest = allRequests.find(req => 
           req.requestId.toString() === foundSchedule.requestId.toString()
         );
-        
-        console.log('Looking for request ID:', foundSchedule.requestId);
-        console.log('Found related request:', relatedRequest);
-        
         if (relatedRequest) {
           setMedicationRequest(relatedRequest);
-          
+          console.log('Found related medication request:', relatedRequest);
           // Check inventory for this medication
           await checkInventoryStock(relatedRequest.medicationName);
         } else {
@@ -371,8 +359,27 @@ const MedicationScheduleDetail = () => {
                         <p className="text-lg font-semibold text-gray-900">{medicationRequest.totalQuantity}</p>
                       </div>
                     </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <Sun className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Morning Quantity</p>
+                        <p className="text-lg font-semibold text-gray-900">{medicationRequest.morningQuantity}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <Moon className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Evening Quantity</p>
+                        <p className="text-lg font-semibold text-gray-900">{medicationRequest.eveningQuantity}</p>
+                      </div>
+                    </div>
                   </div>
-                  
+        
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <div className="flex-shrink-0">
@@ -405,22 +412,17 @@ const MedicationScheduleDetail = () => {
                         </div>
                       </div>
                     )}
-                  </div>
-                </div>
-                
-                {medicationRequest.reason && (
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-1">
-                        <FileText className="w-5 h-5 text-gray-400" />
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <Sunset className="w-5 h-5 text-gray-400" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-500 mb-2">Reason for Medication</p>
-                        <p className="text-gray-900 leading-relaxed">{medicationRequest.reason}</p>
+                        <p className="text-sm font-medium text-gray-500">Noon Quantity</p>
+                        <p className="text-lg font-semibold text-gray-900">{medicationRequest.noonQuantity}</p>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           )}
@@ -440,83 +442,6 @@ const MedicationScheduleDetail = () => {
               </div>
             </div>
           </div>
-
-          {/* Inventory Information */}
-          {inventoryInfo && (
-            <div className="bg-white rounded-lg shadow-sm border">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Inventory Status</h3>
-                
-                {inventoryInfo.found ? (
-                  <div className="space-y-4">
-                    <div className={`p-4 rounded-lg ${
-                      inventoryInfo.currentQuantity > 0 
-                        ? 'bg-green-50 border border-green-200' 
-                        : 'bg-red-50 border border-red-200'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-gray-900">{inventoryInfo.itemName}</span>
-                        <span className={`font-bold ${
-                          inventoryInfo.currentQuantity > 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {inventoryInfo.currentQuantity} {inventoryInfo.unit}
-                        </span>
-                      </div>
-                      {inventoryInfo.currentQuantity === 0 && (
-                        <p className="text-xs text-red-600">
-                          ⚠️ Out of stock
-                        </p>
-                      )}
-                      {inventoryInfo.currentQuantity > 0 && inventoryInfo.currentQuantity <= 5 && (
-                        <p className="text-xs text-yellow-600">
-                          ⚠️ Low stock warning
-                        </p>
-                      )}
-                    </div>
-                    
-                    {inventoryInfo.category && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Category</p>
-                        <p className="text-gray-900">{inventoryInfo.category}</p>
-                      </div>
-                    )}
-                    
-                    {inventoryInfo.manufacturer && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Manufacturer</p>
-                        <p className="text-gray-900">{inventoryInfo.manufacturer}</p>
-                      </div>
-                    )}
-                    
-                    {inventoryInfo.expiryDate && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Expiry Date</p>
-                        <p className="text-gray-900">{formatDate(inventoryInfo.expiryDate)}</p>
-                      </div>
-                    )}
-                    
-                    {inventoryInfo.storageInstructions && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Storage Instructions</p>
-                        <p className="text-gray-900 text-sm">{inventoryInfo.storageInstructions}</p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200">
-                    <div className="flex items-center mb-2">
-                      <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
-                      <span className="font-medium text-yellow-800">Not Found in Inventory</span>
-                    </div>
-                    <p className="text-sm text-yellow-700">
-                      "{inventoryInfo.searchedName}" was not found in the inventory system.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Quick Actions */}
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="p-6">

@@ -372,7 +372,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Afternoon Quantity
+                  Noon Quantity
                 </label>
                 <input
                   type="text"

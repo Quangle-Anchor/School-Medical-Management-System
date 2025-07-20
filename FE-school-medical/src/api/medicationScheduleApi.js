@@ -31,10 +31,13 @@ const medicationScheduleAPI = {
     }
   },
 
-  // Create new medication schedule with inventory export
-  createScheduleWithInventory: async (payload) => {
+  // Deduct from inventory for a schedule
+  deductInventory: async (inventoryRequest) => {
     try {
-      const response = await axiosInstance.post('/api/schedules/with-inventory', payload);
+      const response = await axiosInstance.put(`/api/inventory/${inventoryRequest.inventoryId}`, {
+        itemId: inventoryRequest.inventoryId,
+        totalQuantity: inventoryRequest.quantityToDeduct
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -60,8 +63,7 @@ const medicationScheduleAPI = {
       throw error;
     }
   },
-
-  // Get medication schedule by ID
+    // Get medication schedule by ID
   getScheduleById: async (id) => {
     try {
       const response = await axiosInstance.get(`/api/schedules/${id}`);
@@ -71,5 +73,9 @@ const medicationScheduleAPI = {
     }
   },
 };
+  
+
+
+
 
 export { medicationScheduleAPI };

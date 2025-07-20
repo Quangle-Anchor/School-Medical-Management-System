@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
+import { medicationAPI } from '../../api/medicationApi';
 import { studentAPI } from '../../api/studentsApi';
 import { inventoryAPI } from '../../api/inventoryApi';
 import { Calendar, Clock, User, Pill, Save, ArrowLeft, AlertCircle, CheckCircle, Package, Users } from 'lucide-react';
@@ -29,9 +30,6 @@ const MedicationScheduleForm = () => {
   // Schedule Form State
   const [scheduleForm, setScheduleForm] = useState({
     requestId: '', // Now tracks selected request
-    medicationName: '',
-    dosage: '',
-    frequency: '',
     scheduledDate: '',
     scheduledTime: '',
     notes: ''
@@ -58,17 +56,15 @@ const MedicationScheduleForm = () => {
       setLoading(true);
       // Fetch all medication requests for nurse
       const [requestsData, inventoryData] = await Promise.all([
-        medicationScheduleAPI.getAllSchedulesForNurse(),
+        medicationAPI.getAllRequests(),
         inventoryAPI.getAllInventory()
       ]);
-      console.log('API getAllSchedulesForNurse response:', requestsData);
       // Only confirmed requests
       setConfirmedRequests(Array.isArray(requestsData)
         ? requestsData.filter(r => r.confirmationStatus?.toLowerCase() === 'confirmed')
         : []);
       setInventoryItems(Array.isArray(inventoryData) ? inventoryData : []);
     } catch (error) {
-      console.error('Error fetching initial data:', error);
       setError('Failed to load medication requests and inventory data');
       setConfirmedRequests([]);
       setInventoryItems([]);
@@ -86,10 +82,7 @@ const MedicationScheduleForm = () => {
           new Date(schedule.scheduledDate).toISOString().split('T')[0] : '';
           
         setScheduleForm({
-          studentId: schedule.studentId?.toString() || '',
-          medicationName: schedule.medicationName || '',
-          dosage: schedule.dosage || '',
-          frequency: schedule.frequency || '',
+          requestId: schedule.requestId?.toString() || '',
           scheduledDate: formattedDate,
           scheduledTime: schedule.scheduledTime || '',
           notes: schedule.notes || ''
@@ -98,7 +91,6 @@ const MedicationScheduleForm = () => {
         setError('Schedule not found');
       }
     } catch (error) {
-      console.error('Error fetching schedule details:', error);
       if (error.response?.status === 404) {
         setError(`Schedule with ID ${scheduleId} not found`);
       } else {
@@ -112,6 +104,22 @@ const MedicationScheduleForm = () => {
       ...prev,
       [field]: value
     }));
+
+    // When a request is selected, update form with request details
+    if (field === 'requestId' && value) {
+      const selectedReq = confirmedRequests.find(
+        r => r.requestId?.toString() === value.toString()
+      );
+      if (selectedReq) {
+        setScheduleForm(prev => ({
+          ...prev,
+          requestId: value,
+          medicationName: selectedReq.medicationName,
+          dosage: selectedReq.dosage,
+          frequency: selectedReq.frequency
+        }));
+      }
+    }
   };
 
   const handleInventoryFormChange = (field, value) => {
@@ -146,12 +154,8 @@ const MedicationScheduleForm = () => {
 
   const validateForms = () => {
     // Schedule form validation
-    if (!scheduleForm.studentId) {
-      setError('Please select a student');
-      return false;
-    }
-    if (!scheduleForm.medicationName.trim()) {
-      setError('Please enter medication name');
+    if (!scheduleForm.requestId) {
+      setError('Please select a medication request');
       return false;
     }
     if (!scheduleForm.scheduledDate) {
@@ -193,40 +197,65 @@ const MedicationScheduleForm = () => {
     setError(null);
 
     try {
-      const payload = {
-        schedule: {
-          ...scheduleForm,
-          studentId: parseInt(scheduleForm.studentId)
-        },
-        ...((!isEditMode) && {
-          inventoryExport: {
-            inventoryId: parseInt(inventoryForm.inventoryId),
-            quantityToDeduct: parseInt(inventoryForm.quantityToDeduct)
-          }
-        })
+      const schedulePayload = {
+        requestId: parseInt(scheduleForm.requestId),
+        scheduledDate: scheduleForm.scheduledDate,
+        scheduledTime: scheduleForm.scheduledTime,
+        notes: scheduleForm.notes || ""
       };
 
-      if (isEditMode) {
-        await medicationScheduleAPI.updateSchedule(scheduleId, payload.schedule);
-        setSuccess('Medication schedule updated successfully');
-      } else {
-        // This would be a new combined API endpoint that handles both schedule creation and inventory deduction
-        await medicationScheduleAPI.createScheduleWithInventory(payload);
-        setSuccess('Medication schedule created and inventory updated successfully');
+      try {
+        if (isEditMode) {
+          await medicationScheduleAPI.updateSchedule(scheduleId, schedulePayload);
+          setSuccess('Medication schedule updated successfully');
+        } else {
+          // For new schedule, first try to deduct from inventory
+          const inventoryPayload = {
+            inventoryId: parseInt(inventoryForm.inventoryId),
+            quantityToDeduct: parseInt(inventoryForm.quantityToDeduct)
+          };
+
+          // First try to deduct from inventory
+          await medicationScheduleAPI.deductInventory(inventoryPayload);
+
+          // If inventory deduction succeeds, create the schedule
+          await medicationScheduleAPI.createSchedule(schedulePayload);
+          setSuccess('Medication schedule created and inventory updated successfully');
+        }
+      } catch (deductError) {
+        // If inventory deduction fails, throw a more specific error
+        if (deductError.response?.status === 400) {
+          throw new Error('Not enough quantity in inventory. Please check available stock.');
+        } else {
+          throw deductError;
+        }
       }
-      
+
       // Navigate back after showing success message
       setTimeout(() => {
         navigate('/nurseDashboard/medication-schedules');
       }, 2500);
     } catch (error) {
-      console.error('Error saving schedule:', error);
-      // Preserve form data on error - don't clear forms
-      if (error.response?.data?.message) {
-        setError(error.response.data.message);
+      let errorMessage;
+
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        if (error.response.status === 403) {
+          errorMessage = "You don't have permission to perform this action. Please make sure you are logged in as a nurse.";
+        } else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        } else {
+          errorMessage = `Server error: ${error.response.status}`;
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        errorMessage = "No response from server. Please check your connection.";
       } else {
-        setError(`Failed to ${isEditMode ? 'update' : 'create'} medication schedule`);
+        // Something happened in setting up the request
+        errorMessage = error.message || `Failed to ${isEditMode ? 'update' : 'create'} medication schedule`;
       }
+
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -316,9 +345,7 @@ const MedicationScheduleForm = () => {
             </h2>
             
             <div className="space-y-6">
-              {/* DEBUG: Show confirmedRequests and selectedId */}
-              <pre className="bg-gray-100 p-2 text-xs text-gray-700 mb-2 border border-gray-300 rounded">{JSON.stringify({confirmedRequests, selectedId: scheduleForm.requestId}, null, 2)}</pre>
-              {/* Student Selection */}
+              {/* Request Selection */}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -357,71 +384,14 @@ const MedicationScheduleForm = () => {
                         <p><span className="font-medium">Student Name:</span> {selectedReq.studentName || selectedReq.fullName || 'Unknown'}</p>
                         <p><span className="font-medium">Student Code:</span> {selectedReq.studentCode}</p>
                         <p><span className="font-medium">Class:</span> {selectedReq.studentClass}</p>
-                        <p><span className="font-medium">Request ID:</span> {selectedReq.requestId}</p>
                         <p><span className="font-medium">Medication Name:</span> {selectedReq.medicationName}</p>
-                        <p><span className="font-medium">Dosage:</span> {selectedReq.dosage}</p>
-                        <p><span className="font-medium">Frequency:</span> {selectedReq.frequency}</p>
                         <p><span className="font-medium">Total Quantity:</span> {selectedReq.totalQuantity}</p>
-                        <p><span className="font-medium">Morning Quantity:</span> {selectedReq.morningQuantity}</p>
-                        <p><span className="font-medium">Noon Quantity:</span> {selectedReq.noonQuantity}</p>
-                        <p><span className="font-medium">Evening Quantity:</span> {selectedReq.eveningQuantity}</p>
                         <p><span className="font-medium">Parent Name:</span> {selectedReq.parentName}</p>
-                        <p><span className="font-medium">Parent Email:</span> {selectedReq.parentEmail}</p>
-                        {selectedReq.prescriptionFile && (
-                          <p><span className="font-medium">Prescription File:</span> <a href={"/uploads/" + selectedReq.prescriptionFile} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedReq.prescriptionFile}</a></p>
-                        )}
-                        <p><span className="font-medium">Confirmed At:</span> {selectedReq.confirmedAt}</p>
-                        {/* Add more fields as needed */}
+                        
                       </div>
                     </div>
                   );
                 })()}
-              </div>
-
-              {/* Medication Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <div className="flex items-center">
-                    <Pill className="w-4 h-4 mr-2" />
-                    Medication Name <span className="text-red-500">*</span>
-                  </div>
-                </label>
-                <input
-                  type="text"
-                  value={scheduleForm.medicationName}
-                  onChange={(e) => handleScheduleFormChange('medicationName', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter medication name"
-                  required
-                />
-              </div>
-
-              {/* Dosage */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Dosage
-                </label>
-                <input
-                  type="text"
-                  value={scheduleForm.dosage}
-                  onChange={(e) => handleScheduleFormChange('dosage', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., 500mg, 2 tablets"
-                />
-              </div>
-
-              {/* Frequency */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Frequency
-                </label>
-                <input
-                  type="text"
-                  value={scheduleForm.frequency}
-                  onChange={(e) => handleScheduleFormChange('frequency', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., Once daily, Twice daily"
-                />
               </div>
 
               {/* Scheduled Date */}
