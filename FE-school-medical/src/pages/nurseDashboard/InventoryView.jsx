@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   PlusIcon, 
   MagnifyingGlassIcon, 
-  PencilIcon, 
   TrashIcon,
   ExclamationTriangleIcon,
   CheckIcon,
@@ -12,7 +11,7 @@ import {
 
 // Add CSS animation style in index.css
 import { inventoryAPI } from '../../api/inventoryApi';
-import { validateExpiryDate, formatDateForInput, getMinExpiryDate } from '../../utils/dateUtils';
+import {formatDateForInput } from '../../utils/dateUtils';
 
 const InventoryView = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -38,7 +37,6 @@ const InventoryView = () => {
   const [medicalItemSearchTerm, setMedicalItemSearchTerm] = useState('');
   const [selectedMedicalItem, setSelectedMedicalItem] = useState(null);
   const [showAddQuantityForm, setShowAddQuantityForm] = useState(false);
-  const [dateError, setDateError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     category: 'medications',
@@ -56,7 +54,6 @@ const InventoryView = () => {
     fetchInventory();
   }, []);
   
-  // Fetch medical items when showing the existing items modal
   // Fetch medical items when showing the existing items modal
   useEffect(() => {
     if (showExistingItemsModal) {
@@ -94,7 +91,7 @@ const InventoryView = () => {
     }
 
     if (!showAddDropdown) {
-      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+      if (e.key === 'ArrowDown' || e.key === 'Enter') {
         e.preventDefault();
         setShowAddDropdown(true);
       }
@@ -415,26 +412,31 @@ const InventoryView = () => {
       } else {
         backendCategory = 'Consumables';
       }
-      
-      // Structure the data for updating both medical item and inventory quantity
-      const itemData = {
-        itemName: formData.name,
+
+      // First update the medical item details
+      await inventoryAPI.updateMedicalItem(selectedItem.item.itemId, {
+        name: formData.name,
         category: backendCategory,
         unit: formData.unit,
         description: formData.description || '',
         manufacturer: formData.manufacturer || '',
         expiryDate: formData.expiryDate || null,
         storageInstructions: formData.storageInstructions || '',
-        totalQuantity: formData.quantity
-      };
-      
-      await inventoryAPI.updateInventoryItem(selectedItem.id, itemData);
-      
+      });
+
+      // Then update the inventory quantity if it has changed
+      if (formData.quantity !== selectedItem.totalQuantity) {
+        const inventoryPayload = {
+          itemId: selectedItem.item.itemId,
+          totalQuantity: formData.quantity
+        };
+        await inventoryAPI.updateInventoryItem(selectedItem.inventoryId, inventoryPayload);
+      }
+
       setShowEditModal(false);
       resetForm();
       await fetchInventory(); // Refresh the inventory data
       
-      // Show success message
       alert('Item updated successfully!');
     } catch (error) {
       console.error('Error updating item:', error);
@@ -498,7 +500,6 @@ const InventoryView = () => {
       minThreshold: item.minThreshold || 10,
       maxThreshold: item.maxThreshold || 50,
     });
-    setDateError('');
     setShowEditModal(true);
   };
 
@@ -725,7 +726,6 @@ const InventoryView = () => {
                         minThreshold: 10,
                         maxThreshold: 50,
                       });
-                      setDateError('');
                       setShowAddModal(true);
                       setShowAddDropdown(false);
                     }}

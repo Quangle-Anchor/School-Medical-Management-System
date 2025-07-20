@@ -44,6 +44,36 @@ export const inventoryAPI = {
     }
   },
 
+  // Update an existing medical item
+  updateMedicalItem: async (itemId, itemData) => {
+    try {
+      const { token, role } = checkAuth();
+      
+      if (!hasInventoryPermission(role)) {
+        throw new Error('You do not have permission to update medical items');
+      }
+
+      const response = await axiosInstance.put(`/api/medical-items/${itemId}`, {
+        itemName: itemData.name,
+        category: itemData.category,
+        description: itemData.description || '',
+        manufacturer: itemData.manufacturer || '',
+        expiryDate: itemData.expiryDate || null,
+        storageInstructions: itemData.storageInstructions || '',
+        unit: itemData.unit || 'units'
+      });
+
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
+  },
+
   // Add new inventory item (creates medical item first, then adds to inventory)
   addInventoryItem: async (itemData) => {
     try {
@@ -89,71 +119,6 @@ export const inventoryAPI = {
       throw error;
     }
   },
-
-  // Update inventory item (updates both medical item details and inventory quantity)
-  updateInventoryItem: async (inventoryId, itemData) => {
-    try {
-      const { token, role } = checkAuth();
-      
-      // Check if user has permission to update inventory
-      if (!hasInventoryPermission(role)) {
-        throw new Error(`Only Nurse, Principal, Admin roles are authorized to update inventory items. Your role: ${role}`);
-      }
-      
-      // Get current inventory to find the itemId
-      const currentInventory = await axiosInstance.get(`/api/inventory`);
-      const inventoryItem = currentInventory.data.find(inv => inv.inventoryId === inventoryId);
-      
-      if (!inventoryItem) {
-        throw new Error(`Inventory item with ID ${inventoryId} not found`);
-      }
-      
-      const itemId = inventoryItem.item.itemId;
-      
-      // Step 1: Update medical item details
-      const medicalItemRequest = {
-        itemName: itemData.itemName,
-        category: itemData.category,
-        description: itemData.description || '',
-        manufacturer: itemData.manufacturer || '',
-        expiryDate: itemData.expiryDate || null,
-        storageInstructions: itemData.storageInstructions || '',
-        unit: itemData.unit || 'units'
-      };
-      
-      try {
-        await axiosInstance.put(`/api/medical-items/${itemId}`, medicalItemRequest);
-      } catch (medicalItemError) {
-        throw new Error(`Failed to update medical item: ${medicalItemError.response?.data?.message || medicalItemError.message}`);
-      }
-      
-      // Step 2: Update inventory quantity
-      const inventoryRequest = {
-        itemId: itemId,
-        totalQuantity: itemData.totalQuantity || 0
-      };
-      
-      try {
-        const inventoryResponse = await axiosInstance.put(`/api/inventory/${inventoryId}`, inventoryRequest);
-        return inventoryResponse.data;
-      } catch (inventoryError) {
-        throw new Error(`Failed to update inventory quantity: ${inventoryError.response?.data?.message || inventoryError.message}`);
-      }
-    } catch (error) {
-      console.error('Error in updateInventoryItem:', error);
-      
-      if (error.response?.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        window.location.href = '/login';
-      } else if (error.response?.status === 403) {
-        const errorMessage = error.response?.data?.message || 'Access denied. You may not have permission to update inventory items.';
-        throw new Error(errorMessage);
-      }
-      throw error;
-    }
-  },
-
   // Delete inventory item (NURSE and PRINCIPAL only)
   deleteInventoryItem: async (id) => {
     try {

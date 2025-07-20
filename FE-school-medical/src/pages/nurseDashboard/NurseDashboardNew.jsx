@@ -19,13 +19,8 @@ import InventoryView from "./InventoryView";
 import {
   Users,
   Calendar,
-  FileText,
   Heart,
-  Activity,
-  Stethoscope,
   Bell,
-  Warehouse,
-  Pill,
 } from "lucide-react";
 import { healthIncidentAPI } from "../../api/healthIncidentApi";
 import { studentAPI } from "../../api/studentsApi";
@@ -139,6 +134,7 @@ const NurseDashboard = () => {
       const incidents = await healthIncidentAPI.getAllHealthIncidents();
       setHealthIncidents(incidents || []); // Ensure we always set an array
     } catch (error) {
+      console.error("Error fetching health incidents:", error);
       setHealthIncidents([]); // Set empty array on error
     }
   };
