@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
 import { medicationAPI } from '../../api/medicationApi';
-import { studentAPI } from '../../api/studentsApi';
 import { inventoryAPI } from '../../api/inventoryApi';
-import { Calendar, Clock, User, Pill, Save, ArrowLeft, AlertCircle, CheckCircle, Package, Users } from 'lucide-react';
+import { Calendar, Clock, User, Save, ArrowLeft, AlertCircle, CheckCircle, Package, Users } from 'lucide-react';
 
 const MedicationScheduleForm = () => {
   const navigate = useNavigate();
