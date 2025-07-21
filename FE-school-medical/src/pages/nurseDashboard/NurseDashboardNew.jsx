@@ -15,7 +15,7 @@ import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard"
 import StudentsView from "./StudentsView";
 import NurseMedicationRequests from "./NurseMedicationRequests";
 import HealthIncidentsView from "./HealthIncidentsView";
-import InventoryView from "./InventoryView";
+import InventoryView from "./InventoryView";  
 import {
   Users,
   Calendar,

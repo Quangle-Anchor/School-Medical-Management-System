@@ -8,7 +8,6 @@ const StudentsView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterGrade, setFilterGrade] = useState('');
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -23,16 +22,9 @@ const StudentsView = () => {
   useEffect(() => {
     // Check authentication before fetching data
     const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
     
     if (!token) {
       setError('No authentication token found. Please login.');
-      setLoading(false);
-      return;
-    }
-    
-    if (role !== 'Nurse' && role !== 'Admin' && role !== 'Principal') {
-      setError('Access denied. Only nurses, admins, and principals can view all students.');
       setLoading(false);
       return;
     }
@@ -46,15 +38,9 @@ const StudentsView = () => {
       
       // Check if user has token before making API call
       const token = localStorage.getItem('token');
-      const role = localStorage.getItem('role');
       
       if (!token) {
         setError('Authentication required. Please login again.');
-        return;
-      }
-      
-      if (role !== 'Nurse' && role !== 'Admin' && role !== 'Principal') {
-        setError('Access denied. You do not have permission to view all students.');
         return;
       }
 
