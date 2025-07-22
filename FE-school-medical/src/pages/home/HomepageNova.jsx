@@ -27,8 +27,8 @@ const HomepageNova = () => {
       <section
         className="hero-section position-relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #1976d2 0%, #2196f3 100%)",
-          minHeight: "50vh",
+          background: "linear-gradient(135deg, #4A90E2 0%, #216bf3ff 100%)",
+          minHeight: "100vh",
         }}
       >
         <div className="container-fluid">
@@ -43,15 +43,14 @@ const HomepageNova = () => {
                 style={{ maxWidth: 700 }}
                 data-aos="fade-right"
               >
-                <div className="badge bg-light text-primary mb-3 fs-6 fw-semibold">
-                  INNOVATIVE SCHOOL HEALTH SOLUTIONS
-                </div>
-                <h1 className="display-2 fw-bold mb-4 lh-1">
+                <h1 className="display-1 fw-bold mb-4 lh-1 text-white">
                   School Medical
                   <br />
-                  Management System
+                  Management
+                  <br />
+                  System
                 </h1>
-                <p className="lead mb-5 fs-4">
+                <p className="lead mb-5 fs-5 opacity-90">
                   Ensure a safe and healthy learning environment for all
                   students. We provide regular health check-ups, emergency first
                   aid, health counseling, and health education programs to
@@ -60,58 +59,37 @@ const HomepageNova = () => {
                 <div className="d-flex gap-3 mb-5">
                   <a
                     href="/login"
-                    className="btn btn-lg px-4 py-3 fw-semibold"
+                    className="btn btn-lg px-4 py-3 fw-semibold rounded-pill border-2 border-white text-white"
                     style={{
-                      background: "#0d47a1",
-                      borderColor: "#0d47a1",
-                      color: "#fff",
+                      background: "transparent",
+                      borderColor: "white",
                     }}
                   >
-                    <i className="bi bi-play-circle me-2"></i>
+                    <i className="bi bi-play me-2"></i>
                     Get Started
                   </a>
                   <a
                     href="/about"
-                    className="btn btn-lg px-4 py-3 fw-semibold"
+                    className="btn btn-lg px-4 py-3 fw-semibold rounded-pill border-2 border-white text-white"
                     style={{
-                      background: "#0d47a1",
-                      color: "#fff",
-                      borderColor: "#0d47a1",
+                      background: "transparent",
+                      borderColor: "white",
                     }}
                   >
-                    <i className="bi bi-info-circle me-2"></i>
+                    <i className="bi bi-people me-2"></i>
                     Learn More
                   </a>
-                </div>
-                {/* Trust indicators */}
-                <div className="trust-indicators mt-4">
-                  <div className="d-flex align-items-center gap-4 opacity-75 flex-wrap">
-                    <div className="d-flex align-items-center">
-                      <i className="bi bi-mortarboard fs-2 me-2 text-white"></i>
-                      <span className="small text-white">100+ Schools</span>
-                    </div>
-                    <div className="d-flex align-items-center">
-                      <i className="bi bi-people fs-2 me-2 text-white"></i>
-                      <span className="small text-white">50K+ Students</span>
-                    </div>
-                    <div className="d-flex align-items-center">
-                      <i className="bi bi-shield-check fs-2 me-2 text-white"></i>
-                      <span className="small text-white">
-                        Secure & Reliable
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
             {/* Right */}
             <div
               className="col-12 col-lg-6 d-flex align-items-center justify-content-center"
-              style={{ minHeight: "700px" }}
+              style={{ minHeight: "500px" }}
             >
               <div
                 className="w-100 h-100 d-flex align-items-center justify-content-center"
-                style={{ maxWidth: "800px", height: "650px" }}
+                style={{ maxWidth: "700px", height: "420px" }}
               >
                 <img
                   src="https://edulinkvn.com/Upload/Articles/Photos/main-slider-1.jpg"
@@ -289,7 +267,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-clipboard-data"
-                      style={{ fontSize: "4rem", color: "#6c757d" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -300,12 +278,7 @@ const HomepageNova = () => {
                     ensuring easy access and secure storage of medical
                     information.
                   </p>
-                  <a
-                    href="https://www.securescan.com/articles/records-management/medical-records-management-challenges-and-best-practices/"
-                    className="btn btn-dashboard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/about" className="btn btn-dashboard">
                     Read more
                   </a>
                 </div>
@@ -322,7 +295,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-capsule"
-                      style={{ fontSize: "4rem", color: "#28a745" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -332,12 +305,7 @@ const HomepageNova = () => {
                     Safe and efficient medication tracking and administration
                     for students with special health needs .
                   </p>
-                  <a
-                    href="https://www.oakstreethealth.com/medication-management-1216889"
-                    className="btn btn-dashboard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/about" className="btn btn-dashboard">
                     Read more
                   </a>
                 </div>
@@ -354,7 +322,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-calendar-heart"
-                      style={{ fontSize: "4rem", color: "#dc3545" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -365,12 +333,7 @@ const HomepageNova = () => {
                     vaccinations and wellness programs for students at all
                     levels.
                   </p>
-                  <a
-                    href="https://eventupplanner.com/healthcare/"
-                    className="btn btn-dashboard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/about" className="btn btn-dashboard">
                     Read more
                   </a>
                 </div>
@@ -387,7 +350,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-graph-up-arrow"
-                      style={{ fontSize: "4rem", color: "#17a2b8" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">Health Analytics</h5>
@@ -395,12 +358,7 @@ const HomepageNova = () => {
                     Comprehensive health reports and analytics to track student
                     wellness trends and outcomes.
                   </p>
-                  <a
-                    href="https://www.sciencedirect.com/journal/healthcare-analytics"
-                    className="btn btn-dashboard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/about" className="btn btn-dashboard">
                     Read more
                   </a>
                 </div>
@@ -417,7 +375,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-bell"
-                      style={{ fontSize: "4rem", color: "#ffc107" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -427,12 +385,7 @@ const HomepageNova = () => {
                     Instant alerts and communication system for health
                     emergencies and important health updates.
                   </p>
-                  <a
-                    href="https://www.alert-software.com/healthcare"
-                    className="btn btn-dashboard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/about" className="btn btn-dashboard">
                     Read more
                   </a>
                 </div>
@@ -449,7 +402,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-people"
-                      style={{ fontSize: "4rem", color: "#6f42c1" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -459,12 +412,7 @@ const HomepageNova = () => {
                     Seamless communication platform connecting school health
                     staff, parents, and students.
                   </p>
-                  <a
-                    href="https://cisedu.com/en-gb/world-of-cis/news/social_integration_of_parents/"
-                    className="btn btn-dashboard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/about" className="btn btn-dashboard">
                     Read more
                   </a>
                 </div>
