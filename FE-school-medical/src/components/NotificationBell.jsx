@@ -10,10 +10,10 @@ function formatTime(dateString) {
   const now = new Date();
   const date = new Date(dateString);
   const diff = (now - date) / 1000; // seconds
-  if (diff < 60) return `${Math.floor(diff)} giây trước`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
-  if (diff < 172800) return "Hôm qua";
+  if (diff < 60) return `${Math.floor(diff)} seconds ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+  if (diff < 172800) return "Yesterday";
   return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 }
 
@@ -21,19 +21,19 @@ function groupNotifications(notifications) {
   const now = new Date();
   const today = now.toDateString();
   const yesterday = new Date(now.getTime() - 86400000).toDateString();
-  const groups = { moi: [], homNay: [], truocDo: [] };
+  const groups = { new: [], today: [], earlier: [] };
   notifications.forEach((n) => {
     const d = new Date(n.createdAt);
     if (d.toDateString() === today) {
       if ((now - d) / 1000 < 3600 * 6) {
-        groups.moi.push(n);
+        groups.new.push(n);
       } else {
-        groups.homNay.push(n);
+        groups.today.push(n);
       }
     } else if (d.toDateString() === yesterday) {
-      groups.truocDo.push(n);
+      groups.earlier.push(n);
     } else if (d < now) {
-      groups.truocDo.push(n);
+      groups.earlier.push(n);
     }
   });
   return groups;
@@ -60,7 +60,7 @@ const NotificationBell = ({ user, show, setShow }) => {
     const fetchData = async () => {
       try {
         let res;
-        // Luôn dùng getMy cho nurse, principal, parent
+        // Always use getMy for nurse, principal, parent
         if (["Parent", "Nurse", "Principal"].includes(user.role)) {
           res = await notificationApi.getMy(0, 20);
         } else {
@@ -68,7 +68,7 @@ const NotificationBell = ({ user, show, setShow }) => {
         }
         setNotifications(res.data.content || []);
       } catch {
-        setError("Không thể tải thông báo");
+        setError("Unable to load notifications");
       } finally {
         setLoading(false);
       }
@@ -84,7 +84,7 @@ const NotificationBell = ({ user, show, setShow }) => {
   const unread = filteredNotifications.filter((n) => !n.readStatus);
   const unreadCount = unread.length;
 
-  // Đánh dấu đã đọc (gọi API cập nhật trạng thái đã đọc)
+  // Mark as read (call API to update read status)
   const handleMarkRead = async (id) => {
     try {
       await notificationApi.updateReadStatus(id, true);
@@ -94,11 +94,11 @@ const NotificationBell = ({ user, show, setShow }) => {
         )
       );
     } catch {
-      setError("Không thể đánh dấu đã đọc");
+      setError("Unable to mark as read");
     }
   };
 
-  // Gom nhóm thông báo
+  // Group notifications
   const groups = groupNotifications(filteredNotifications);
 
   // Xem chi tiết thông báo (vừa hiện popup vừa link tới trang tương ứng nếu có notificationType)
@@ -149,7 +149,7 @@ const NotificationBell = ({ user, show, setShow }) => {
     }
   };
 
-  // Xem tất cả
+  // View all
   const handleViewAll = () => {
     setShowList(false);
     if (user.role === "Parent") {
@@ -224,12 +224,12 @@ const NotificationBell = ({ user, show, setShow }) => {
               <div className="p-4 text-gray-500 text-sm">Đang tải...</div>
             ) : (
               <>
-                {groups.moi.length > 0 && (
+                {groups.new.length > 0 && (
                   <div>
                     <div className="px-4 py-2 text-xs font-semibold text-blue-600 flex justify-between items-center">
-                      Mới
+                      New
                     </div>
-                    {groups.moi.map((n) => (
+                    {groups.new.map((n) => (
                       <div
                         key={n.notificationId}
                         className="flex items-start gap-3 px-4 py-3 border-b last:border-0 bg-white group hover:bg-blue-50 transition relative cursor-pointer"
@@ -256,19 +256,19 @@ const NotificationBell = ({ user, show, setShow }) => {
                               handleMarkRead(n.notificationId);
                             }}
                             className="w-3 h-3 rounded-full bg-blue-500 mt-2 ml-2 border-2 border-white shadow"
-                            title="Đánh dấu đã đọc"
+                            title="Mark as read"
                           ></button>
                         )}
                       </div>
                     ))}
                   </div>
                 )}
-                {groups.homNay.length > 0 && (
+                {groups.today.length > 0 && (
                   <div>
                     <div className="px-4 py-2 text-xs font-semibold text-gray-700">
-                      Hôm nay
+                      Today
                     </div>
-                    {groups.homNay.map((n) => (
+                    {groups.today.map((n) => (
                       <div
                         key={n.notificationId}
                         className="flex items-start gap-3 px-4 py-3 border-b last:border-0 bg-white group hover:bg-blue-50 transition relative cursor-pointer"
@@ -295,19 +295,19 @@ const NotificationBell = ({ user, show, setShow }) => {
                               handleMarkRead(n.notificationId);
                             }}
                             className="w-3 h-3 rounded-full bg-blue-500 mt-2 ml-2 border-2 border-white shadow"
-                            title="Đánh dấu đã đọc"
+                            title="Mark as read"
                           ></button>
                         )}
                       </div>
                     ))}
                   </div>
                 )}
-                {groups.truocDo.length > 0 && (
+                {groups.earlier.length > 0 && (
                   <div>
                     <div className="px-4 py-2 text-xs font-semibold text-gray-500">
-                      Trước đó
+                      Earlier
                     </div>
-                    {groups.truocDo.map((n) => (
+                    {groups.earlier.map((n) => (
                       <div
                         key={n.notificationId}
                         className="flex items-start gap-3 px-4 py-3 border-b last:border-0 bg-white group hover:bg-blue-50 transition relative cursor-pointer"
@@ -334,18 +334,18 @@ const NotificationBell = ({ user, show, setShow }) => {
                               handleMarkRead(n.notificationId);
                             }}
                             className="w-3 h-3 rounded-full bg-blue-500 mt-2 ml-2 border-2 border-white shadow"
-                            title="Đánh dấu đã đọc"
+                            title="Mark as read"
                           ></button>
                         )}
                       </div>
                     ))}
                   </div>
                 )}
-                {groups.moi.length === 0 &&
-                  groups.homNay.length === 0 &&
-                  groups.truocDo.length === 0 && (
+                {groups.new.length === 0 &&
+                  groups.today.length === 0 &&
+                  groups.earlier.length === 0 && (
                     <div className="p-4 text-gray-500 text-sm">
-                      Không có thông báo nào.
+                      No notifications.
                     </div>
                   )}
               </>

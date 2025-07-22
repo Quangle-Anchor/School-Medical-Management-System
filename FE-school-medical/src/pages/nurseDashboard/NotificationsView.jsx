@@ -16,18 +16,18 @@ const NotificationsView = ({ user }) => {
 
   useEffect(() => {
     setLoading(true);
-    // Nếu là parent hoặc nurse thì chỉ lấy notification của user đó
+    // If parent or nurse, only get notifications for that user
     if (user && (user.role === "Parent" || user.role === "Nurse")) {
       notificationApi
         .getMy(0, 30)
         .then((res) => setNotifications(res.data.content || []))
-        .catch(() => setError("Không thể tải thông báo"))
+        .catch(() => setError("Unable to load notifications"))
         .finally(() => setLoading(false));
     } else {
       notificationApi
         .getAll(0, 30)
         .then((res) => setNotifications(res.data.content || []))
-        .catch(() => setError("Không thể tải thông báo"))
+        .catch(() => setError("Unable to load notifications"))
         .finally(() => setLoading(false));
     }
   }, [formOpen, user]);
@@ -36,13 +36,11 @@ const NotificationsView = ({ user }) => {
     setEditing(null);
     setFormOpen(true);
   };
-  const handleEdit = (noti) => {
-    setEditing(noti);
-    setFormOpen(true);
-  };
+  
   const handleDelete = async (id) => {
     setDeleteId(id);
   };
+  
   const confirmDelete = async () => {
     setLoading(true);
     try {
@@ -52,38 +50,35 @@ const NotificationsView = ({ user }) => {
       );
       setDeleteId(null);
     } catch {
-      setError("Xóa thất bại");
+      setError("Delete failed");
     } finally {
       setLoading(false);
     }
   };
+  
   const handleSubmit = async (data) => {
     setLoading(true);
     try {
-      if (editing) {
-        await notificationApi.update(editing.notificationId, data);
+      if (user && user.role === "Principal") {
+        await notificationApi.sendToNurses(data);
       } else {
-        if (user && user.role === "Principal") {
-          await notificationApi.sendToNurses(data);
-        } else {
-          await notificationApi.create(data);
-        }
+        await notificationApi.create(data);
       }
       setFormOpen(false);
       setEditing(null);
     } catch {
-      setError("Lưu thất bại");
+      setError("Save failed");
     } finally {
       setLoading(false);
     }
   };
 
-  // Xem chi tiết notification
+  // View notification details
   const handleView = (noti) => {
     setViewing(noti);
   };
 
-  // Chỉ hiển thị thông báo phù hợp với từng role
+  // Only show notifications appropriate for each role
   let filteredNotifications = notifications;
 
   const getTypeColor = (type) => {
@@ -143,7 +138,7 @@ const NotificationsView = ({ user }) => {
                     colSpan="4"
                     className="px-6 py-12 text-center text-gray-500"
                   >
-                    Đang tải...
+                    Loading...
                   </td>
                 </tr>
               ) : filteredNotifications.length === 0 ? (
@@ -183,18 +178,9 @@ const NotificationsView = ({ user }) => {
                         >
                           <Eye className="h-4 w-4 mr-1" /> View
                         </button>
-                        {/* Chỉ Nurse/Admin mới có Edit/Delete */}
+                        {/* Only Nurse/Admin have Edit/Delete */}
                         {user && user.role !== "Parent" && (
                           <>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(n);
-                              }}
-                              className="text-green-600 hover:text-green-900 inline-flex items-center"
-                            >
-                              <Edit className="h-4 w-4 mr-1" /> Edit
-                            </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -218,7 +204,7 @@ const NotificationsView = ({ user }) => {
       </div>
 
       {/* Notification Form Modal */}
-      {/* Chỉ Nurse/Admin mới có quyền thêm/sửa/xóa notification */}
+      {/* Only Nurse/Admin have permission to add/edit/delete notifications */}
       {user && user.role !== "Parent" && (
         <>
           <NotificationForm
@@ -228,52 +214,122 @@ const NotificationsView = ({ user }) => {
               setEditing(null);
             }}
             onSubmit={handleSubmit}
-            initial={editing}
+            initial={null}
           />
           {/* Confirm Delete Modal */}
           <ConfirmDeleteModal
             open={!!deleteId}
             onClose={() => setDeleteId(null)}
             onConfirm={confirmDelete}
-            title="Xác nhận xóa thông báo"
-            message="Bạn có chắc chắn muốn xóa thông báo này?"
-            confirmText="Xóa"
-            cancelText="Hủy"
+            title="Confirm Delete Notification"
+            message="Are you sure you want to delete this notification?"
+            confirmText="Delete"
+            cancelText="Cancel"
           />
         </>
       )}
 
-      {/* Popup xem chi tiết notification - thêm icon chuông lớn cho đặc sắc */}
+      {/* Popup xem chi tiết notification - giao diện giống User Details */}
       {viewing && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
           onClick={() => setViewing(null)}
         >
           <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 relative"
+            className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-              onClick={() => setViewing(null)}
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <div className="flex items-center gap-3 mb-4">
-              <Bell className="w-10 h-10 text-blue-600" />
-              <div>
-                <div className="font-bold text-lg text-blue-900 mb-1">
-                  {viewing.title}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">
+                Notification Details
+              </h2>
+              <button
+                className="text-gray-400 hover:text-gray-600"
+                onClick={() => setViewing(null)}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Profile Section */}
+              <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Bell className="w-8 h-8 text-blue-600" />
                 </div>
-                <div className="text-xs text-gray-400 mb-2">
-                  {viewing.createdAt
-                    ? new Date(viewing.createdAt).toLocaleString()
-                    : ""}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">
+                    {viewing.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    {viewing.createdAt
+                      ? new Date(viewing.createdAt).toLocaleString()
+                      : ""}
+                  </p>
+                  <span className="inline-block px-2 py-1 text-xs rounded-full mt-1 bg-blue-100 text-blue-800">
+                    Notification
+                  </span>
+                </div>
+              </div>
+
+              {/* Content Information */}
+              <div>
+                <h4 className="text-lg font-medium text-gray-900 mb-4">
+                  Content
+                </h4>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-gray-800 whitespace-pre-line">
+                    {viewing.content}
+                  </p>
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div>
+                <h4 className="text-xl font-medium text-gray-900 mb-6">
+                  Details
+                </h4>
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">Created At</p>
+                    <p className="text-gray-900 text-lg">
+                      {viewing.createdAt
+                        ? new Date(viewing.createdAt).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">Time</p>
+                    <p className="text-gray-900 text-lg">
+                      {viewing.createdAt
+                        ? new Date(viewing.createdAt).toLocaleTimeString()
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-gray-500 mb-2">Type</p>
+                    <p className="text-gray-900 text-lg break-words">
+                      {viewing.notificationType || "General"}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-gray-500 mb-2">Status</p>
+                    <p className="text-gray-900 text-lg">
+                      {viewing.readStatus ? "Read" : "Unread"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="text-gray-800 mb-2 whitespace-pre-line">
-              {viewing.content}
+
+            {/* Close Button */}
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setViewing(null)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
