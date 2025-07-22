@@ -144,9 +144,6 @@ const HealthLookup = () => {
                   <b>Weight:</b> {student.weightKg} kg
                 </div>
                 <div>
-                  <b>Health Status:</b> {student.healthStatus}
-                </div>
-                <div>
                   <b>Last Updated:</b>{" "}
                   {student.updatedAt ? student.updatedAt.slice(0, 10) : ""}
                 </div>
