@@ -295,7 +295,7 @@ const HomepageNova = () => {
                     ensuring easy access and secure storage of medical
                     information.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a href="https://www.securescan.com/articles/records-management/medical-records-management-challenges-and-best-practices/" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
                     Read more
                   </a>
                 </div>
@@ -322,7 +322,7 @@ const HomepageNova = () => {
                     Safe and efficient medication tracking and administration
                     for students with special health needs .
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a href="https://www.oakstreethealth.com/medication-management-1216889" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
                     Read more
                   </a>
                 </div>
@@ -350,9 +350,9 @@ const HomepageNova = () => {
                     vaccinations and wellness programs for students at all
                     levels.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a href="https://eventupplanner.com/healthcare/" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
                     Read more
-                  </a>
+                  </a>                   
                 </div>
               </div>
             </div>
@@ -375,7 +375,7 @@ const HomepageNova = () => {
                     Comprehensive health reports and analytics to track student
                     wellness trends and outcomes.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a href="https://www.sciencedirect.com/journal/healthcare-analytics" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
                     Read more
                   </a>
                 </div>
@@ -402,7 +402,7 @@ const HomepageNova = () => {
                     Instant alerts and communication system for health
                     emergencies and important health updates.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a href="https://www.alert-software.com/healthcare" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
                     Read more
                   </a>
                 </div>
@@ -429,7 +429,7 @@ const HomepageNova = () => {
                     Seamless communication platform connecting school health
                     staff, parents, and students.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a href="https://cisedu.com/en-gb/world-of-cis/news/social_integration_of_parents/" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
                     Read more
                   </a>
                 </div>

@@ -60,16 +60,7 @@ function AppContent() {
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
           {/* Chỉ cho phép truy cập Health Lookup khi chưa đăng nhập */}
-          <Route
-            path="/health-lookup"
-            element={
-              !isAuthenticated ? (
-                <HealthLookupPage />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
+          
           <Route path="/about" element={<AboutNova />} />
           <Route path="/contact" element={<ContactNova />} />
           <Route path="/login" element={<LoginPage />} />
@@ -121,7 +112,7 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
-       
+          <Route path="/health-lookup" element={<HealthLookupPage />} />
         </Routes>
 
         {/* Footer - hidden on login/signup pages and dashboard pages */}

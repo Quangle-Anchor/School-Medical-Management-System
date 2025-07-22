@@ -15,9 +15,9 @@ const VerifyOtp = () => {
     setResendMsg("");
     try {
       await forgotPasswordApi.sendOtp(email);
-      setResendMsg("Mã OTP mới đã được gửi đến email của bạn.");
+      setResendMsg("New OTP code has been sent to your email.");
     } catch (err) {
-      setError("Không thể gửi lại mã OTP. Vui lòng thử lại sau.");
+      setError("Unable to resend OTP code. Please try again later.");
     }
   };
   const location = useLocation();
@@ -64,9 +64,9 @@ const VerifyOtp = () => {
               />
             </div>
             <h2 className="text-3xl font-bold text-white mb-2">
-              Nhập mã xác nhận
+              Enter verification code
             </h2>
-            <p className="text-white/80">Nhập mã OTP đã gửi về email của bạn</p>
+            <p className="text-white/80">Enter the OTP code sent to your email</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <input
@@ -83,7 +83,7 @@ const VerifyOtp = () => {
                 className="font-semibold underline text-blue-800 hover:text-blue-100 transition-colors"
                 onClick={handleResendOtp}
               >
-                Gửi lại mã OTP
+                Resend OTP code
               </a>
               {resendMsg && (
                 <div className="w-full py-3 px-4 mt-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg text-center">
@@ -97,7 +97,7 @@ const VerifyOtp = () => {
               className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 backdrop-blur-sm"
               disabled={loading}
             >
-              {loading ? "Đang xác thực..." : "Xác nhận"}
+              {loading ? "Verifying..." : "Verify"}
             </button>
           </form>
         </div>

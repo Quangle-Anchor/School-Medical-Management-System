@@ -48,7 +48,7 @@ const ForgotPassword = () => {
             <h2 className="text-3xl font-bold text-white mb-2">
               Forgot password
             </h2>
-            <p className="text-white/80">Vui lòng nhập email để xác nhận!</p>
+            <p className="text-white/80">Please enter your email for verification!</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <input
@@ -65,15 +65,15 @@ const ForgotPassword = () => {
               className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 backdrop-blur-sm"
               disabled={loading}
             >
-              {loading ? "Đang gửi..." : "Gửi mã xác nhận"}
+              {loading ? "Sending..." : "Send verification code"}
             </button>
             <div className="text-center mt-4 text-white/80">
-              Muốn quay lại?{" "}
+              Want to go back?{" "}
               <span
                 className="text-blue-800 hover:text-blue-100 font-semibold transition-colors"
                 onClick={() => navigate("/login")}
               >
-                Đăng nhập
+                Login
               </span>
             </div>
           </form>

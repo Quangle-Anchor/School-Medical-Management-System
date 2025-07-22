@@ -38,8 +38,8 @@ const NovaHeaderSimple = ({ variant = "dark" }) => {
     <nav className={navbarClass} style={{ transition: "all 0.3s ease" }}>
       <div className="container-fluid px-4">
         <Link className="navbar-brand fw-bold fs-3" to="/">
-          <span className="text-primary">Nova</span>
-          <span className={isScrolled || !isLight ? "text-dark" : "text-white"}>Health</span>
+          <span className="text-primary">SVXS</span>
+          <span className={isScrolled || !isLight ? "text-dark" : "text-white"}> School Medical</span>
         </Link>
 
         <button

@@ -4,6 +4,10 @@ import { Link } from "react-router-dom";
 const NovaFooter = () => {
   const currentYear = new Date().getFullYear();
 
+  const handleLinkClick = () => {
+    window.scrollTo(0, 0);
+  };
+
   return (
     <footer className="section bg-light border-top border-primary">
       <div className="container">
@@ -47,28 +51,22 @@ const NovaFooter = () => {
             <h6 className="fw-bold mb-3 text-primary">Quick Links</h6>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <Link to="/" className="text-primary text-decoration-none">
+                <Link to="/" className="text-primary text-decoration-none" onClick={handleLinkClick}>
                   Home
                 </Link>
               </li>
               <li className="mb-2">
-                <Link to="/about" className="text-primary text-decoration-none">
+                <Link to="/about" className="text-primary text-decoration-none" onClick={handleLinkClick}>
                   About
                 </Link>
               </li>
               <li className="mb-2">
-                <Link
-                  to="/health-lookup"
-                  className="text-primary text-decoration-none"
-                >
+                <Link to="/health-lookup" className="text-primary text-decoration-none" onClick={handleLinkClick}>
                   Health Lookup
                 </Link>
               </li>
               <li className="mb-2">
-                <Link
-                  to="/contact"
-                  className="text-primary text-decoration-none"
-                >
+                <Link to="/contact" className="text-primary text-decoration-none" onClick={handleLinkClick}>
                   Contact
                 </Link>
               </li>

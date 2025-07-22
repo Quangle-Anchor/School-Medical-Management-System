@@ -99,12 +99,15 @@ export default function ContactNova() {
       <section
         className="hero-section position-relative overflow-hidden py-5"
         style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          minHeight: "50vh",
+          background: "linear-gradient(135deg, #1976d2 0%, #2196f3 100%)",
+          minHeight: "35vh",
         }}
       >
         <div className="container">
-          <div className="row align-items-center">
+          <div
+            className="row align-items-center justify-content-center"
+            style={{ minHeight: "50vh" }}
+          >
             <div className="col-lg-8 mx-auto text-center">
               <div className="hero-content text-white" data-aos="fade-up">
                 <h1 className="display-4 fw-bold mb-4">
@@ -177,10 +180,10 @@ export default function ContactNova() {
                   </p>
                   <div className="contact-details">
                     <p className="mb-1">
-                      <strong>Emergency:</strong> 024-3-555-0123
+                      <strong>Emergency:</strong> 0395-550-123
                     </p>
                     <p className="mb-1">
-                      <strong>Health Office:</strong> 024-3-555-0124
+                      <strong>Health Office:</strong> 0395-550-123
                     </p>
                     <p className="text-muted small">
                       Available: Mon-Fri, 7:30 AM - 4:30 PM
@@ -255,7 +258,7 @@ export default function ContactNova() {
                       <strong>Location:</strong> Building A, Room 105
                     </p>
                     <p className="mb-1">
-                      <strong>Address:</strong> 123 School Street, Hanoi
+                      <strong>Address:</strong> 123 School Street, Ho Chi Minh
                     </p>
                     <p className="text-muted small">Open during school hours</p>
                   </div>
@@ -385,7 +388,12 @@ export default function ContactNova() {
                       <div className="col-12 text-center">
                         <button
                           type="submit"
-                          className="btn btn-primary btn-lg px-5"
+                          className="btn btn-lg px-5"
+                          style={{
+                            background: "linear-gradient(135deg, #1976d2 0%, #2196f3 100%)",
+                            border: "none",
+                            color: "white"
+                          }}
                         >
                           <i className="bi bi-send me-2"></i>
                           Send Message
@@ -465,9 +473,9 @@ export default function ContactNova() {
                   our health office immediately.
                 </p>
                 <div className="d-flex flex-wrap gap-3 justify-content-center">
-                  <a href="tel:024-3-555-0123" className="btn btn-light btn-lg">
+                  <a className="btn btn-light btn-lg">
                     <i className="bi bi-telephone-fill me-2"></i>
-                    Call Emergency: 024-3-555-0123
+                    Call Emergency: 0395-550-123
                   </a>
                 </div>
                 <p className="mt-3 opacity-75">
@@ -479,8 +487,6 @@ export default function ContactNova() {
           </div>
         </div>
       </section>
-
-      <NovaFooter />
     </NovaLayout>
   );
 }

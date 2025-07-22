@@ -59,8 +59,8 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
         
         {/* Logo */}
         <Link className="navbar-brand fw-bold fs-3" to="/">
-          <span className="text-primary">Nova</span>
-          <span className={isScrolled || variant !== 'light' ? 'text-dark' : 'text-white'}>Health</span>
+          <span className="text-primary">SVXS</span>
+          <span className={isScrolled || variant !== 'light' ? 'text-dark' : 'text-white'}>School Medical</span>
         </Link>
 
         {/* Mobile menu button */}

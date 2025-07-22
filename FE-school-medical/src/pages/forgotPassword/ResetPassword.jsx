@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { forgotPasswordApi } from "../../api/forgotPasswordApi";
 import logo from "../../assets/img/1.png";
 import backgroundImg from "../../assets/img/back.png";
+import { Eye, EyeOff } from 'lucide-react';
 
 const ResetPassword = () => {
   const [pw1, setPw1] = useState("");
@@ -26,15 +27,15 @@ const ResetPassword = () => {
     setError("");
     // Validate password
     if (pw1.length < 8) {
-      setError("Mật khẩu phải có ít nhất 8 ký tự.");
+      setError("Password must be at least 8 characters long.");
       return;
     }
     if (!/\d/.test(pw1) || !/[a-zA-Z]/.test(pw1)) {
-      setError("Mật khẩu phải chứa cả chữ và số.");
+      setError("Password must contain both letters and numbers.");
       return;
     }
     if (pw1 !== pw2) {
-      setError("Mật khẩu xác nhận không khớp.");
+      setError("Password confirmation does not match.");
       return;
     }
     setLoading(true);
@@ -42,7 +43,7 @@ const ResetPassword = () => {
       await forgotPasswordApi.resetPassword(email, otp, pw1, pw2);
       navigate("/forgot-password/success");
     } catch (err) {
-      setError(err.message || "Có lỗi xảy ra, vui lòng thử lại.");
+      setError(err.message || "An error occurred, please try again.");
     }
     setLoading(false);
   };
@@ -72,43 +73,45 @@ const ResetPassword = () => {
               Reset password
             </h2>
             <p className="text-white/80">
-              Vui lòng nhập mã OTP mà chúng tôi đã gửi cho bạn qua Email
+              Please enter the OTP code we sent to your email
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="relative mb-2">
               <input
                 type={showPw1 ? "text" : "password"}
-                placeholder="Mật khẩu mới"
+                placeholder="New password"
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none"
                 value={pw1}
                 onChange={(e) => setPw1(e.target.value)}
                 required
               />
-              <span
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-300"
+              <button
+                type="button"
                 onClick={() => setShowPw1((v) => !v)}
-                tabIndex={0}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-white/90 transition-all duration-200 p-1 rounded-md hover:bg-white/10"
+                tabIndex={-1}
               >
-                {showPw1 ? "🙈" : "👁️"}
-              </span>
+                {showPw1 ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
             <div className="relative mb-2">
               <input
                 type={showPw2 ? "text" : "password"}
-                placeholder="Xác nhận mật khẩu"
+                placeholder="Confirm password"
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none"
                 value={pw2}
                 onChange={(e) => setPw2(e.target.value)}
                 required
               />
-              <span
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-300"
+              <button
+                type="button"
                 onClick={() => setShowPw2((v) => !v)}
-                tabIndex={0}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-white/90 transition-all duration-200 p-1 rounded-md hover:bg-white/10"
+                tabIndex={-1}
               >
-                {showPw2 ? "🙈" : "👁️"}
-              </span>
+                {showPw2 ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
             {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
             <button
@@ -116,15 +119,15 @@ const ResetPassword = () => {
               className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 backdrop-blur-sm"
               disabled={loading}
             >
-              {loading ? "Đang gửi..." : "Gửi"}
+              {loading ? "Sending..." : "Send"}
             </button>
             <div className="text-center mt-4 text-white/80">
-              Muốn quay trở lại?{" "}
+              Want to go back?{" "}
               <span
                 className="text-blue-800 hover:text-blue-100 font-semibold transition-colors cursor-pointer"
                 onClick={() => navigate("/login")}
               >
-                Đăng nhập
+                Login
               </span>
             </div>
           </form>

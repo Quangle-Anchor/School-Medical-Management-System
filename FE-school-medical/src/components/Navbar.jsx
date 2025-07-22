@@ -47,13 +47,9 @@ const TopNavbar = ({
         <div className="flex items-center mt-2 grow sm:mt-0 sm:mr-6 md:mr-0 lg:flex lg:basis-auto">
           <div className="flex items-center md:ml-auto md:pr-4">
           </div>
-
           {/* Navigation Icons */}
           <ul className="flex flex-row justify-end pl-0 mb-0 list-none md-max:w-full">
             {/* Mobile Menu Toggle */}
-
-
-
 
             {/* Notifications */}
             <li className="flex items-center px-4">
@@ -75,7 +71,10 @@ const TopNavbar = ({
                   <div className="w-8 h-8 rounded-lg bg-gray-500 flex items-center justify-center mr-2">
                     <User size={16} className="text-white" />
                   </div>
-                  <span className="hidden sm:inline">{userInfo.name}</span>
+                  <div className="hidden sm:flex sm:flex-col">
+                    <span className="text-sm font-medium">{userInfo.name}</span>
+                    <span className="text-xs text-gray-500">INNOVATIVE SCHOOL HEALTH SOLUTIONS</span>
+                  </div>
                   <ChevronDown size={16} className="ml-1" />
                 </button>
                 
