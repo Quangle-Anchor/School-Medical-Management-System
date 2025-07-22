@@ -16,7 +16,7 @@ const VerifyOtp = () => {
     try {
       await forgotPasswordApi.sendOtp(email);
       setResendMsg("New OTP code has been sent to your email.");
-    } catch (err) {
+    } catch {
       setError("Unable to resend OTP code. Please try again later.");
     }
   };

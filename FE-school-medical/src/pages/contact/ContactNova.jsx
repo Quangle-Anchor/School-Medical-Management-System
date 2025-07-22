@@ -3,32 +3,6 @@ import NovaLayout from "../../components/NovaLayout";
 import NovaHeaderSimple from "../../components/NovaHeaderSimple";
 import NovaFooter from "../../components/NovaFooter";
 
-// Thêm style cho hiệu ứng hover và active
-const cardHoverStyle = `
-  .contact-card {
-    transition: box-shadow 0.3s, transform 0.3s, border-color 0.3s;
-    border: 2px solid transparent;
-    cursor: pointer;
-  }
-  .contact-card:hover {
-    box-shadow: 0 8px 32px 0 rgba(25, 118, 210, 0.15), 0 1.5px 8px 0 rgba(25, 118, 210, 0.10);
-    transform: scale(1.04);
-    border-color: #1976d2;
-    z-index: 2;
-  }
-  .contact-card:hover .feature-icon i {
-    color: #1976d2 !important;
-  }
-  .contact-card.active {
-    box-shadow: 0 12px 40px 0 rgba(25, 118, 210, 0.25), 0 2px 12px 0 rgba(25, 118, 210, 0.18);
-    transform: scale(1.08);
-    border-color: #0d47a1;
-    z-index: 3;
-  }
-  .contact-card.active .feature-icon i {
-    color: #0d47a1 !important;
-  }
-`;
 
 export default function ContactNova() {
   const [formData, setFormData] = useState({

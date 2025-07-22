@@ -20,7 +20,7 @@ const HealthLookup = () => {
     try {
       const res = await searchStudentByCode(studentCode.trim());
       setStudent(res);
-    } catch (err) {
+    } catch {
       setError("Student not found or an error occurred.");
     } finally {
       setLoading(false);
