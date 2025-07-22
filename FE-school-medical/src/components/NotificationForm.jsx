@@ -14,7 +14,7 @@ const NotificationForm = ({ open, onClose, onSubmit, initial }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
-      setError("Vui lòng nhập đầy đủ tiêu đề và nội dung");
+      setError("Please enter both title and content");
       return;
     }
     onSubmit({ title: title.trim(), content: content.trim() });
@@ -32,11 +32,11 @@ const NotificationForm = ({ open, onClose, onSubmit, initial }) => {
           ×
         </button>
         <h2 className="text-lg font-semibold mb-4">
-          {initial ? "Sửa thông báo" : "Thêm thông báo"}
+          {initial ? "Edit Notification" : "Add Notification"}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Tiêu đề</label>
+            <label className="block text-sm font-medium mb-1">Title</label>
             <input
               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-400"
               value={title}
@@ -46,7 +46,7 @@ const NotificationForm = ({ open, onClose, onSubmit, initial }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Nội dung</label>
+            <label className="block text-sm font-medium mb-1">Content</label>
             <textarea
               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-400"
               value={content}
@@ -63,13 +63,13 @@ const NotificationForm = ({ open, onClose, onSubmit, initial }) => {
               className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
               onClick={onClose}
             >
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
               className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
             >
-              {initial ? "Lưu" : "Thêm"}
+              {initial ? "Save" : "Add"}
             </button>
           </div>
         </form>
