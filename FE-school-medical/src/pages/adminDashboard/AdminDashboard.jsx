@@ -13,16 +13,16 @@ const AdminDashboard = () => {
   const [activeView, setActiveView] = useState("dashboard");
   const [totalUsers, setTotalUsers] = useState(0);
 
+  const fetchUsers = async () => {
+    try {
+      const users = await userApi.getAll();
+      setTotalUsers(users.length);
+    } catch {
+      setTotalUsers(0);
+    }
+  };
+
   useEffect(() => {
-    // Lấy số lượng user thực tế từ API
-    const fetchUsers = async () => {
-      try {
-        const users = await userApi.getAll();
-        setTotalUsers(users.length);
-      } catch {
-        setTotalUsers(0);
-      }
-    };
     fetchUsers();
   }, []);
 
@@ -32,6 +32,15 @@ const AdminDashboard = () => {
 
   const handleMenuClick = (menuId) => {
     setActiveView(menuId);
+    // Refresh data khi quay về dashboard
+    if (menuId === "dashboard") {
+      fetchUsers();
+    }
+  };
+
+  // Hàm để refresh total users từ UserManagement
+  const handleUserUpdated = () => {
+    fetchUsers();
   };
 
   // Admin dashboard data
@@ -52,7 +61,7 @@ const AdminDashboard = () => {
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">User Management</h1>
             <div className="bg-white rounded-lg shadow p-6">
-              <UserManagement />
+              <UserManagement onUserUpdated={handleUserUpdated} />
             </div>
           </div>
         );
@@ -65,12 +74,14 @@ const AdminDashboard = () => {
             <div className="mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                  <p className="text-gray-600">Welcome back! Here's your system overview and administration tools.</p>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    Admin Dashboard
+                  </h1>
+                  <p className="text-gray-600">
+                    Welcome back! Here's your system overview and administration
+                    tools.
+                  </p>
                 </div>
-                <button className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors">
-                  System Status
-                </button>
               </div>
             </div>
 
@@ -102,13 +113,17 @@ const AdminDashboard = () => {
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-      <main className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${sidebarCollapsed ? 'xl:ml-20' : ''}`}>
-        <TopNavbar 
+      <main
+        className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${
+          sidebarCollapsed ? "xl:ml-20" : ""
+        }`}
+      >
+        <TopNavbar
           title="Admin Dashboard"
           breadcrumb={["Admin", "Dashboard"]}
           userInfo={{ name: localStorage.getItem("fullname") || "Admin User" }}
         />
-        
+
         {renderContent()}
       </main>
     </div>

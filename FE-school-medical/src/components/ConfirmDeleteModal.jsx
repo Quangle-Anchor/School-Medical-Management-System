@@ -4,10 +4,10 @@ const ConfirmDeleteModal = ({
   open,
   onClose,
   onConfirm,
-  title = "Xác nhận xóa",
-  message = "Bạn có chắc chắn muốn xóa mục này?",
-  confirmText = "Xóa",
-  cancelText = "Hủy",
+  title = "Confirm Delete",
+  message = "Are you sure you want to delete this item?",
+  confirmText = "Delete",
+  cancelText = "Cancel",
 }) => {
   if (!open) return null;
   return (

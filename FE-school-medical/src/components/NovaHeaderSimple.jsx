@@ -28,7 +28,7 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
     localStorage.removeItem("userId");
     localStorage.removeItem("email");
     localStorage.removeItem("fullname");
-    window.location.href = '/';
+    navigate('/');
   };
 
   const getDashboardLink = () => {
@@ -50,25 +50,36 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
 
   const isActive = (path) => location.pathname === path;
 
+  const getNavLinkClass = (path) => {
+    const baseClass = 'nav-link fw-semibold px-3';
+    if (isActive(path)) {
+      return `${baseClass} active text-primary`;
+    }
+    
+    if (isScrolled || variant !== 'light') {
+      return `${baseClass} text-dark`;
+    }
+    
+    return `${baseClass} text-white`;
+  };
+
   return (
     <nav className={`navbar navbar-expand-lg fixed-top ${
       isScrolled ? 'navbar-light bg-white shadow-sm' : 
-      variant === 'light' ? 'navbar-dark' : 'navbar-light bg-white'
+      variant === 'light' ? 'navbar-dark bg-transparent' : 'navbar-light bg-white'
     }`} style={{ transition: 'all 0.3s ease' }}>
       <div className="container-fluid px-4">
         
         {/* Logo */}
         <Link className="navbar-brand fw-bold fs-3" to="/">
           <span className="text-primary">SVXS</span>
-          <span className={isScrolled || variant !== 'light' ? 'text-dark' : 'text-white'}>School Medical</span>
+          <span className={isScrolled || variant !== 'light' ? 'text-dark' : 'text-white'}> School Medical</span>
         </Link>
 
         {/* Mobile menu button */}
         <button 
           className="navbar-toggler border-0" 
           type="button" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#navbarNav"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-controls="navbarNav" 
           aria-expanded={isMenuOpen}
@@ -78,38 +89,26 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
         </button>
 
         {/* Navigation Menu */}
-        <div className="collapse navbar-collapse" id="navbarNav">
+        <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`} id="navbarNav">
           <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <Link 
-                className={`nav-link fw-semibold px-3 ${isActive('/') ? 'active text-primary' : isScrolled ? 'text-dark' : 'text-dark'}`} 
-                to="/"
-              >
+              <Link className={getNavLinkClass('/')} to="/">
                 Home
               </Link>
             </li>
             <li className="nav-item">
-              <Link 
-                className={`nav-link fw-semibold px-3 ${isActive('/about') ? 'active text-primary' : isScrolled ? 'text-dark' : 'text-dark'}`} 
-                to="/about"
-              >
+              <Link className={getNavLinkClass('/about')} to="/about">
                 About
               </Link>
             </li>
             <li className="nav-item">
-              <Link 
-                className={`nav-link fw-semibold px-3 ${isActive('/contact') ? 'active text-primary' : isScrolled ? 'text-dark' : 'text-dark'}`} 
-                to="/contact"
-              >
+              <Link className={getNavLinkClass('/contact')} to="/contact">
                 Contact
               </Link>
             </li>
             {!isAuthenticated && (
               <li className="nav-item">
-                <Link 
-                  className={`nav-link fw-semibold px-3 ${isActive('/health-lookup') ? 'active text-primary' : isScrolled ? 'text-dark' : 'text-dark'}`} 
-                  to="/health-lookup"
-                >
+                <Link className={getNavLinkClass('/health-lookup')} to="/health-lookup">
                   Health Lookup
                 </Link>
               </li>
@@ -123,7 +122,7 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
                 <Link to="/login" className="btn btn-outline-primary me-2">
                   Login
                 </Link>
-                <Link to="/login" className="btn btn-primary">
+                <Link to="/signup" className="btn btn-primary">
                   Sign Up
                 </Link>
               </>

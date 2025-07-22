@@ -28,7 +28,7 @@ const HomepageNova = () => {
         className="hero-section position-relative overflow-hidden"
         style={{
           background: "linear-gradient(135deg, #1976d2 0%, #2196f3 100%)",
-          minHeight: "100vh",
+          minHeight: "50vh",
         }}
       >
         <div className="container-fluid">
@@ -60,18 +60,23 @@ const HomepageNova = () => {
                 <div className="d-flex gap-3 mb-5">
                   <a
                     href="/login"
-                    className="btn btn-dashboard btn-lg px-4 py-3 fw-semibold"
+                    className="btn btn-lg px-4 py-3 fw-semibold"
+                    style={{
+                      background: "#0d47a1",
+                      borderColor: "#0d47a1",
+                      color: "#fff",
+                    }}
                   >
                     <i className="bi bi-play-circle me-2"></i>
                     Get Started
                   </a>
                   <a
                     href="/about"
-                    className="btn btn-dashboard btn-lg px-4 py-3 fw-semibold"
+                    className="btn btn-lg px-4 py-3 fw-semibold"
                     style={{
-                      background: "#fff",
-                      color: "#2196f3",
-                      borderColor: "#2196f3",
+                      background: "#0d47a1",
+                      color: "#fff",
+                      borderColor: "#0d47a1",
                     }}
                   >
                     <i className="bi bi-info-circle me-2"></i>
@@ -82,16 +87,16 @@ const HomepageNova = () => {
                 <div className="trust-indicators mt-4">
                   <div className="d-flex align-items-center gap-4 opacity-75 flex-wrap">
                     <div className="d-flex align-items-center">
-                      <i className="bi bi-mortarboard fs-2 me-2 text-primary"></i>
-                      <span className="small text-primary">100+ Schools</span>
+                      <i className="bi bi-mortarboard fs-2 me-2 text-white"></i>
+                      <span className="small text-white">100+ Schools</span>
                     </div>
                     <div className="d-flex align-items-center">
-                      <i className="bi bi-people fs-2 me-2 text-primary"></i>
-                      <span className="small text-primary">50K+ Students</span>
+                      <i className="bi bi-people fs-2 me-2 text-white"></i>
+                      <span className="small text-white">50K+ Students</span>
                     </div>
                     <div className="d-flex align-items-center">
-                      <i className="bi bi-shield-check fs-2 me-2 text-primary"></i>
-                      <span className="small text-primary">
+                      <i className="bi bi-shield-check fs-2 me-2 text-white"></i>
+                      <span className="small text-white">
                         Secure & Reliable
                       </span>
                     </div>
@@ -102,11 +107,11 @@ const HomepageNova = () => {
             {/* Right */}
             <div
               className="col-12 col-lg-6 d-flex align-items-center justify-content-center"
-              style={{ minHeight: "500px" }}
+              style={{ minHeight: "700px" }}
             >
               <div
                 className="w-100 h-100 d-flex align-items-center justify-content-center"
-                style={{ maxWidth: "700px", height: "420px" }}
+                style={{ maxWidth: "800px", height: "650px" }}
               >
                 <img
                   src="https://edulinkvn.com/Upload/Articles/Photos/main-slider-1.jpg"
@@ -284,7 +289,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-clipboard-data"
-                      style={{ fontSize: "4rem", color: "#2196f3" }}
+                      style={{ fontSize: "4rem", color: "#6c757d" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -295,7 +300,12 @@ const HomepageNova = () => {
                     ensuring easy access and secure storage of medical
                     information.
                   </p>
-                  <a href="https://www.securescan.com/articles/records-management/medical-records-management-challenges-and-best-practices/" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://www.securescan.com/articles/records-management/medical-records-management-challenges-and-best-practices/"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>
@@ -312,7 +322,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-capsule"
-                      style={{ fontSize: "4rem", color: "#2196f3" }}
+                      style={{ fontSize: "4rem", color: "#28a745" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -322,7 +332,12 @@ const HomepageNova = () => {
                     Safe and efficient medication tracking and administration
                     for students with special health needs .
                   </p>
-                  <a href="https://www.oakstreethealth.com/medication-management-1216889" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://www.oakstreethealth.com/medication-management-1216889"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>
@@ -339,7 +354,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-calendar-heart"
-                      style={{ fontSize: "4rem", color: "#2196f3" }}
+                      style={{ fontSize: "4rem", color: "#dc3545" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -350,9 +365,14 @@ const HomepageNova = () => {
                     vaccinations and wellness programs for students at all
                     levels.
                   </p>
-                  <a href="https://eventupplanner.com/healthcare/" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://eventupplanner.com/healthcare/"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
-                  </a>                   
+                  </a>
                 </div>
               </div>
             </div>
@@ -367,7 +387,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-graph-up-arrow"
-                      style={{ fontSize: "4rem", color: "#2196f3" }}
+                      style={{ fontSize: "4rem", color: "#17a2b8" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">Health Analytics</h5>
@@ -375,7 +395,12 @@ const HomepageNova = () => {
                     Comprehensive health reports and analytics to track student
                     wellness trends and outcomes.
                   </p>
-                  <a href="https://www.sciencedirect.com/journal/healthcare-analytics" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://www.sciencedirect.com/journal/healthcare-analytics"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>
@@ -392,7 +417,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-bell"
-                      style={{ fontSize: "4rem", color: "#2196f3" }}
+                      style={{ fontSize: "4rem", color: "#ffc107" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -402,7 +427,12 @@ const HomepageNova = () => {
                     Instant alerts and communication system for health
                     emergencies and important health updates.
                   </p>
-                  <a href="https://www.alert-software.com/healthcare" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://www.alert-software.com/healthcare"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>
@@ -419,7 +449,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-people"
-                      style={{ fontSize: "4rem", color: "#2196f3" }}
+                      style={{ fontSize: "4rem", color: "#6f42c1" }}
                     ></i>
                   </div>
                   <h5 className="card-title fw-bold mb-3">
@@ -429,7 +459,12 @@ const HomepageNova = () => {
                     Seamless communication platform connecting school health
                     staff, parents, and students.
                   </p>
-                  <a href="https://cisedu.com/en-gb/world-of-cis/news/social_integration_of_parents/" className="btn btn-dashboard" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://cisedu.com/en-gb/world-of-cis/news/social_integration_of_parents/"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>

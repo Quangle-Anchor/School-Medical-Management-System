@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, Settings, User, ChevronDown } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 const TopNavbar = ({ 
   title = "Dashboard", 
   breadcrumb = ["Pages", "Dashboard"],
-  userInfo = { name: "Richard Davis", avatar: null }
+  userInfo = { name: "Richard Davis", avatar: null },
+  user
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -53,12 +55,7 @@ const TopNavbar = ({
 
             {/* Notifications */}
             <li className="flex items-center px-4">
-              <button className="block p-2 transition-all ease-nav-brand text-sm text-slate-500 bg-white shadow rounded-lg hover:bg-gray-50 ring-1 ring-sky-200 relative">
-                <Bell size={20} />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  5
-                </span>
-              </button>
+              <NotificationBell user={user} />
             </li>
 
             {/* Profile Dropdown */}

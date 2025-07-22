@@ -4,7 +4,7 @@ import AddUserForm from "./AddUserForm";
 import UserDetailModal from "./UserDetailModal";
 import { Eye, Edit, Trash2, Plus } from "lucide-react";
 
-const UserManagement = ({ viewOnly = false }) => {
+const UserManagement = ({ viewOnly = false, onUserUpdated }) => {
   const [users, setUsers] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,6 +39,10 @@ const UserManagement = ({ viewOnly = false }) => {
   const handleAddUser = async (user) => {
     await userApi.add(user);
     fetchUsers();
+    // Gọi callback để cập nhật total users ở dashboard
+    if (onUserUpdated) {
+      onUserUpdated();
+    }
   };
 
   const handleEditUser = async (user) => {
@@ -46,6 +50,10 @@ const UserManagement = ({ viewOnly = false }) => {
     setEditingUser(null);
     setShowEditForm(false);
     fetchUsers();
+    // Gọi callback để cập nhật total users ở dashboard
+    if (onUserUpdated) {
+      onUserUpdated();
+    }
   };
 
   const handleDelete = (id) => {
@@ -62,6 +70,10 @@ const UserManagement = ({ viewOnly = false }) => {
       try {
         await userApi.delete(deleteUserId);
         fetchUsers();
+        // Gọi callback để cập nhật total users ở dashboard
+        if (onUserUpdated) {
+          onUserUpdated();
+        }
       } catch (err) {
         // Hiển thị lỗi BE trả về nếu xóa không thành công (ví dụ lỗi ràng buộc khoá ngoại)
         // Lấy thông báo lỗi chi tiết nhất từ backend, ưu tiên message hoặc detail hoặc lỗi mặc định
@@ -182,70 +194,88 @@ const UserManagement = ({ viewOnly = false }) => {
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {users.map((u) => (
-            <div key={u.id} className="bg-white rounded-lg shadow p-6 relative">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                  <span className="text-2xl font-bold text-blue-600">
-                    {u.fullName?.charAt(0) || "U"}
-                  </span>
-                </div>
-                <div>
-                  <div className="font-semibold text-lg">{u.fullName}</div>
-                </div>
-                {/* Nút xóa, sửa, xem chi tiết */}
-                {!viewOnly && (
-                  <>
-                    <button
-                      className="absolute top-4 right-20 flex items-center gap-1 text-gray-400 hover:text-blue-600 px-2 py-1 rounded"
-                      title="View Details"
-                      onClick={() => {
-                        setDetailUser(u);
-                        setShowDetailModal(true);
-                      }}
-                    >
-                      <Eye className="w-5 h-5" />
-                    </button>
-                    <button
-                      className="absolute top-4 right-12 flex items-center gap-1 text-gray-400 hover:text-yellow-500 px-2 py-1 rounded"
-                      title="Edit"
-                      onClick={() => {
-                        setEditingUser(u);
-                        setShowEditForm(true);
-                      }}
-                    >
-                      <Edit className="w-5 h-5" />
-                    </button>
-                    <button
-                      className="absolute top-4 right-4 flex items-center gap-1 text-gray-400 hover:text-red-600 px-2 py-1 rounded"
-                      title="Delete"
-                      onClick={() => handleDelete(u.id || u.userId)}
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </>
-                )}
-              </div>
-              <div className="mb-2 text-sm text-gray-700 space-y-1">
-                <div>
-                  <b>Full Name:</b> {u.fullName}
-                </div>
-                <div>
-                  <b>Email:</b> {u.email}
-                </div>
-                <div>
-                  <b>Phone:</b> {u.phone}
-                </div>
-                <div>
-                  <b>Username:</b> {u.username}
-                </div>
-                <div>
-                  <b>Role:</b> {u.role || "N/A"}
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Contact
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((u) => (
+                <tr key={u.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                        <span className="text-lg font-bold text-blue-600">
+                          {u.fullName?.charAt(0) || "U"}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {u.fullName}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          @{u.username}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{u.email}</div>
+                    <div className="text-sm text-gray-500">{u.phone}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      {u.role || "N/A"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-4">
+                      <button
+                        onClick={() => {
+                          setDetailUser(u);
+                          setShowDetailModal(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingUser(u);
+                          setShowEditForm(true);
+                        }}
+                        className="text-green-600 hover:text-green-900 inline-flex items-center"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(u.id || u.userId)}
+                        className="text-red-600 hover:text-red-900 inline-flex items-center"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

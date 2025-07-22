@@ -6,7 +6,7 @@ export const forgotPasswordApi = {
       await axios.post("/api/password-recovery/send-otp", { email });
     } catch (err) {
       throw new Error(
-        err.response?.data?.message || "Email không hợp lệ hoặc không tồn tại."
+        err.response?.data?.message || "Invalid email or email does not exist."
       );
     }
   },
@@ -15,7 +15,7 @@ export const forgotPasswordApi = {
       await axios.post("/api/password-recovery/verify-otp", { email, otp });
     } catch (err) {
       throw new Error(
-        err.response?.data?.message || "OTP không đúng hoặc đã hết hạn."
+        err.response?.data?.message || "Invalid OTP or OTP has expired."
       );
     }
   },
@@ -29,7 +29,7 @@ export const forgotPasswordApi = {
       });
     } catch (err) {
       throw new Error(
-        err.response?.data?.message || "Có lỗi khi đổi mật khẩu."
+        err.response?.data?.message || "Error occurred while changing password."
       );
     }
   },
