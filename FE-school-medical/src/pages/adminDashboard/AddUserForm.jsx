@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+  import React, { useState } from "react";
 
 const emptyUser = {
   fullName: "",
@@ -58,6 +58,10 @@ const AddUserForm = ({
       setError("Email is required.");
       return;
     }
+    if (!form.phone.trim()) {
+      setError("Phone is required.");
+      return;
+    }
     if (!form.username.trim()) {
       setError("Username is required.");
       return;
@@ -66,10 +70,7 @@ const AddUserForm = ({
       setError("Password is required.");
       return;
     }
-    if (!form.role) {
-      setError("Role is required.");
-      return;
-    }
+    
     setLoading(true);
     setError("");
     try {
@@ -131,43 +132,49 @@ const AddUserForm = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Phone</label>
+              <label className="block text-sm font-medium mb-1">Phone *</label>
               <input
                 type="text"
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
+                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-            {/* Username: only show input when add or editing, but do not prefill when add */}
             <div>
-              <label className="block text-sm font-medium mb-1">Username</label>
+              <label className="block text-sm font-medium mb-1">Username *</label>
               <input
                 type="text"
                 name="username"
                 value={form.username}
                 onChange={handleChange}
+                required
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1">Password</label>
+              <label className="block text-sm font-medium mb-1">Password *</label>
               <input
                 type="password"
                 name="password"
                 value={form.password}
                 onChange={handleChange}
+                required
+                autoComplete="new-password"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1">Role *</label>
+              <label className="block text-sm font-medium mb-1">Role</label>
               <select
                 name="role"
                 value={form.role}
                 onChange={handleChange}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="Parent">Parent</option>

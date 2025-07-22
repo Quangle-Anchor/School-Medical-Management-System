@@ -2,12 +2,10 @@ import axiosInstance from "./axiosInstance";
 
 export const userApi = {
   getAll: async () => {
-    // Đúng endpoint BE: /api/admin/users
     const res = await axiosInstance.get("/api/admin/users");
     return res.data;
   },
   add: async (user) => {
-    // BE yêu cầu: { username, password, email, phone, fullName, roleName }
     const req = {
       username: user.username,
       password: user.password,
@@ -20,7 +18,6 @@ export const userApi = {
     return res.data;
   },
   update: async (id, user) => {
-    // BE yêu cầu: { email, phone, fullName, roleName }
     const req = {
       email: user.email,
       phone: user.phone,
