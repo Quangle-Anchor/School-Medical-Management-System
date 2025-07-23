@@ -1,6 +1,7 @@
 package com.be_source.School_Medical_Management_System_.controller;
 
 
+import com.be_source.School_Medical_Management_System_.request.GoogleLoginRequest;
 import com.be_source.School_Medical_Management_System_.request.LoginRequest;
 import com.be_source.School_Medical_Management_System_.request.SignupRequest;
 import com.be_source.School_Medical_Management_System_.response.AuthResponse;
@@ -64,4 +65,14 @@ public class AuthController {
                 ? ResponseEntity.ok().build()
                 : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+    @PostMapping("/google-login")
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginRequest request) {
+        try {
+            AuthResponse response = authService.googleLogin(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+        }
+    }
+
 }
