@@ -295,6 +295,7 @@ const ParentDashboardWrapper = () => {
           title="Parent Dashboard"
           breadcrumb={["Parent", "Dashboard"]}
           userInfo={{ name: localStorage.getItem("fullname") || "Parent User" }}
+          user={parentUser}
         />
         
         {renderContent()}

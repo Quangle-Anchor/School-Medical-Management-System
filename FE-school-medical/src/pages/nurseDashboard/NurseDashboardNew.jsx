@@ -296,6 +296,7 @@ const NurseDashboard = () => {
           title="Nurse Dashboard"
           breadcrumb={["Nurse", "Dashboard"]}
           userInfo={{ name: localStorage.getItem("fullname") || "Nurse User" }}
+          user={nurseUser}
         />
         
         {renderContent()}
