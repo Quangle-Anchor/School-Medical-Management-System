@@ -66,12 +66,14 @@ const VerifyOtp = () => {
             <h2 className="text-3xl font-bold text-white mb-2">
               Enter verification code
             </h2>
-            <p className="text-white/80">Enter the OTP code sent to your email</p>
+            <p className="text-white/80">
+              Enter the OTP code sent to your email
+            </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <input
               type="text"
-              placeholder="Nhập mã OTP"
+              placeholder="Enter OTP code"
               className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
@@ -86,7 +88,7 @@ const VerifyOtp = () => {
                 Resend OTP code
               </a>
               {resendMsg && (
-                <div className="w-full py-3 px-4 mt-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg text-center">
+                <div className="w-full py-3 px-4 mt-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg text-center">
                   {resendMsg}
                 </div>
               )}

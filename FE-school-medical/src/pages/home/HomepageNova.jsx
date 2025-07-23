@@ -1,9 +1,8 @@
 import React from "react";
 import NovaLayout from "../../components/NovaLayout";
 import NovaHeaderSimple from "../../components/NovaHeaderSimple";
-import NovaFooter from "../../components/NovaFooter";
 
-// Thêm style cho nút dashboard xanh
+// Thêm style cho nút dashboard xanh và nút hero
 const dashboardBtnStyle = `
 .btn-dashboard {
   background: #2196f3 !important;
@@ -14,6 +13,18 @@ const dashboardBtnStyle = `
   background: #1976d2 !important;
   border-color: #1976d2 !important;
   color: #fff !important;
+}
+.btn-hero {
+  background: transparent !important;
+  border: 2px solid white !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+}
+.btn-hero:hover, .btn-hero:focus {
+  background: #1976d2 !important;
+  border-color: #1976d2 !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
 }
 `;
 
@@ -59,22 +70,14 @@ const HomepageNova = () => {
                 <div className="d-flex gap-3 mb-5">
                   <a
                     href="/login"
-                    className="btn btn-lg px-4 py-3 fw-semibold rounded-pill border-2 border-white text-white"
-                    style={{
-                      background: "transparent",
-                      borderColor: "white",
-                    }}
+                    className="btn btn-hero btn-lg px-4 py-3 fw-semibold rounded-pill"
                   >
                     <i className="bi bi-play me-2"></i>
                     Get Started
                   </a>
                   <a
                     href="/about"
-                    className="btn btn-lg px-4 py-3 fw-semibold rounded-pill border-2 border-white text-white"
-                    style={{
-                      background: "transparent",
-                      borderColor: "white",
-                    }}
+                    className="btn btn-hero btn-lg px-4 py-3 fw-semibold rounded-pill"
                   >
                     <i className="bi bi-people me-2"></i>
                     Learn More
@@ -262,7 +265,7 @@ const HomepageNova = () => {
               data-aos="fade-up"
               data-aos-delay="200"
             >
-              <div className="card h-100 border-0 shadow-sm">
+              <div className="card h-100 border-0 shadow-sm hover-lift">
                 <div className="card-body p-5 text-center">
                   <div className="mb-4">
                     <i
@@ -278,7 +281,12 @@ const HomepageNova = () => {
                     ensuring easy access and secure storage of medical
                     information.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a
+                    href="https://www.securescan.com/articles/records-management/medical-records-management-challenges-and-best-practices/"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>
@@ -290,7 +298,7 @@ const HomepageNova = () => {
               data-aos="fade-up"
               data-aos-delay="300"
             >
-              <div className="card h-100 border-0 shadow-sm">
+              <div className="card h-100 border-0 shadow-sm hover-lift">
                 <div className="card-body p-5 text-center">
                   <div className="mb-4">
                     <i
@@ -303,9 +311,15 @@ const HomepageNova = () => {
                   </h5>
                   <p className="card-text text-muted mb-4">
                     Safe and efficient medication tracking and administration
-                    for students with special health needs .
+                    for students with special health needs, ensuring timely
+                    doses and proper documentation.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a
+                    href="https://www.oakstreethealth.com/medication-management-1216889"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>
@@ -317,7 +331,7 @@ const HomepageNova = () => {
               data-aos="fade-up"
               data-aos-delay="400"
             >
-              <div className="card h-100 border-0 shadow-sm">
+              <div className="card h-100 border-0 shadow-sm hover-lift">
                 <div className="card-body p-5 text-center">
                   <div className="mb-4">
                     <i
@@ -333,7 +347,12 @@ const HomepageNova = () => {
                     vaccinations and wellness programs for students at all
                     levels.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a
+                    href="https://eventupplanner.com/healthcare/"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>
@@ -345,7 +364,7 @@ const HomepageNova = () => {
               data-aos="fade-up"
               data-aos-delay="500"
             >
-              <div className="card h-100 border-0 shadow-sm">
+              <div className="card h-100 border-0 shadow-sm hover-lift">
                 <div className="card-body p-5 text-center">
                   <div className="mb-4">
                     <i
@@ -358,7 +377,12 @@ const HomepageNova = () => {
                     Comprehensive health reports and analytics to track student
                     wellness trends and outcomes.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a
+                    href="https://www.sciencedirect.com/journal/healthcare-analytics"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>
@@ -370,7 +394,7 @@ const HomepageNova = () => {
               data-aos="fade-up"
               data-aos-delay="600"
             >
-              <div className="card h-100 border-0 shadow-sm">
+              <div className="card h-100 border-0 shadow-sm hover-lift">
                 <div className="card-body p-5 text-center">
                   <div className="mb-4">
                     <i
@@ -385,7 +409,12 @@ const HomepageNova = () => {
                     Instant alerts and communication system for health
                     emergencies and important health updates.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a
+                    href="https://www.ready.gov/alerts"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>
@@ -397,7 +426,7 @@ const HomepageNova = () => {
               data-aos="fade-up"
               data-aos-delay="700"
             >
-              <div className="card h-100 border-0 shadow-sm">
+              <div className="card h-100 border-0 shadow-sm hover-lift">
                 <div className="card-body p-5 text-center">
                   <div className="mb-4">
                     <i
@@ -412,7 +441,12 @@ const HomepageNova = () => {
                     Seamless communication platform connecting school health
                     staff, parents, and students.
                   </p>
-                  <a href="/about" className="btn btn-dashboard">
+                  <a
+                    href="https://cisedu.com/en-gb/world-of-cis/news/social_integration_of_parents/"
+                    className="btn btn-dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read more
                   </a>
                 </div>

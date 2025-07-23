@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import NovaLayout from "../../components/NovaLayout";
 import NovaHeaderSimple from "../../components/NovaHeaderSimple";
-import NovaFooter from "../../components/NovaFooter";
 
+// Thêm style cho card hover - chỉ giữ lại active state
+const contactCardStyle = `
+.contact-card.active {
+  border-color: #2196f3 !important;
+  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.2) !important;
+}
+`;
 
 export default function ContactNova() {
   const [formData, setFormData] = useState({
@@ -67,6 +73,7 @@ export default function ContactNova() {
 
   return (
     <NovaLayout>
+      <style>{contactCardStyle}</style>
       <NovaHeaderSimple variant="light" />
 
       {/* Hero Section */}
@@ -131,7 +138,7 @@ export default function ContactNova() {
           <div className="row g-4">
             <div className="col-lg-4 col-md-6">
               <div
-                className={`card contact-card h-100 border-0 shadow-sm text-center${
+                className={`card contact-card h-100 border-0 shadow-sm hover-lift${
                   activeCard === 0 ? " active" : ""
                 }`}
                 data-aos="fade-up"
@@ -169,7 +176,7 @@ export default function ContactNova() {
 
             <div className="col-lg-4 col-md-6">
               <div
-                className={`card contact-card h-100 border-0 shadow-sm text-center${
+                className={`card contact-card h-100 border-0 shadow-sm hover-lift${
                   activeCard === 1 ? " active" : ""
                 }`}
                 data-aos="fade-up"
@@ -206,7 +213,7 @@ export default function ContactNova() {
 
             <div className="col-lg-4 col-md-6">
               <div
-                className={`card contact-card h-100 border-0 shadow-sm text-center${
+                className={`card contact-card h-100 border-0 shadow-sm hover-lift${
                   activeCard === 2 ? " active" : ""
                 }`}
                 data-aos="fade-up"
@@ -248,7 +255,7 @@ export default function ContactNova() {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-8">
-              <div className="card border-0 shadow-lg" data-aos="fade-up">
+              <div className="card border-0 shadow-lg hover-lift-lg" data-aos="fade-up">
                 <div className="card-body p-5">
                   <div className="text-center mb-5">
                     <h3 className="fw-bold text-dark mb-3">
@@ -408,7 +415,7 @@ export default function ContactNova() {
             {team.map((member, index) => (
               <div key={index} className="col-lg-4 col-md-6">
                 <div
-                  className="card h-100 border-0 shadow-sm"
+                  className="card h-100 border-0 shadow-sm hover-lift"
                   data-aos="fade-up"
                   data-aos-delay={200 + index * 100}
                 >

@@ -28,15 +28,17 @@ import RecoverySuccess from "./pages/forgotPassword/RecoverySuccess";
 
 function AppContent() {
   const location = useLocation();
-  
+
   // Check if current page is a dashboard
-  const isDashboardPage = location.pathname.includes('Dashboard') || 
-                          location.pathname.includes('/adminDashboard') ||
-                          location.pathname.includes('/nurseDashboard') ||
-                          location.pathname.includes('/principalDashboard') ||
-                          location.pathname.includes('/parentDashboard');
-  
-  const hideFooter = ["/login", "/signup"].includes(location.pathname) || isDashboardPage;
+  const isDashboardPage =
+    location.pathname.includes("Dashboard") ||
+    location.pathname.includes("/adminDashboard") ||
+    location.pathname.includes("/nurseDashboard") ||
+    location.pathname.includes("/principalDashboard") ||
+    location.pathname.includes("/parentDashboard");
+
+  const hideFooter =
+    ["/login", "/signup", "/forgot-password", "/forgot-password/verify-otp", "/forgot-password/reset", "/forgot-password/success"].includes(location.pathname) || isDashboardPage;
   const hideNavbar = isDashboardPage; // Hide navbar on dashboard pages
 
   // Lấy trạng thái đăng nhập từ localStorage
@@ -55,12 +57,10 @@ function AppContent() {
       )}
 
       {/* Main content area with padding for navbar */}
-      <div className={`relative z-10 ${!hideNavbar ? 'pt-16' : ''}`}>
+      <div className={`relative z-10 ${!hideNavbar ? "pt-16" : ""}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
-          {/* Chỉ cho phép truy cập Health Lookup khi chưa đăng nhập */}
-          
           <Route path="/about" element={<AboutNova />} />
           <Route path="/contact" element={<ContactNova />} />
           <Route path="/login" element={<LoginPage />} />
