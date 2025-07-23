@@ -106,10 +106,7 @@ public class UserServiceImpl implements IUserService {
     public void changePassword(ChangePasswordRequest request) {
         User currentUser = userUtilService.getCurrentUser();
 
-        boolean isFirstTimeGoogleUser = currentUser.getPasswordHash() == null || currentUser.getPasswordHash().isEmpty();
-
-        // Nếu không phải Google user, bắt buộc kiểm tra mật khẩu cũ
-        if (!isFirstTimeGoogleUser && !passwordEncoder.matches(request.getOldPassword(), currentUser.getPasswordHash())) {
+        if (!passwordEncoder.matches(request.getOldPassword(), currentUser.getPasswordHash())) {
             throw new RuntimeException("Old password is incorrect");
         }
 

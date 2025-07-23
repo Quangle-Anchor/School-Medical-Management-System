@@ -102,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
                 newUser.setFullName(fullName);
                 newUser.setUsername(email.split("@")[0]);
                 newUser.setRole(parentRole);
-                newUser.setPasswordHash(""); // Google user không cần password
+                newUser.setPasswordHash("12345");
                 return userRepository.save(newUser);
             });
 
