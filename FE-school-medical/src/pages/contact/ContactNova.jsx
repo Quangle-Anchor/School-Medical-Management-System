@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import NovaLayout from "../../components/NovaLayout";
 import NovaHeaderSimple from "../../components/NovaHeaderSimple";
+import { useToast } from '../../hooks/useToast';
 
 // Thêm style cho card hover - chỉ giữ lại active state
 const contactCardStyle = `
@@ -11,6 +12,7 @@ const contactCardStyle = `
 `;
 
 export default function ContactNova() {
+  const { showSuccess } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -34,7 +36,7 @@ export default function ContactNova() {
     e.preventDefault();
     // Handle form submission here
     console.log("Form submitted:", formData);
-    alert("Thank you for your message! We will get back to you soon.");
+    showSuccess("Thank you for your message! We will get back to you soon.");
     setFormData({
       name: "",
       email: "",

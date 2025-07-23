@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import authApi from '../../api/authApi';
 import { useNavigate, Link } from 'react-router-dom';
-import { Input, Button, message, Alert } from 'antd';
+import { Input, Button, Alert } from 'antd';
 import { GoogleLogin } from '@react-oauth/google';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useToast } from '../../hooks/useToast';
 import logo from '../../assets/img/1.png';
 import backgroundImg from '../../assets/img/back.png';
 import googleIcon from '/nova-assets/images/Google_icon.svg';
@@ -10,8 +12,10 @@ import googleIcon from '/nova-assets/images/Google_icon.svg';
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
 
   const handleGoogleLoginSuccess = async (credentialResponse) => {
@@ -37,7 +41,7 @@ const LoginPage = () => {
         localStorage.setItem('fullname', data.fullName);
       }
       
-      message.success('Google login successful!');
+      showSuccess('Google login successful!');
       
       // Dispatch custom event to notify navbar of authentication change
       window.dispatchEvent(new CustomEvent('authChange'));
@@ -53,7 +57,6 @@ const LoginPage = () => {
       const dashboardPath = roleDashboardMap[data.role] || '/';
       navigate(dashboardPath, { replace: true });
     } catch (err) {
-      console.error('Google login error:', err);
       if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else if (err.response?.data?.message) {
@@ -69,7 +72,6 @@ const LoginPage = () => {
   };
 
   const handleGoogleLoginError = () => {
-    console.error('Google login error');
     setError('Google login failed. Please try again or use regular login.');
   };
   
@@ -106,7 +108,7 @@ const LoginPage = () => {
         localStorage.setItem('fullname', data.fullName);
       }
       
-      message.success('Login successful!');
+      showSuccess('Login successful!');
       
       // Dispatch custom event to notify navbar of authentication change
       window.dispatchEvent(new CustomEvent('authChange'));
@@ -215,18 +217,31 @@ const LoginPage = () => {
               >
                 Password
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={preventEnterSubmit}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
-                placeholder="Enter your password"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={preventEnterSubmit}
+                  className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors duration-200"
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between">

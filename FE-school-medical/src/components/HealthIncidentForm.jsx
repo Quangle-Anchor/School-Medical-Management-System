@@ -3,6 +3,7 @@ import { healthIncidentAPI } from '../api/healthIncidentApi';
 import { studentAPI } from '../api/studentsApi';
 import { X, AlertTriangle, Calendar, User, FileText, Save, Search, ChevronDown } from 'lucide-react';
 import { validateIncidentDate, formatDateForInput } from '../utils/dateUtils';
+import { useToast } from '../hooks/useToast';
 
 const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident = null, isEditing = false }) => {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [error, setError] = useState('');
   const [dateError, setDateError] = useState('');
+  const { showSuccess, showError } = useToast();
   
   // Search functionality state
   const [searchTerm, setSearchTerm] = useState('');
@@ -255,6 +257,9 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
         description: '',
       });
 
+      // Show success message
+      showSuccess(`Health incident ${isEditing ? 'updated' : 'recorded'} successfully!`);
+
       // Notify parent component
       if (onIncidentSaved) {
         onIncidentSaved();
@@ -270,19 +275,31 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
         const errorData = err.response.data;
         
         if (status === 401) {
-          setError('Session expired. Please login again.');
+          const errorMsg = 'Session expired. Please login again.';
+          setError(errorMsg);
+          showError(errorMsg);
         } else if (status === 403) {
-          setError('Access denied. Please check your permissions.');
+          const errorMsg = 'Access denied. Please check your permissions.';
+          setError(errorMsg);
+          showError(errorMsg);
         } else if (status === 400) {
           // Bad request - could be validation error
           const errorMessage = errorData?.message || errorData?.error || 'Invalid data provided';
-          setError(`Validation error: ${errorMessage}. Please check all fields and try again.`);
+          const errorMsg = `Validation error: ${errorMessage}. Please check all fields and try again.`;
+          setError(errorMsg);
+          showError(errorMsg);
         } else if (status === 404) {
-          setError('Student not found. Please verify the Student Code is correct.');
+          const errorMsg = 'Student not found. Please verify the Student Code is correct.';
+          setError(errorMsg);
+          showError(errorMsg);
         } else if (status >= 500) {
-          setError('Server error occurred. Please try again later.');
+          const errorMsg = 'Server error occurred. Please try again later.';
+          setError(errorMsg);
+          showError(errorMsg);
         } else {
-          setError(`Failed to save health incident (Error ${status}). Please try again.`);
+          const errorMsg = `Failed to save health incident (Error ${status}). Please try again.`;
+          setError(errorMsg);
+          showError(errorMsg);
         }
       } else if (err.request) {
         setError('Network error. Please check your connection and try again.');

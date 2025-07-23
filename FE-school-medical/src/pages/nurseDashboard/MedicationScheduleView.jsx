@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
 import { Calendar, Clock, User, Pill, Plus, Edit, Trash2, AlertCircle, CheckCircle, Eye } from 'lucide-react';
+import { useToast } from '../../hooks/useToast';
 
 const MedicationScheduleManagement = () => {
   const navigate = useNavigate();
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const { showSuccess } = useToast();
 
   useEffect(() => {
     fetchSchedules();
@@ -46,7 +47,7 @@ const MedicationScheduleManagement = () => {
 
     try {
       await medicationScheduleAPI.deleteSchedule(scheduleId);
-      setSuccess('Medication schedule deleted successfully');
+      showSuccess('Medication schedule deleted successfully');
       await fetchSchedules();
     } catch (error) {
       console.error('Error deleting schedule:', error);
@@ -69,14 +70,7 @@ const MedicationScheduleManagement = () => {
     });
   };
 
-  // Clear success/error messages after 5 seconds
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => setSuccess(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [success]);
-
+  // Clear error messages after 5 seconds
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(null), 5000);

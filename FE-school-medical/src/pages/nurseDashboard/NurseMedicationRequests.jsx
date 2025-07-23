@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { medicationAPI } from '../../api/medicationApi';
 import { CheckCircle, XCircle, Clock, Eye, User, Pill, Calendar, AlertCircle, FileText, Download, X, RefreshCw } from 'lucide-react';
+import { useToast } from '../../hooks/useToast';
 
 const NurseMedicationRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -13,8 +14,8 @@ const NurseMedicationRequests = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [confirming, setConfirming] = useState(null);
   const [rejecting, setRejecting] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [activeTab, setActiveTab] = useState('pending'); // 'pending', 'confirmed', or 'rejected'
+  const { showSuccess, showError, showWarning } = useToast();
   useEffect(() => {
     // Check if user is authenticated before fetching data
     const token = localStorage.getItem('token');
@@ -106,14 +107,10 @@ const NurseMedicationRequests = () => {
     try {
       setConfirming(requestId);
       setError(null);
-      setSuccess(null);
       await medicationAPI.confirmMedicationRequest(requestId);
-      setSuccess('Medication request confirmed successfully. Parent will be notified.');
+      showSuccess('Medication request confirmed successfully. Parent will be notified.');
       await fetchPendingRequests(); // Refresh the current list
       await fetchAllRequestsForCounts(); // Refresh counts
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       setError('Failed to confirm medication request. Please try again.');
     } finally {
@@ -130,17 +127,13 @@ const NurseMedicationRequests = () => {
     try {
       setRejecting(selectedRequest.requestId);
       setError(null);
-      setSuccess(null);
       await medicationAPI.rejectMedicationRequest(selectedRequest.requestId, rejectReason);
-      setSuccess('Medication request rejected successfully. Parent will be notified.');
+      showSuccess('Medication request rejected successfully. Parent will be notified.');
       setShowRejectModal(false);
       setRejectReason('');
       setSelectedRequest(null);
       await fetchPendingRequests(); // Refresh the current list
       await fetchAllRequestsForCounts(); // Refresh counts
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       setError('Failed to reject medication request. Please try again.');
     } finally {
@@ -222,7 +215,7 @@ const NurseMedicationRequests = () => {
         const newTab = window.open(prescriptionFileUrl, '_blank');
         
         if (!newTab) {
-          alert('Please allow popups for this site to view prescription files.');
+          showWarning('Please allow popups for this site to view prescription files.');
         }
         return;
       }
@@ -251,13 +244,13 @@ const NurseMedicationRequests = () => {
         }, 1000);
         
         if (!newTab) {
-          alert('Please allow popups for this site to view prescription files.');
+          showWarning('Please allow popups for this site to view prescription files.');
         }
       } else {
-        alert('Failed to load prescription file');
+        showError('Failed to load prescription file');
       }
     } catch (error) {
-      alert('Error loading prescription file');
+      showError('Error loading prescription file');
     }
   };
 
@@ -303,14 +296,6 @@ const NurseMedicationRequests = () => {
 
   return (
     <div className="p-6">
-      {/* Success Message */}
-      {success && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
-          <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-          <p className="text-green-800 font-medium">{success}</p>
-        </div>
-      )}
-
       {/* Error Message */}
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">

@@ -4,6 +4,7 @@ import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
 import { medicationAPI } from '../../api/medicationApi';
 import { inventoryAPI } from '../../api/inventoryApi';
 import { Calendar, Clock, User, Save, ArrowLeft, AlertCircle, CheckCircle, Package, Users } from 'lucide-react';
+import { useToast } from '../../hooks/useToast';
 
 const MedicationScheduleForm = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const MedicationScheduleForm = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const { showSuccess, showError } = useToast();
   
   // Schedule Form State
   const [scheduleForm, setScheduleForm] = useState({
@@ -206,7 +207,7 @@ const MedicationScheduleForm = () => {
       try {
         if (isEditMode) {
           await medicationScheduleAPI.updateSchedule(scheduleId, schedulePayload);
-          setSuccess('Medication schedule updated successfully');
+          showSuccess('Medication schedule updated successfully');
         } else {
           // For new schedule, first try to deduct from inventory
           const inventoryPayload = {
@@ -219,7 +220,7 @@ const MedicationScheduleForm = () => {
 
           // If inventory deduction succeeds, create the schedule
           await medicationScheduleAPI.createSchedule(schedulePayload);
-          setSuccess('Medication schedule created and inventory updated successfully');
+          showSuccess('Medication schedule created and inventory updated successfully');
         }
       } catch (deductError) {
         // If inventory deduction fails, throw a more specific error

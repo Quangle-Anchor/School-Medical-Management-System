@@ -16,7 +16,6 @@ const MyChildView = () => {
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [showDebug, setShowDebug] = useState(false); // Add debug toggle state
 
   useEffect(() => {
     fetchStudents();

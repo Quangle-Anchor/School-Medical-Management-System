@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { eventSignupAPI } from '../api/eventSignupApi';
 import { studentAPI } from '../api/studentsApi';
 import { X, Calendar, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
 
 const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess }) => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess }) => {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [error, setError] = useState('');
   const [existingSignups, setExistingSignups] = useState([]);
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     if (isOpen && event) {
@@ -92,6 +94,9 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess }) => {
 
       await eventSignupAPI.createSignup(signupData);
 
+      // Show success message
+      showSuccess('Successfully signed up for the event!');
+
       // Reset form
       setFormData({
         eventId: event?.eventId || '',
@@ -114,19 +119,26 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess }) => {
         
         if (status === 400) {
           setError(errorData?.message || 'Invalid signup data. Please check and try again.');
+          showError(errorData?.message || 'Invalid signup data. Please check and try again.');
         } else if (status === 401) {
           setError('Session expired. Please login again.');
+          showError('Session expired. Please login again.');
         } else if (status === 403) {
           setError('Access denied. Please check your permissions.');
+          showError('Access denied. Please check your permissions.');
         } else if (status === 409) {
           setError('Student is already signed up for this event.');
+          showError('Student is already signed up for this event.');
         } else if (status >= 500) {
           setError('Server error occurred. Please try again later.');
+          showError('Server error occurred. Please try again later.');
         } else {
           setError('Failed to sign up for event. Please try again.');
+          showError('Failed to sign up for event. Please try again.');
         }
       } else {
         setError('Network error. Please check your connection and try again.');
+        showError('Network error. Please check your connection and try again.');
       }
     } finally {
       setLoading(false);

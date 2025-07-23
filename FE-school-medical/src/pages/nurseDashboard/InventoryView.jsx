@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   PlusIcon, 
   MagnifyingGlassIcon, 
-  ExclamationTriangleIcon,
-  CheckIcon,
-  XMarkIcon,
   ArrowUpTrayIcon,
   DocumentArrowDownIcon,
   ChartBarIcon,
@@ -15,8 +12,10 @@ import {
 // Add CSS animation style in index.css
 import { inventoryAPI } from '../../api/inventoryApi';
 import {formatDateForInput } from '../../utils/dateUtils';
+import { useToast } from '../../hooks/useToast';
 
 const InventoryView = () => {
+  const { showSuccess, showError, showWarning, showInfo } = useToast();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [inventoryData, setInventoryData] = useState({
     medications: [],
@@ -57,34 +56,6 @@ const InventoryView = () => {
     minThreshold: 10,
     maxThreshold: 50,
   });
-
-  // Toast notification state
-  const [toasts, setToasts] = useState([]);
-
-  // Toast functions
-  const showToast = (message, type = 'success') => {
-    const id = Date.now();
-    const newToast = { id, message, type };
-    setToasts(prev => [...prev, newToast]);
-    
-    // Auto remove after 6 seconds
-    setTimeout(() => {
-      setToasts(prev => prev.filter(toast => toast.id !== id));
-    }, 6000);
-  };
-
-  const removeToast = (id) => {
-    // Add fade-out animation before removing
-    const element = document.querySelector(`[data-toast-id="${id}"]`);
-    if (element) {
-      element.classList.add('animate-slideOutRight');
-      setTimeout(() => {
-        setToasts(prev => prev.filter(toast => toast.id !== id));
-      }, 300);
-    } else {
-      setToasts(prev => prev.filter(toast => toast.id !== id));
-    }
-  };
 
   useEffect(() => {
     fetchInventory();
@@ -174,7 +145,7 @@ const InventoryView = () => {
       setMedicalItems(items);
     } catch (error) {
       console.error('Error fetching medical items:', error);
-      showToast('Failed to fetch medical items. Please try again later.', 'error');
+      showError('Failed to fetch medical items. Please try again later.');
     } finally {
       setLoadingMedicalItems(false);
     }
@@ -203,12 +174,12 @@ const InventoryView = () => {
   const handleAddExistingItem = async () => {
     try {
     if (!selectedMedicalItem) {
-        showToast('Please select an item first', 'warning');
+        showWarning('Please select an item first');
         return;
     }
 
     if (!formData.quantity || formData.quantity <= 0) {
-        showToast('Please enter a valid quantity', 'warning');
+        showWarning('Please enter a valid quantity');
         return;
     }      // Show loading state
       const quantity = formData.quantity; // Store quantity for success message
@@ -223,10 +194,10 @@ const InventoryView = () => {
       fetchInventory();
       
       // Show success notification
-      showToast(`Successfully added ${quantity} ${selectedMedicalItem.unit || 'units'} of ${selectedMedicalItem.itemName} to inventory`, 'success');
+      showSuccess(`Successfully added ${quantity} ${selectedMedicalItem.unit || 'units'} of ${selectedMedicalItem.itemName} to inventory`);
     } catch (error) {
       console.error('Error adding existing item to inventory:', error);
-      showToast(`Failed to add item: ${error.message || 'Please check your permissions.'}`, 'error');
+      showError(`Failed to add item: ${error.message || 'Please check your permissions.'}`);
     }
   };
   
@@ -245,17 +216,17 @@ const InventoryView = () => {
   const handleUpdateInventoryItem = async () => {
     try {
       if (!selectedUpdateItem) {
-        showToast('Please select an item first', 'warning');
+        showWarning('Please select an item first');
         return;
       }
       
       if (!formData.quantity || formData.quantity <= 0) {
-        showToast('Please enter a valid quantity to export', 'warning');
+        showWarning('Please enter a valid quantity to export');
         return;
       }
       
       if (formData.quantity > selectedUpdateItem.quantity) {
-        showToast(`Cannot export ${formData.quantity} ${selectedUpdateItem.unit || 'units'}. Only ${selectedUpdateItem.quantity} ${selectedUpdateItem.unit || 'units'} available in stock.`, 'warning');
+        showWarning(`Cannot export ${formData.quantity} ${selectedUpdateItem.unit || 'units'}. Only ${selectedUpdateItem.quantity} ${selectedUpdateItem.unit || 'units'} available in stock.`);
         return;
       }      
       // Show loading state
@@ -276,10 +247,10 @@ const InventoryView = () => {
       fetchInventory();
       
       // Show success notification
-      showToast(`Successfully exported ${exportQuantity} ${selectedUpdateItem.unit || 'units'} of ${selectedUpdateItem.name || selectedUpdateItem.itemName}`, 'success');
+      showSuccess(`Successfully exported ${exportQuantity} ${selectedUpdateItem.unit || 'units'} of ${selectedUpdateItem.name || selectedUpdateItem.itemName}`);
     } catch (error) {
       console.error('Error exporting inventory item:', error);
-      showToast(`Failed to export item: ${error.message || 'Please check your permissions.'}`, 'error');
+      showError(`Failed to export item: ${error.message || 'Please check your permissions.'}`);
     }
   };
 
@@ -338,7 +309,7 @@ const InventoryView = () => {
       
       // Show a message if no results
       if (transformedItems.length === 0) {
-        showToast(`No items found matching "${searchTerm}"`, 'info');
+        showInfo(`No items found matching "${searchTerm}"`);
       }
     } catch (error) {
       console.error('Error searching inventory:', error);
@@ -428,10 +399,10 @@ const InventoryView = () => {
       setShowAddModal(false);
       resetForm();
       // No need to fetch inventory since we're only creating the medical item
-      showToast(`Successfully created medical item: ${formData.name}`, 'success');
+      showSuccess(`Successfully created medical item: ${formData.name}`);
     } catch (error) {
       console.error('Error adding item:', error);
-      showToast(`Failed to add item: ${error.message || 'Please check your permissions.'}`, 'error');
+      showError(`Failed to add item: ${error.message || 'Please check your permissions.'}`);
     }
   };
 
@@ -471,7 +442,7 @@ const InventoryView = () => {
       resetForm();
       await fetchInventory(); // Refresh the inventory data
       
-      showToast('Item updated successfully!', 'success');
+      showSuccess('Item updated successfully!');
     } catch (error) {
 
       
@@ -488,7 +459,7 @@ const InventoryView = () => {
         errorMessage += error.message || 'Please try again or contact support.';
       }
       
-      showToast(errorMessage, 'error');
+      showError(errorMessage);
     }
   };
 
@@ -498,10 +469,10 @@ const InventoryView = () => {
       setShowDeleteModal(false);
       setSelectedItem(null);
       fetchInventory();
-      showToast('Item deleted successfully!', 'success');
+      showSuccess('Item deleted successfully!');
     } catch (error) {
       console.error('Error deleting item:', error);
-      showToast('Failed to delete item. Please check your permissions.', 'error');
+      showError('Failed to delete item. Please check your permissions.');
     }
   };
 
@@ -543,34 +514,6 @@ const InventoryView = () => {
     setShowDeleteModal(true);
   };
 
-  const getStatusColor = (item) => {
-    const status = item.status || inventoryAPI.getStockStatus(item.quantity);
-    switch (status) {
-      case 'good': return 'text-green-600';
-      case 'moderate': return 'text-yellow-600';
-      case 'low': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const getCategoryIcon = (category) => {
-    const icons = {
-      medications: '💊',
-      equipment: '🔬',
-      consumables: '🧤'
-    };
-    return icons[category] || '📦';
-  };
-
-  const getCategoryColor = (category) => {
-    const colors = {
-      medications: 'border-blue-300 bg-blue-50',
-      equipment: 'border-green-300 bg-green-50',
-      consumables: 'border-purple-300 bg-purple-50'
-    };
-    return colors[category] || 'border-gray-300 bg-gray-50';
-  };
-
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center">
@@ -587,106 +530,6 @@ const InventoryView = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* Toast Notifications */}
-      <div className="fixed top-6 right-6 z-[9999] space-y-3 max-w-md">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            data-toast-id={toast.id}
-            className={`relative overflow-hidden rounded-xl shadow-2xl backdrop-blur-sm transform transition-all duration-500 ease-out animate-slideInRight ${
-              toast.type === 'success' 
-                ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200' 
-                : toast.type === 'error' 
-                ? 'bg-gradient-to-r from-red-50 to-rose-50 border border-red-200'
-                : toast.type === 'warning'
-                ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200'
-                : 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200'
-            }`}
-            style={{
-              boxShadow: toast.type === 'success' 
-                ? '0 20px 25px -5px rgba(34, 197, 94, 0.1), 0 10px 10px -5px rgba(34, 197, 94, 0.04)'
-                : toast.type === 'error' 
-                ? '0 20px 25px -5px rgba(239, 68, 68, 0.1), 0 10px 10px -5px rgba(239, 68, 68, 0.04)'
-                : toast.type === 'warning'
-                ? '0 20px 25px -5px rgba(245, 158, 11, 0.1), 0 10px 10px -5px rgba(245, 158, 11, 0.04)'
-                : '0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.04)'
-            }}
-          >
-            {/* Progress Bar */}
-            <div className={`absolute bottom-0 left-0 h-1 animate-pulse ${
-              toast.type === 'success' ? 'bg-gradient-to-r from-green-400 to-emerald-500' 
-              : toast.type === 'error' ? 'bg-gradient-to-r from-red-400 to-rose-500'
-              : toast.type === 'warning' ? 'bg-gradient-to-r from-yellow-400 to-amber-500'
-              : 'bg-gradient-to-r from-blue-400 to-indigo-500'
-            }`} 
-            style={{
-              width: '100%',
-              animation: 'progress-bar 6s linear forwards'
-            }} />
-            
-            {/* Accent Bar */}
-            <div className={`absolute top-0 left-0 w-full h-1 ${
-              toast.type === 'success' ? 'bg-gradient-to-r from-green-400 to-emerald-500' 
-              : toast.type === 'error' ? 'bg-gradient-to-r from-red-400 to-rose-500'
-              : toast.type === 'warning' ? 'bg-gradient-to-r from-yellow-400 to-amber-500'
-              : 'bg-gradient-to-r from-blue-400 to-indigo-500'
-            }`} />
-            
-            <div className="p-4">
-              <div className="flex items-start space-x-3">
-                {/* Icon with background */}
-                <div className={`flex-shrink-0 p-1.5 rounded-full ${
-                  toast.type === 'success' ? 'bg-green-100' 
-                  : toast.type === 'error' ? 'bg-red-100'
-                  : toast.type === 'warning' ? 'bg-yellow-100'
-                  : 'bg-blue-100'
-                }`}>
-                  {toast.type === 'success' && (
-                    <CheckIcon className="h-5 w-5 text-green-600" aria-hidden="true" />
-                  )}
-                  {toast.type === 'error' && (
-                    <ExclamationTriangleIcon className="h-5 w-5 text-red-600" aria-hidden="true" />
-                  )}
-                  {toast.type === 'warning' && (
-                    <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600" aria-hidden="true" />
-                  )}
-                  {toast.type === 'info' && (
-                    <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 20 20">
-                      <path fill="currentColor" fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-                
-                {/* Message */}
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold leading-relaxed ${
-                    toast.type === 'success' ? 'text-green-800' 
-                    : toast.type === 'error' ? 'text-red-800'
-                    : toast.type === 'warning' ? 'text-yellow-800'
-                    : 'text-blue-800'
-                  }`}>
-                    {toast.message}
-                  </p>
-                </div>
-                
-                {/* Close Button */}
-                <button
-                  className={`flex-shrink-0 p-1.5 rounded-full transition-colors duration-200 ${
-                    toast.type === 'success' ? 'text-green-400 hover:text-green-600 hover:bg-green-100' 
-                    : toast.type === 'error' ? 'text-red-400 hover:text-red-600 hover:bg-red-100'
-                    : toast.type === 'warning' ? 'text-yellow-400 hover:text-yellow-600 hover:bg-yellow-100'
-                    : 'text-blue-400 hover:text-blue-600 hover:bg-blue-100'
-                  }`}
-                  onClick={() => removeToast(toast.id)}
-                >
-                  <XMarkIcon className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
