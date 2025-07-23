@@ -1,11 +1,27 @@
 import React from "react";
 import NovaLayout from "../../components/NovaLayout";
 import NovaHeaderSimple from "../../components/NovaHeaderSimple";
-import NovaFooter from "../../components/NovaFooter";
+
+// Thêm style cho nút hero với hiệu ứng hover xanh lá cây
+const heroBtnStyle = `
+.btn-hero-about {
+  background: transparent !important;
+  border: 2px solid white !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+}
+.btn-hero-about:hover, .btn-hero-about:focus {
+  background: #4caf50 !important;
+  border-color: #4caf50 !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+}
+`;
 
 export default function AboutNova() {
   return (
     <NovaLayout>
+      <style>{heroBtnStyle}</style>
       <NovaHeaderSimple variant="light" />
 
       {/* Hero Section */}
@@ -30,23 +46,13 @@ export default function AboutNova() {
                 <div className="d-flex flex-wrap gap-3">
                   <a
                     href="#mission"
-                    className="btn btn-lg"
-                    style={{
-                      background: "#0d47a1",
-                      borderColor: "#0d47a1",
-                      color: "#fff",
-                    }}
+                    className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                   >
                     Our Mission
                   </a>
                   <a
                     href="#team"
-                    className="btn btn-lg"
-                    style={{
-                      background: "#0d47a1",
-                      borderColor: "#0d47a1",
-                      color: "#fff",
-                    }}
+                    className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                   >
                     Meet Our Team
                   </a>
@@ -100,7 +106,7 @@ export default function AboutNova() {
           <div className="row g-4">
             <div className="col-lg-6">
               <div
-                className="card h-100 border-0 shadow-sm"
+                className="card h-100 border-0 shadow-sm hover-lift"
                 data-aos="fade-up"
                 data-aos-delay="200"
               >
@@ -125,7 +131,7 @@ export default function AboutNova() {
 
             <div className="col-lg-6">
               <div
-                className="card h-100 border-0 shadow-sm"
+                className="card h-100 border-0 shadow-sm hover-lift"
                 data-aos="fade-up"
                 data-aos-delay="300"
               >
@@ -259,7 +265,7 @@ export default function AboutNova() {
           <div className="row g-4">
             <div className="col-lg-3 col-md-6">
               <div
-                className="card h-100 border-0 shadow-sm text-center"
+                className="card h-100 border-0 shadow-sm hover-lift text-center"
                 data-aos="fade-up"
                 data-aos-delay="200"
               >
@@ -280,7 +286,7 @@ export default function AboutNova() {
 
             <div className="col-lg-3 col-md-6">
               <div
-                className="card h-100 border-0 shadow-sm text-center"
+                className="card h-100 border-0 shadow-sm hover-lift text-center"
                 data-aos="fade-up"
                 data-aos-delay="300"
               >
@@ -303,7 +309,7 @@ export default function AboutNova() {
 
             <div className="col-lg-3 col-md-6">
               <div
-                className="card h-100 border-0 shadow-sm text-center"
+                className="card h-100 border-0 shadow-sm hover-lift text-center"
                 data-aos="fade-up"
                 data-aos-delay="400"
               >
@@ -324,7 +330,7 @@ export default function AboutNova() {
 
             <div className="col-lg-3 col-md-6">
               <div
-                className="card h-100 border-0 shadow-sm text-center"
+                className="card h-100 border-0 shadow-sm hover-lift text-center"
                 data-aos="fade-up"
                 data-aos-delay="500"
               >
@@ -370,7 +376,7 @@ export default function AboutNova() {
           <div className="row g-4 justify-content-center">
             <div className="col-lg-4 col-md-6">
               <div
-                className="card border-0 shadow-sm text-center"
+                className="card border-0 shadow-sm hover-lift text-center"
                 data-aos="fade-up"
                 data-aos-delay="200"
               >
@@ -395,7 +401,7 @@ export default function AboutNova() {
 
             <div className="col-lg-4 col-md-6">
               <div
-                className="card border-0 shadow-sm text-center"
+                className="card border-0 shadow-sm hover-lift text-center"
                 data-aos="fade-up"
                 data-aos-delay="300"
               >
@@ -418,7 +424,7 @@ export default function AboutNova() {
 
             <div className="col-lg-4 col-md-6">
               <div
-                className="card border-0 shadow-sm text-center"
+                className="card border-0 shadow-sm hover-lift text-center"
                 data-aos="fade-up"
                 data-aos-delay="400"
               >
@@ -475,23 +481,13 @@ export default function AboutNova() {
               >
                 <a
                   href="/contact"
-                  className="btn btn-lg"
-                  style={{
-                    background: "#0d47a1",
-                    borderColor: "#0d47a1",
-                    color: "#fff",
-                  }}
+                  className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                 >
                   Contact Us
                 </a>
                 <a
                   href="/login"
-                  className="btn btn-lg"
-                  style={{
-                    background: "#0d47a1",
-                    borderColor: "#0d47a1",
-                    color: "#fff",
-                  }}
+                  className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                 >
                   Get Started
                 </a>

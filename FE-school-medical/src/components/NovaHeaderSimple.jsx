@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import logo from "../assets/img/1.png";
 
 const NovaHeaderSimple = ({ variant = "light" }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,7 +12,8 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
   // Simple auth state from localStorage
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
-  const fullName = localStorage.getItem("fullname") || localStorage.getItem("email") || "User";
+  const fullName =
+    localStorage.getItem("fullname") || localStorage.getItem("email") || "User";
   const isAuthenticated = !!token;
 
   useEffect(() => {
@@ -18,8 +21,8 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
       setIsScrolled(window.scrollY > 50);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLogout = () => {
@@ -28,49 +31,73 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
     localStorage.removeItem("userId");
     localStorage.removeItem("email");
     localStorage.removeItem("fullname");
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   const getDashboardLink = () => {
-    if (!isAuthenticated) return '/';
-    
+    if (!isAuthenticated) return "/";
+
     switch (role) {
-      case 'ADMIN':
-        return '/adminDashboard';
-      case 'PRINCIPAL':
-        return '/principalDashboard';
-      case 'NURSE':
-        return '/nurseDashboard';
-      case 'PARENT':
-        return '/parentDashboard';
+      case "ADMIN":
+        return "/adminDashboard";
+      case "PRINCIPAL":
+        return "/principalDashboard";
+      case "NURSE":
+        return "/nurseDashboard";
+      case "PARENT":
+        return "/parentDashboard";
       default:
-        return '/';
+        return "/";
     }
   };
 
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className={`navbar navbar-expand-lg fixed-top ${
-      isScrolled ? 'navbar-light bg-white shadow-sm' : 
-      variant === 'light' ? 'navbar-dark' : 'navbar-light bg-white'
-    }`} style={{ transition: 'all 0.3s ease' }}>
+    <nav
+      className={`navbar navbar-expand-lg fixed-top ${
+        isScrolled
+          ? "navbar-light bg-white shadow-sm"
+          : variant === "light"
+          ? "navbar-dark"
+          : "navbar-light bg-white"
+      }`}
+      style={{ transition: "all 0.3s ease" }}
+    >
       <div className="container-fluid px-4">
-        
         {/* Logo */}
-        <Link className="navbar-brand fw-bold fs-3" to="/">
-          <span className="text-primary">Novaz</span>
-          <span className={isScrolled || variant !== 'light' ? 'text-dark' : 'text-white'}>Health</span>
+        <Link className="navbar-brand fw-bold" to="/">
+          <div className="d-flex align-items-center">
+            <div className="bg-info rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: "40px", height: "40px" }}>
+              <img
+                alt="Logo"
+                src={logo}
+                className=""
+                style={{ height: "32px", width: "32px", borderRadius: "50%" }}
+              />
+            </div>
+            <div className="d-flex flex-column lh-1 ms-2">
+              <span
+                className="text-info fw-bold"
+                style={{ fontSize: "16px", marginBottom: "3px" }}
+              >
+                SVXS
+              </span>
+              <span className="text-info" style={{ fontSize: "12px" }}>
+                School Medical
+              </span>
+            </div>
+          </div>
         </Link>
 
         {/* Mobile menu button */}
-        <button 
-          className="navbar-toggler border-0" 
-          type="button" 
-          data-bs-toggle="collapse" 
+        <button
+          className="navbar-toggler border-0"
+          type="button"
+          data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-controls="navbarNav" 
+          aria-controls="navbarNav"
           aria-expanded={isMenuOpen}
           aria-label="Toggle navigation"
         >
@@ -81,24 +108,42 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <Link 
-                className={`nav-link fw-semibold px-3 ${isActive('/') ? 'active text-primary' : isScrolled ? 'text-dark' : 'text-dark'}`} 
+              <Link
+                className={`nav-link fw-semibold px-3 ${
+                  isActive("/")
+                    ? "active text-primary"
+                    : isScrolled
+                    ? "text-dark"
+                    : "text-dark"
+                }`}
                 to="/"
               >
                 Home
               </Link>
             </li>
             <li className="nav-item">
-              <Link 
-                className={`nav-link fw-semibold px-3 ${isActive('/about') ? 'active text-primary' : isScrolled ? 'text-dark' : 'text-dark'}`} 
+              <Link
+                className={`nav-link fw-semibold px-3 ${
+                  isActive("/about")
+                    ? "active text-primary"
+                    : isScrolled
+                    ? "text-dark"
+                    : "text-dark"
+                }`}
                 to="/about"
               >
                 About
               </Link>
             </li>
             <li className="nav-item">
-              <Link 
-                className={`nav-link fw-semibold px-3 ${isActive('/contact') ? 'active text-primary' : isScrolled ? 'text-dark' : 'text-dark'}`} 
+              <Link
+                className={`nav-link fw-semibold px-3 ${
+                  isActive("/contact")
+                    ? "active text-primary"
+                    : isScrolled
+                    ? "text-dark"
+                    : "text-dark"
+                }`}
                 to="/contact"
               >
                 Contact
@@ -106,8 +151,14 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
             </li>
             {!isAuthenticated && (
               <li className="nav-item">
-                <Link 
-                  className={`nav-link fw-semibold px-3 ${isActive('/health-lookup') ? 'active text-primary' : isScrolled ? 'text-dark' : 'text-dark'}`} 
+                <Link
+                  className={`nav-link fw-semibold px-3 ${
+                    isActive("/health-lookup")
+                      ? "active text-primary"
+                      : isScrolled
+                      ? "text-dark"
+                      : "text-dark"
+                  }`}
                   to="/health-lookup"
                 >
                   Health Lookup
@@ -129,10 +180,10 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
               </>
             ) : (
               <div className="dropdown">
-                <button 
+                <button
                   className="btn btn-outline-primary dropdown-toggle d-flex align-items-center gap-2"
-                  type="button" 
-                  data-bs-toggle="dropdown" 
+                  type="button"
+                  data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
                   <i className="bi bi-person-circle"></i>
@@ -157,9 +208,14 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
                       Settings
                     </Link>
                   </li>
-                  <li><hr className="dropdown-divider" /></li>
                   <li>
-                    <button className="dropdown-item text-danger" onClick={handleLogout}>
+                    <hr className="dropdown-divider" />
+                  </li>
+                  <li>
+                    <button
+                      className="dropdown-item text-danger"
+                      onClick={handleLogout}
+                    >
                       <i className="bi bi-box-arrow-right me-2"></i>
                       Logout
                     </button>
