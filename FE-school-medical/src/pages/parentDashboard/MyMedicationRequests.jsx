@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { medicationAPI } from '../../api/medicationApi';
 import { Plus, Eye, Edit, Trash2, Clock, CheckCircle, XCircle, Pill, Calendar, User, FileText, RefreshCw } from 'lucide-react';
 import MedicationRequestForm from '../../components/MedicationRequestForm';
+import { useToast } from '../../hooks/useToast';
 
 // Base URL for API - should match axiosInstance baseURL
 const API_BASE_URL = 'http://localhost:8080';
@@ -14,6 +15,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
   const [editingRequest, setEditingRequest] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const { showWarning } = useToast();
 
   useEffect(() => {
     // Check if user is authenticated before fetching data
@@ -48,7 +50,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
         const newTab = window.open(prescriptionFileUrl, '_blank');
         
         if (!newTab) {
-          alert('Please allow popups for this site to view prescription files.');
+          showWarning('Please allow popups for this site to view prescription files.');
         }
         return;
       }
@@ -81,7 +83,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
         }, 1000);
         
         if (!newTab) {
-          alert('Please allow popups for this site to view prescription files.');
+          showWarning('Please allow popups for this site to view prescription files.');
         }
       } else if (response.status === 401) {
         setError('Session expired. Please login again.');

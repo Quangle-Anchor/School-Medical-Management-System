@@ -3,12 +3,14 @@ import { Calendar, UserPlus } from 'lucide-react';
 import { healthEventAPI } from '../api/healthEventApi';
 import { formatEventDate, getCategoryStyle, safeDisplay } from '../utils/dashboardUtils';
 import EventSignupForm from './EventSignupForm';
+import { useToast } from '../hooks/useToast';
 
 const HealthEventsView = ({ userRole = 'parent', title, description }) => {
   const [healthEvents, setHealthEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [signupFormOpen, setSignupFormOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const { showError } = useToast();
 
   useEffect(() => {
     fetchHealthEvents();
@@ -27,7 +29,8 @@ const HealthEventsView = ({ userRole = 'parent', title, description }) => {
       
       setHealthEvents(events || []);
     } catch (error) {
-      console.error('Error fetching health events:', error);
+
+      showError('Failed to load health events. Please try again.');
       setHealthEvents([]);
     } finally {
       setLoading(false);

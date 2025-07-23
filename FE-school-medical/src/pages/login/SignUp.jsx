@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Alert } from 'antd';
 import { User, Mail, Phone, Lock, UserCheck, Eye, EyeOff } from 'lucide-react';
 import authApi from '../../api/authApi';
+import { useToast } from '../../hooks/useToast';
 import logo from '../../assets/img/1.png';
 import backgroundImg from '../../assets/img/back2.png';
 
@@ -17,9 +18,9 @@ const SignUp = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { showSuccess } = useToast();
   
   const navigate = useNavigate();
 
@@ -114,7 +115,7 @@ const SignUp = () => {
       
       const response = await authApi.signup(signupData);
       
-      setSuccess('Account created successfully! You can now sign in.');
+      showSuccess('Account created successfully! You can now sign in.');
       
       // Clear form
       setFormData({
@@ -180,16 +181,6 @@ const SignUp = () => {
               <div className="flex items-center">
                 <div className="text-red-300 mr-2">⚠️</div>
                 <span className="text-red-100 text-sm">{error}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Success Alert */}
-          {success && (
-            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-xl backdrop-blur-sm">
-              <div className="flex items-center">
-                <div className="text-green-300 mr-2">✅</div>
-                <span className="text-green-100 text-sm">{success}</span>
               </div>
             </div>
           )}

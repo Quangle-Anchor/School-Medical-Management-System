@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { User, Activity, Calendar, X } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
 import { validateBirthdate, formatDateForInput } from '../../utils/dateUtils';
+import { useToast } from '../../hooks/useToast';
 
 const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null, isEditing = false }) => {  const [formData, setFormData] = useState({
     fullName: '',
@@ -17,10 +18,11 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
     allergies: '',
     notes: '',
   });
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [dateError, setDateError] = useState('');
-  const [loadingHealthInfo, setLoadingHealthInfo] = useState(false);  // Initialize form data when editing
+  const [loadingHealthInfo, setLoadingHealthInfo] = useState(false);
+  const { showSuccess, showError } = useToast();  // Initialize form data when editing
   useEffect(() => {
     const loadFormData = async () => {
       if (isEditing && editingStudent) {
@@ -202,28 +204,42 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         allergies: '',
         notes: '',
       });
-        // Notify parent component with complete student data
+      // Notify parent component with complete student data
       if (onStudentAdded) {
         onStudentAdded(completeStudentData);
-      }      // Close modal
-      onClose();} catch (err) {
-      // More specific error handling
+      }
+
+      // Show success message
+      showSuccess(`Student ${isEditing ? 'updated' : 'added'} successfully!`);
+
+      // Close modal
+      onClose();    } catch (err) {
+      // More specific error handling with toast notifications
+      let errorMessage = '';
       if (err.message.includes('Authentication required')) {
-        setError('Session expired. Please login again.');
+        errorMessage = 'Session expired. Please login again.';
+        showError(errorMessage);
         // The API already handles redirection to login
       } else if (err.message.includes('Access forbidden')) {
-        setError('You do not have permission to perform this action.');
+        errorMessage = 'You do not have permission to perform this action.';
+        showError(errorMessage);
       } else if (err.message.includes('400')) {
-        setError('Invalid data provided. Please check all fields and try again.');
+        errorMessage = 'Invalid data provided. Please check all fields and try again.';
+        showError(errorMessage);
       } else if (err.message.includes('401')) {
-        setError('Authentication failed. Please login again.');
+        errorMessage = 'Authentication failed. Please login again.';
+        showError(errorMessage);
       } else if (err.message.includes('403')) {
-        setError('Access denied. Please check your permissions.');
+        errorMessage = 'Access denied. Please check your permissions.';
+        showError(errorMessage);
       } else if (err.message.includes('500')) {
-        setError('Server error occurred. Please try again later.');
+        errorMessage = 'Server error occurred. Please try again later.';
+        showError(errorMessage);
       } else {
-        setError('Failed to add student. Please check your connection and try again.');
+        errorMessage = 'Failed to add student. Please check your connection and try again.';
+        showError(errorMessage);
       }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -445,7 +461,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
             </button>            <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               {loading ? (isEditing ? 'Updating...' : 'Adding...') : (isEditing ? 'Update Student' : 'Add Student')}
             </button>

@@ -3,6 +3,7 @@ import { healthIncidentAPI } from '../../api/healthIncidentApi';
 import { studentAPI } from '../../api/studentsApi';
 import { Plus, Eye, Edit, Trash2, Calendar, AlertTriangle, User, Search, Filter, FileText, X } from 'lucide-react';
 import HealthIncidentForm from '../../components/HealthIncidentForm';
+import { useToast } from '../../hooks/useToast';
 
 const HealthIncidentsView = ({ isParentView = false, students = [], parentLoading = false }) => {
   // Ensure students is always an array to prevent map errors
@@ -16,6 +17,9 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const { showSuccess, showError } = useToast();
 
   // Helper function to enrich incident data with additional student information
   const enrichIncidentData = async (incidents) => {
@@ -93,16 +97,18 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
       
       setIncidents(enrichedData);
     } catch (err) {
-      
+      let errorMessage = '';
       if (err.response?.status === 401) {
-        setError('Session expired. Please login again.');
+        errorMessage = 'Session expired. Please login again.';
       } else if (err.response?.status === 403) {
-        setError('Access denied. You do not have permission to view health incidents.');
+        errorMessage = 'Access denied. You do not have permission to view health incidents.';
       } else if (err.response?.status === 404) {
-        setError('Health incidents endpoint not found. Please contact support.');
+        errorMessage = 'Health incidents endpoint not found. Please contact support.';
       } else {
-        setError(`Failed to load health incidents: ${err.message || 'Unknown error'}`);
+        errorMessage = `Failed to load health incidents: ${err.message || 'Unknown error'}`;
       }
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -123,13 +129,16 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
       
       setIncidents(enrichedData);
     } catch (err) {
+      let errorMessage = '';
       if (err.message.includes('401') || err.message.includes('Authentication')) {
-        setError('Session expired. Please login again.');
+        errorMessage = 'Session expired. Please login again.';
       } else if (err.message.includes('403')) {
-        setError('Access denied. You do not have permission to view this information.');
+        errorMessage = 'Access denied. You do not have permission to view this information.';
       } else {
-        setError('Failed to load health incidents. Please try again.');
+        errorMessage = 'Failed to load health incidents. Please try again.';
       }
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -162,7 +171,7 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
       if (safeStudents.length === 1) {
         setSelectedStudent(safeStudents[0]);
       } else if (safeStudents.length === 0) {
-        setError('No children registered. Please add your child\'s information first.');
+        setError('No incidents of your child found. Please check back later.');
         setLoading(false);
         return;
       } else {
@@ -220,6 +229,7 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
 
     try {
       await healthIncidentAPI.deleteHealthIncident(incidentId);
+      showSuccess('Health incident deleted successfully!');
       // Refresh the appropriate list based on view type
       if (isParentView && selectedStudent) {
         await fetchHealthIncidentsByStudent(selectedStudent.studentId);
@@ -227,7 +237,9 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
         await fetchHealthIncidents();
       }
     } catch (error) {
-      setError('Failed to delete health incident. Please try again.');
+      const errorMessage = 'Failed to delete health incident. Please try again.';
+      setError(errorMessage);
+      showError(errorMessage);
     }
   };
 
@@ -238,6 +250,7 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
   const handleIncidentSaved = () => {
     setShowForm(false);
     setEditingIncident(null);
+    showSuccess('Health incident saved successfully!');
     // Refresh the appropriate list based on view type
     if (isParentView && selectedStudent) {
       fetchHealthIncidentsByStudent(selectedStudent.studentId);
@@ -319,40 +332,10 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
-          <AlertTriangle className="h-5 w-5 text-red-600 mr-3" />
+    
           <div className="flex-1">
-            <p className="text-red-800 font-medium">Error Loading Health Incidents</p>
-            <p className="text-red-600 text-sm">{error}</p>
+            <p >{error}</p>
             <div className="mt-3 flex space-x-2">
-              <button 
-                onClick={() => {
-                  setError(null);
-                  setIncidents([]); // Clear incidents to trigger refetch
-                  
-                  if (isParentView && parentLoading) {
-                    // If parent is still loading, just clear error and wait
-                    return;
-                  }
-                  
-                  setLoading(true);
-                  if (isParentView && selectedStudent) {
-                    fetchHealthIncidentsByStudent(selectedStudent.studentId);
-                  } else if (!isParentView) {
-                    fetchHealthIncidents();
-                  }
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
-              >
-                Try Again
-              </button>
-              {(error.includes('Authentication') || error.includes('Session expired')) && (
-                <button 
-                  onClick={() => window.location.href = '/login'}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                >
-                  Login Again
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -424,13 +407,63 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
         <>
           {/* Search and Filter Bar */}
           <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Results Count */}
-          <div className="flex items-center text-sm text-gray-600">
-            Showing {filteredIncidents.length} of {incidents.length} incidents
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search Input */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Search by student name, ID, or description..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+              </div>
+              
+              {/* Date Filter */}
+              <div className="md:w-48">
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+              </div>
+              
+              {/* Clear Filters */}
+              {(searchTerm || dateFilter) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setDateFilter('');
+                  }}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+            
+            {/* Results Count */}
+            <div className="mt-4 flex items-center text-sm text-gray-600">
+              Showing {filteredIncidents.length} of {incidents.length} incidents
+              {searchTerm && (
+                <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                  Search: "{searchTerm}"
+                </span>
+              )}
+              {dateFilter && (
+                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                  Date: {new Date(dateFilter).toLocaleDateString()}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
 
       {/* Incidents Table */}
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">

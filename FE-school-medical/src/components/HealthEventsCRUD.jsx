@@ -4,6 +4,7 @@ import { healthEventAPI } from '../api/healthEventApi';
 import { formatEventDate, getCategoryStyle, safeDisplay } from '../utils/dashboardUtils';
 import { getMinScheduleDate, getMaxScheduleDate, validateScheduleDate, formatDateForInput } from '../utils/dateUtils';
 import ChartCard from './ChartCard';
+import { useToast } from '../hooks/useToast';
 
 const HealthEventsCRUD = ({ title, description }) => {
   const [events, setEvents] = useState([]);
@@ -13,6 +14,7 @@ const HealthEventsCRUD = ({ title, description }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [dateError, setDateError] = useState('');
+  const { showSuccess, showError } = useToast();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -97,9 +99,10 @@ const HealthEventsCRUD = ({ title, description }) => {
       setShowEventModal(false);
       setDateError('');
       fetchEvents();
+      showSuccess(`Health event ${isEditing ? 'updated' : 'created'} successfully!`);
     } catch (error) {
       console.error('Error saving event:', error);
-      alert('Failed to save the event. Please try again.');
+      showError('Failed to save the event. Please try again.');
     }
   };
 
@@ -108,9 +111,10 @@ const HealthEventsCRUD = ({ title, description }) => {
       await healthEventAPI.deleteEvent(eventId);
       setConfirmDelete(null);
       fetchEvents();
+      showSuccess('Health event deleted successfully!');
     } catch (error) {
       console.error('Error deleting event:', error);
-      alert('Failed to delete the event. Please try again.');
+      showError('Failed to delete the event. Please try again.');
     }
   };
 

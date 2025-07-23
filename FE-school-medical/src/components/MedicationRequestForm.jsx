@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { studentAPI } from '../api/studentsApi';
 import { medicationAPI } from '../api/medicationApi';
 import { X, Upload, Pill, Clock, FileText, User, AlertCircle } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
 
 const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingRequest = null, isEditing = false }) => {
   const [formData, setFormData] = useState({
@@ -20,6 +21,7 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
   const [loading, setLoading] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [error, setError] = useState('');
+  const { showSuccess, showError } = useToast();
   // Load students when component mounts
   useEffect(() => {
     if (isOpen) {
@@ -100,23 +102,62 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
     e.preventDefault(); // Prevent any default behavior
     const file = e.target.files[0];
     if (file) {
-      // Validate file type and size
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-
-      if (!allowedTypes.includes(file.type)) {
-        setError('Please upload a valid file (JPEG, PNG, or PDF)');
-        return;
-      }
-
-      if (file.size > maxSize) {
-        setError('File size must be less than 5MB');
-        return;
-      }
-
-      setPrescriptionFile(file);
-      setError('');
+      validateAndSetFile(file, e.target);
     }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      validateAndSetFile(files[0]);
+    }
+  };
+
+  const validateAndSetFile = (file, inputElement = null) => {
+    // Validate file type and size
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    // Get file extension
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    // Check both MIME type and file extension for better validation
+    if (!allowedTypes.includes(file.type) || !allowedExtensions.includes(fileExtension)) {
+      const errorMsg = `Invalid file format. Please upload only PDF, JPEG, JPG, or PNG files. You uploaded: ${file.name} (${file.type || 'unknown type'})`;
+      setError(errorMsg);
+      showError(errorMsg);
+      // Clear the file input if available
+      if (inputElement) {
+        inputElement.value = '';
+      }
+      return;
+    }
+
+    if (file.size > maxSize) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      const errorMsg = `File size too large. Maximum size is 5MB. Your file is ${fileSizeMB}MB. Please compress or choose a smaller file.`;
+      setError(errorMsg);
+      showError(errorMsg);
+      // Clear the file input if available
+      if (inputElement) {
+        inputElement.value = '';
+      }
+      return;
+    }
+
+    // File is valid
+    setPrescriptionFile(file);
+    setError('');
+    showSuccess(`File "${file.name}" uploaded successfully!`);
   };
 
   const handleSubmit = async (e) => {
@@ -185,6 +226,9 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
       });
       setPrescriptionFile(null);
 
+      // Show success message
+      showSuccess(`Medication request ${isEditing ? 'updated' : 'submitted'} successfully!`);
+
       // Notify parent component
       if (onRequestSubmitted) {
         onRequestSubmitted();
@@ -194,19 +238,22 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
       onClose();
     } catch (err) {
       console.error('Medication request error:', err);
+      let errorMsg = '';
       if (err.response?.data) {
-        setError(`Server error: ${err.response.data}`);
+        errorMsg = `Server error: ${err.response.data}`;
       } else if (err.message.includes('Authentication required') || err.message.includes('401')) {
-        setError('Session expired. Please login again.');
+        errorMsg = 'Session expired. Please login again.';
       } else if (err.message.includes('403')) {
-        setError('Access denied. Please check your permissions.');
+        errorMsg = 'Access denied. Please check your permissions.';
       } else if (err.message.includes('400')) {
-        setError('Invalid data provided. Please check all fields and try again.');
+        errorMsg = 'Invalid data provided. Please check all fields and try again.';
       } else if (err.message.includes('500')) {
-        setError('Server error occurred. Please try again later.');
+        errorMsg = 'Server error occurred. Please try again later.';
       } else {
-        setError('Failed to submit medication request. Please try again.');
+        errorMsg = 'Failed to submit medication request. Please try again.';
       }
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -244,9 +291,24 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 flex items-center">
-            <AlertCircle className="w-5 h-5 mr-2" />
-            {error}
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Error</p>
+                <p className="text-sm mt-1 whitespace-pre-wrap">{error}</p>
+                {error.includes('Invalid file format') && (
+                  <div className="mt-2 text-xs">
+                    <p className="font-medium">Supported file formats:</p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>PDF documents (.pdf)</li>
+                      <li>JPEG images (.jpg, .jpeg)</li>
+                      <li>PNG images (.png)</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -412,8 +474,12 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
               <label className="block text-sm font-medium mb-1">
                 Upload Prescription (Optional)
               </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl"
-                   onClick={(e) => e.preventDefault()}>
+              <div 
+                className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-gray-400 transition-colors"
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={(e) => e.preventDefault()}
+              >
                 <div className="space-y-1 text-center"
                      onClick={(e) => e.stopPropagation()}>
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
@@ -423,27 +489,47 @@ const MedicationRequestForm = ({ isOpen, onClose, onRequestSubmitted, editingReq
                       className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
                       onClick={(e) => e.stopPropagation()} // Prevent event bubbling
                     >
-                      <span>Upload a file</span>
+                      <span>Choose file</span>
                       <input
                         id="prescription-upload"
                         name="prescription-upload"
                         type="file"
                         className="sr-only"
-                        accept="image/jpeg,image/png,image/jpg,application/pdf"
+                        accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,image/jpg,application/pdf"
                         onChange={handleFileChange}
                         onClick={(e) => e.stopPropagation()} // Prevent event bubbling
                       />
                     </label>
-                    <p className="pl-1">or drag and drop</p>
+                    <p className="pl-1">or drag and drop here</p>
                   </div>
                   <p className="text-xs text-gray-500">
-                    PNG, JPG, PDF up to 5MB
+                    <strong>Accepted formats:</strong> PNG, JPG, JPEG, PDF<br/>
+                    <strong>Maximum size:</strong> 5MB
                   </p>
                   {prescriptionFile && (
-                    <div className="mt-2">
-                      <p className="text-sm text-green-600">
-                        Selected: {prescriptionFile.name}
-                      </p>
+                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-green-800">
+                            ✓ File uploaded successfully
+                          </p>
+                          <p className="text-xs text-green-600">
+                            {prescriptionFile.name} ({(prescriptionFile.size / (1024 * 1024)).toFixed(2)}MB)
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPrescriptionFile(null);
+                            document.getElementById('prescription-upload').value = '';
+                            showSuccess('File removed successfully');
+                          }}
+                          className="ml-2 text-red-600 hover:text-red-800 text-sm underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

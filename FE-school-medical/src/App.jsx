@@ -26,6 +26,7 @@ import ForgotPassword from "./pages/forgotPassword/ForgotPassword";
 import VerifyOtp from "./pages/forgotPassword/VerifyOtp";
 import ResetPassword from "./pages/forgotPassword/ResetPassword";
 import RecoverySuccess from "./pages/forgotPassword/RecoverySuccess";
+import ToastNotification from "./components/ToastNotification";
 
 function AppContent() {
   const location = useLocation();
@@ -116,6 +117,9 @@ function AppContent() {
 
         {/* Footer - hidden on login/signup pages and dashboard pages */}
         {!hideFooter && <NovaFooter />}
+        
+        {/* Global Toast Notification System */}
+        <ToastNotification />
       </div>
     </div>
   );
