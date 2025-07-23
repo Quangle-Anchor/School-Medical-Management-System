@@ -6,8 +6,7 @@ import ChartCard from './ChartCard';
 import TopNavbar from './Navbar';
 
 const Dashboard = ({ cardData = [], userRole = 'parent', customActions, activeMenu = 'dashboard', onMenuClick, recentActivity = [] }) => {
-  console.log('Dashboard props:', { userRole, hasCustomActions: !!customActions });
-  
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const toggleSidebar = () => {
@@ -27,9 +26,9 @@ const Dashboard = ({ cardData = [], userRole = 'parent', customActions, activeMe
       
       <main className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen rounded-xl transition-all duration-200 ${sidebarCollapsed ? 'xl:ml-20' : ''}`}>
         <TopNavbar 
-          title={userRole === 'parent' ? 'Parent Dashboard' : 'Medical Dashboard'}
-          breadcrumb={[userRole === 'parent' ? 'Parent' : 'Medical', 'Dashboard']}
-          userInfo={{ name: localStorage.getItem("fullname") || "User" }}
+         
+          breadcrumb={{userRole : localStorage.getItem("fullname") }}
+          userInfo={{ name: localStorage.getItem("fullname") }}
         />
         
         <div className="w-full px-6 py-6 mx-auto">
