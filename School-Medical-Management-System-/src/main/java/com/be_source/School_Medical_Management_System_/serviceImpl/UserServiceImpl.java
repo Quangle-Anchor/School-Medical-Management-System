@@ -101,6 +101,7 @@ public class UserServiceImpl implements IUserService {
 
         return UserMapper.toResponse(userRepository.save(currentUser));
     }
+
     @Override
     public void changePassword(ChangePasswordRequest request) {
         User currentUser = userUtilService.getCurrentUser();
@@ -116,6 +117,5 @@ public class UserServiceImpl implements IUserService {
         currentUser.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(currentUser);
     }
-
 
 }

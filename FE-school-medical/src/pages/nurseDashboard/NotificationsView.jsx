@@ -97,7 +97,11 @@ const NotificationsView = ({ user }) => {
             Notifications
           </h1>
           <p className="text-gray-600">
-            Manage and view all system notifications
+            {user && user.role === "Principal" 
+              ? "Manage and view all system notifications" 
+              : user && user.role === "Parent"
+              ? "View your notifications and updates"
+              : "Manage and view notifications"}
           </p>
         </div>
         {/* Chỉ Nurse/Admin mới có nút Add Notification */}
@@ -178,19 +182,17 @@ const NotificationsView = ({ user }) => {
                         >
                           <Eye className="h-4 w-4 mr-1" /> View
                         </button>
-                        {/* Only Nurse/Admin have Edit/Delete */}
-                        {user && user.role !== "Parent" && (
-                          <>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(n.notificationId);
-                              }}
-                              className="text-red-600 hover:text-red-900 inline-flex items-center"
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" /> Delete
-                            </button>
-                          </>
+                        {/* Parent can also delete notifications */}
+                        {user && (user.role === "Parent" || user.role !== "Parent") && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(n.notificationId);
+                            }}
+                            className="text-red-600 hover:text-red-900 inline-flex items-center"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" /> Delete
+                          </button>
                         )}
                       </div>
                     </td>
@@ -203,31 +205,29 @@ const NotificationsView = ({ user }) => {
         {error && <div className="text-red-500 text-sm p-2">{error}</div>}
       </div>
 
-      {/* Notification Form Modal */}
-      {/* Only Nurse/Admin have permission to add/edit/delete notifications */}
+      {/* Notification Form Modal - Only Nurse/Admin */}
       {user && user.role !== "Parent" && (
-        <>
-          <NotificationForm
-            open={formOpen}
-            onClose={() => {
-              setFormOpen(false);
-              setEditing(null);
-            }}
-            onSubmit={handleSubmit}
-            initial={null}
-          />
-          {/* Confirm Delete Modal */}
-          <ConfirmDeleteModal
-            open={!!deleteId}
-            onClose={() => setDeleteId(null)}
-            onConfirm={confirmDelete}
-            title="Confirm Delete Notification"
-            message="Are you sure you want to delete this notification?"
-            confirmText="Delete"
-            cancelText="Cancel"
-          />
-        </>
+        <NotificationForm
+          open={formOpen}
+          onClose={() => {
+            setFormOpen(false);
+            setEditing(null);
+          }}
+          onSubmit={handleSubmit}
+          initial={null}
+        />
       )}
+      
+      {/* Confirm Delete Modal - Available for all roles */}
+      <ConfirmDeleteModal
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={confirmDelete}
+        title="Confirm Delete Notification"
+        message="Are you sure you want to delete this notification?"
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
 
       {/* Popup xem chi tiết notification - giao diện giống User Details */}
       {viewing && (

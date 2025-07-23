@@ -60,14 +60,22 @@ const NotificationBell = ({ user, show, setShow }) => {
     const fetchData = async () => {
       try {
         let res;
-        // Always use getMy for nurse, principal, parent
-        if (["Parent", "Nurse", "Principal"].includes(user.role)) {
+        // Principal uses getAll to see all notifications, not just their own
+        if (user.role === "Principal") {
+          console.log("Fetching all notifications for Principal");
+          res = await notificationApi.getAll(0, 20);
+        } else if (["Parent", "Nurse"].includes(user.role)) {
+          console.log("Fetching notifications with getMy for role:", user.role);
           res = await notificationApi.getMy(0, 20);
         } else {
+          console.log("Fetching notifications with getAll for role:", user.role);
           res = await notificationApi.getAll(0, 20);
         }
+        console.log("API response:", res);
+        console.log("Notifications data:", res.data.content);
         setNotifications(res.data.content || []);
-      } catch {
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
         setError("Unable to load notifications");
       } finally {
         setLoading(false);
@@ -76,11 +84,17 @@ const NotificationBell = ({ user, show, setShow }) => {
     fetchData();
   }, [user]);
 
-  // Lọc notification theo quyền
+  // Lọc notification theo quyền - sửa lại logic
   let filteredNotifications = notifications;
   if (user && user.role === "Parent") {
-    filteredNotifications = notifications.filter((n) => n.userId === user.id);
+    // Parent có thể xem tất cả notifications được gửi cho họ
+    // Không cần lọc theo userId vì API getMy() đã trả về đúng notifications
+    filteredNotifications = notifications;
   }
+  
+  console.log("Filtered notifications:", filteredNotifications);
+  console.log("User:", user);
+  
   const unread = filteredNotifications.filter((n) => !n.readStatus);
   const unreadCount = unread.length;
 
@@ -154,6 +168,8 @@ const NotificationBell = ({ user, show, setShow }) => {
     setShowList(false);
     if (user.role === "Parent") {
       navigate("/parentDashboard/notifications");
+    } else if (user.role === "Principal") {
+      navigate("/principalDashboard/notifications");
     } else {
       navigate("/nurseDashboard/notifications");
     }
@@ -211,17 +227,17 @@ const NotificationBell = ({ user, show, setShow }) => {
           className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-lg z-50 border border-gray-200"
         >
           <div className="p-4 font-semibold border-b text-lg flex justify-between items-center">
-            Thông báo
+            Notification
             <button
               onClick={handleViewAll}
               className="text-xs text-blue-500 hover:underline"
             >
-              Xem tất cả
+              View all
             </button>
           </div>
           <div className="max-h-[500px] overflow-y-auto">
             {loading ? (
-              <div className="p-4 text-gray-500 text-sm">Đang tải...</div>
+              <div className="p-4 text-gray-500 text-sm">Loading...</div>
             ) : (
               <>
                 {groups.new.length > 0 && (
