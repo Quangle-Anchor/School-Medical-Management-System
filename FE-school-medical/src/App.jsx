@@ -11,6 +11,7 @@ import {
   useLocation,
   Navigate,
 } from "react-router-dom";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import AboutNova from "./pages/about/AboutNova";
 import HomePage from "./pages/home/HomepageNova";
@@ -41,9 +42,7 @@ function AppContent() {
     ["/login", "/signup", "/forgot-password", "/forgot-password/verify-otp", "/forgot-password/reset", "/forgot-password/success"].includes(location.pathname) || isDashboardPage;
   const hideNavbar = isDashboardPage; // Hide navbar on dashboard pages
 
-  // Lấy trạng thái đăng nhập từ localStorage
-  const isAuthenticated = !!localStorage.getItem("token");
-
+  
   return (
     <div className="min-h-screen relative bg-gray-100">
       {/* Background overlay */}
@@ -124,9 +123,11 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId="623576178799-bpcpe0v4n2961g59hrsdfhfpsb016mnh.apps.googleusercontent.com">
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 

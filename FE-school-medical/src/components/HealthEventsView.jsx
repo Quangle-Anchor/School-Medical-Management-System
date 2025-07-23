@@ -22,7 +22,6 @@ const HealthEventsView = ({ userRole = 'parent', title, description }) => {
       if (userRole === 'parent') {
         events = await healthEventAPI.getUpcomingEvents();
       } else {
-        // For nurse, principal, admin - get ALL events (past and future)
         events = await healthEventAPI.getAllEvents();
       }
       

@@ -20,11 +20,7 @@ const UpcomingHealthEventsCard = ({
     try {
       setLoading(true);
       let events = [];
-      if (userRole === 'parent') {
-        events = await healthEventAPI.getFutureEvents();
-      } else {
-        events = await healthEventAPI.getAllFutureEvents();
-      }
+      events = await healthEventAPI.getFutureEvents();
       setFutureHealthEvents(events || []);
     } catch (error) {
       console.error('Error fetching health events:', error);
@@ -42,11 +38,6 @@ const UpcomingHealthEventsCard = ({
           subtitle: 'Scheduled health events for your child'
         };
       case 'nurse':
-        return {
-          title: 'Upcoming Health Events',
-          subtitle: 'Scheduled health events and medical appointments'
-        };
-      default:
         return {
           title: 'Upcoming Health Events',
           subtitle: 'Scheduled health events and medical appointments'

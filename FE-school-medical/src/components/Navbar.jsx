@@ -3,8 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Bell, Settings, User, ChevronDown } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
-const TopNavbar = ({ title, breadcrumb, userInfo, user }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+
+const TopNavbar = ({ 
+  breadcrumb = ["Pages", "Dashboard"],
+  userInfo = { name: "Richard Davis", role: "Admin" },
+  user
+}) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
 
@@ -46,7 +50,6 @@ const TopNavbar = ({ title, breadcrumb, userInfo, user }) => {
           </div>
           {/* Navigation Icons */}
           <ul className="flex flex-row justify-end pl-0 mb-0 list-none md-max:w-full">
-            {/* Mobile Menu Toggle */}
 
             {/* Notifications */}
             <li className="flex items-center px-4">
@@ -65,7 +68,6 @@ const TopNavbar = ({ title, breadcrumb, userInfo, user }) => {
                   </div>
                   <div className="hidden sm:flex sm:flex-col">
                     <span className="text-sm font-medium">{userInfo.name}</span>
-                    <span className="text-xs text-gray-500">INNOVATIVE SCHOOL HEALTH SOLUTIONS</span>
                   </div>
                   <ChevronDown size={16} className="ml-1" />
                 </button>

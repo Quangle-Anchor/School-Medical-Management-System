@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import authApi from '../../api/authApi';
 import { useNavigate, Link } from 'react-router-dom';
 import { Input, Button, message, Alert } from 'antd';
+import { GoogleLogin } from '@react-oauth/google';
 import logo from '../../assets/img/1.png';
 import backgroundImg from '../../assets/img/back.png';
+import googleIcon from '/nova-assets/images/Google_icon.svg';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +13,65 @@ const LoginPage = () => {
   const [error, setError] = useState(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
+
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+    try {
+      setIsLoggingIn(true);
+      const data = await authApi.googleLogin(credentialResponse.credential);
+      
+      if (!data?.token) {
+        setError('Invalid response from server. Please try again.');
+        return;
+      }
+      
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('role', data.role);
+      localStorage.setItem('email', data.email);
+      
+      // Store userId if available (needed for parent-child relationship)
+      if (data.userId) {
+        localStorage.setItem('userId', data.userId.toString());
+      }
+      // Store fullname if available (for profile display)
+      if (data.fullName) {
+        localStorage.setItem('fullname', data.fullName);
+      }
+      
+      message.success('Google login successful!');
+      
+      // Dispatch custom event to notify navbar of authentication change
+      window.dispatchEvent(new CustomEvent('authChange'));
+      
+      // Redirect based on role
+      const roleDashboardMap = {
+        Principal: '/principalDashboard',
+        Admin: '/adminDashboard',
+        Nurse: '/nurseDashboard',
+        Parent: '/parentDashboard',
+        Student: '/studentDashboard',
+      };
+      const dashboardPath = roleDashboardMap[data.role] || '/';
+      navigate(dashboardPath, { replace: true });
+    } catch (err) {
+      console.error('Google login error:', err);
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Google login failed. Please try again.');
+      }
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleGoogleLoginError = () => {
+    console.error('Google login error');
+    setError('Google login failed. Please try again or use regular login.');
+  };
   
   // Completely separate function from form submission
   const handleLogin = async (e) => {
@@ -20,13 +81,14 @@ const LoginPage = () => {
     // Form validation
     if (!email || !password) {
       setError('Please enter both email and password');
+      setIsLoggingIn(false);
       return;
     }
     
     try {
       const data = await authApi.login(email, password);
       
-      if (!data || !data.token) {
+      if (!data?.token) {
         setError('Invalid response from server. Please try again.');
         return;
       }
@@ -200,6 +262,29 @@ const LoginPage = () => {
             >
               {isLoggingIn ? 'Signing in...' : 'Sign In'}
             </button>
+
+            {/* Divider */}
+            <div className="flex items-center justify-center">
+              <div className="border-t border-white/20 flex-grow"></div>
+              <span className="px-3 text-white/60 text-sm">or</span>
+              <div className="border-t border-white/20 flex-grow"></div>
+            </div>
+
+            {/* Google OAuth Button */}
+            <div className="w-full">
+              <GoogleLogin
+                onSuccess={handleGoogleLoginSuccess}
+                onError={handleGoogleLoginError}
+                theme="filled_black"
+                shape="rectangular"
+                size="large"
+                text="signin_with"
+                width="100%"
+                style={{
+                  width: '100%',
+                }}
+              />
+            </div>
           </div>
 
           <div className="mt-8 text-center">

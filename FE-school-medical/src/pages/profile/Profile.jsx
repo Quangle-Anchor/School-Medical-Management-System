@@ -172,8 +172,9 @@ const Profile = () => {
     
     try {
       await authApi.changePassword({
-        currentPassword: passwordData.currentPassword,
+        oldPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
+        confirmNewPassword: passwordData.confirmPassword,
       });
       
       setPasswordData({

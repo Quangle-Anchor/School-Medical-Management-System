@@ -21,6 +21,16 @@ const authApi = {
     }
   },
 
+  googleLogin: async (token) => {
+    try {
+      const response = await axiosInstance.post('/api/auth/google-login', { token });
+      return response.data;
+    } catch (error) {
+      console.error("Google login error:", error);
+      throw error;
+    }
+  },
+
   getCurrentUser: async () => {
     try {
       const response = await axiosInstance.get('/api/users/me');
@@ -53,7 +63,7 @@ const authApi = {
 
   changePassword: async (passwordData) => {
     try {
-      const response = await axiosInstance.put('/api/users/change-password', passwordData);
+      const response = await axiosInstance.put('/api/users/me/change-password', passwordData);
       return response.data;
     } catch (error) {
       console.error("Change password error:", error);
