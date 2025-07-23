@@ -102,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
                 newUser.setFullName(fullName);
                 newUser.setUsername(email.split("@")[0]);
                 newUser.setRole(parentRole);
-                newUser.setPasswordHash("12345");
+                newUser.setPasswordHash("");
                 return userRepository.save(newUser);
             });
 
