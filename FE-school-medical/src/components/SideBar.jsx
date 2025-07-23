@@ -100,7 +100,7 @@ const Sidebar = ({
   };
 
   const menuItems = getMenuItems();
-  // const userInfo = getUserInfo();
+ 
 
   return (
     <aside className={`max-w-62.5 ease-nav-brand z-990 fixed inset-y-0 my-4 ml-4 block w-full -translate-x-full flex-wrap items-center justify-between bg-gray-50 shadow-sm overflow-y-auto overflow-x-hidden rounded-2xl border-0 p-0 antialiased transition-transform duration-200 xl:left-0 xl:translate-x-0 ${isCollapsed ? 'w-20' : 'w-64'}`}>

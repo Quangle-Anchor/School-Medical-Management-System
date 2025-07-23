@@ -43,7 +43,7 @@ function AppContent() {
   const isAuthenticated = !!localStorage.getItem("token");
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative bg-gray-100">
       {/* Background overlay */}
       {/* <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div> */}
 

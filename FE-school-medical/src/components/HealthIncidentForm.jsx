@@ -218,12 +218,17 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       const studentId = String(formData.studentId || '').trim();
       const description = String(formData.description || '').trim();
       
-      if (!studentId || !formData.incidentDate || !description) {
+      if (!studentId) {
+        setError('Please enter a valid Student ID.');
+        setLoading(false);
+        return;
+      }
+      if (!formData.incidentDate || !description) {
         setError('Please fill in all required fields.');
         setLoading(false);
         return;
       }
-
+ 
       // Try both formats to see which one works
       const incidentData = {
         studentId: studentId,  // Direct field approach
