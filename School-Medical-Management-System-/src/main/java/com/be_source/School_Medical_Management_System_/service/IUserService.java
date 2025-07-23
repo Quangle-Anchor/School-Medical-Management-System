@@ -1,6 +1,7 @@
 package com.be_source.School_Medical_Management_System_.service;
 
 import com.be_source.School_Medical_Management_System_.model.User;
+import com.be_source.School_Medical_Management_System_.request.ChangePasswordRequest;
 import com.be_source.School_Medical_Management_System_.request.UserProfileUpdateRequest;
 import com.be_source.School_Medical_Management_System_.response.UserProfileResponse;
 
@@ -15,6 +16,6 @@ public interface IUserService {
     Optional<User> getUserById(Long id);
     void deleteUser(Long id);
     User getCurrentUser();
-    UserProfileResponse updateProfile(String authHeader, UserProfileUpdateRequest request);
-
+    UserProfileResponse updateProfile(UserProfileUpdateRequest request);
+    void changePassword(ChangePasswordRequest request);
 }
