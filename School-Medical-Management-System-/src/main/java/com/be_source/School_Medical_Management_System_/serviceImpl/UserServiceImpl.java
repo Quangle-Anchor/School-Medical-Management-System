@@ -3,6 +3,7 @@ package com.be_source.School_Medical_Management_System_.serviceImpl;
 import com.be_source.School_Medical_Management_System_.mapper.UserMapper;
 import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.UserRepository;
+import com.be_source.School_Medical_Management_System_.request.ChangePasswordRequest;
 import com.be_source.School_Medical_Management_System_.request.UserProfileUpdateRequest;
 import com.be_source.School_Medical_Management_System_.response.UserProfileResponse;
 import com.be_source.School_Medical_Management_System_.security.JwtUtil;
@@ -80,7 +81,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public UserProfileResponse updateProfile(String token, UserProfileUpdateRequest request) {
+    public UserProfileResponse updateProfile(UserProfileUpdateRequest request) {
         User currentUser = userUtilService.getCurrentUser();
 
         // Kiểm tra nếu email đã đổi và có email khác trùng
@@ -99,6 +100,21 @@ public class UserServiceImpl implements IUserService {
         currentUser.setUsername(request.getUsername());
 
         return UserMapper.toResponse(userRepository.save(currentUser));
+    }
+    @Override
+    public void changePassword(ChangePasswordRequest request) {
+        User currentUser = userUtilService.getCurrentUser();
+
+        if (!passwordEncoder.matches(request.getOldPassword(), currentUser.getPasswordHash())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new RuntimeException("New password and confirmation do not match");
+        }
+
+        currentUser.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(currentUser);
     }
 
 
