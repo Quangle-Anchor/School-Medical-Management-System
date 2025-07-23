@@ -408,7 +408,7 @@ const NurseMedicationRequests = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {requests.filter(r => r.confirmationStatus === 'pending').length}
+                  {allRequests.filter(r => r.confirmationStatus === 'pending').length}
                 </p>
               </div>
             </div>
@@ -419,7 +419,7 @@ const NurseMedicationRequests = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-600">Confirmed Today</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {requests.filter(r => r.confirmationStatus === 'confirmed' && r.confirmedAt && 
+                  {allRequests.filter(r => r.confirmationStatus === 'confirmed' && r.confirmedAt && 
                     new Date(r.confirmedAt).toDateString() === new Date().toDateString()).length}
                 </p>
               </div>
@@ -431,7 +431,7 @@ const NurseMedicationRequests = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-600">High Priority</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {requests.filter(r => r.confirmationStatus === 'pending' && getPriorityLevel(r.createdAt).level === 'high').length}
+                  {allRequests.filter(r => r.confirmationStatus === 'pending' && getPriorityLevel(r.createdAt).level === 'high').length}
                 </p>
               </div>
             </div>

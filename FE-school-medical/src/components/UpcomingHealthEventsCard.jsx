@@ -42,6 +42,16 @@ const UpcomingHealthEventsCard = ({
           title: 'Upcoming Health Events',
           subtitle: 'Scheduled health events and medical appointments'
         };
+      case 'principal':
+        return {
+          title: 'Upcoming Health Events',
+          subtitle: 'Scheduled health events for the school'
+        };
+      case 'admin':
+        return {
+          title: 'Upcoming Health Events',
+          subtitle: 'Scheduled health events for the school and administrative purposes'
+        };  
     }
   };
 

@@ -15,8 +15,6 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
   const [editingIncident, setEditingIncident] = useState(null);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   // Helper function to enrich incident data with additional student information
