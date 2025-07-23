@@ -101,11 +101,15 @@ public class UserServiceImpl implements IUserService {
 
         return UserMapper.toResponse(userRepository.save(currentUser));
     }
+
     @Override
     public void changePassword(ChangePasswordRequest request) {
         User currentUser = userUtilService.getCurrentUser();
 
-        if (!passwordEncoder.matches(request.getOldPassword(), currentUser.getPasswordHash())) {
+        boolean isFirstTimeGoogleUser = currentUser.getPasswordHash() == null || currentUser.getPasswordHash().isEmpty();
+
+        // Nếu không phải Google user, bắt buộc kiểm tra mật khẩu cũ
+        if (!isFirstTimeGoogleUser && !passwordEncoder.matches(request.getOldPassword(), currentUser.getPasswordHash())) {
             throw new RuntimeException("Old password is incorrect");
         }
 
@@ -116,6 +120,5 @@ public class UserServiceImpl implements IUserService {
         currentUser.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(currentUser);
     }
-
 
 }
