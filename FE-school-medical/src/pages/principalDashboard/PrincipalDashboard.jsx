@@ -595,6 +595,7 @@ const PrincipalDashboard = () => {
           title="Principal Dashboard"
           breadcrumb={["Principal", "Dashboard"]}
           userInfo={{ name: localStorage.getItem("fullname") || "Principal User" }}
+          user={principalUser}
         />
         
         {renderContent()}

@@ -3,12 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Bell, Settings, User, ChevronDown } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
-const TopNavbar = ({ 
-  title = "Dashboard", 
-  breadcrumb = ["Pages", "Dashboard"],
-  userInfo = { name: "Richard Davis", avatar: null },
-  user
-}) => {
+const TopNavbar = ({ title, breadcrumb, userInfo, user }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
