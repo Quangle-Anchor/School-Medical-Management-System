@@ -57,7 +57,7 @@ const Dashboard = ({ cardData = [], userRole = 'parent', customActions, activeMe
                 <div className="p-4 pt-6">
                   {recentActivity.length > 0 ? recentActivity.map((item, index) => (
                     <div key={index} className="flex items-center mb-4 last:mb-0">
-                      <div className="flex items-center justify-center w-8 h-8 mr-4 text-center bg-sky-500 shadow-md rounded-xl">
+                      <div className="flex items-center justify-center w-8 h-8 mr-4 text-center bg-gray-500 shadow-md rounded-xl">
                         <Activity className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex flex-col justify-center">

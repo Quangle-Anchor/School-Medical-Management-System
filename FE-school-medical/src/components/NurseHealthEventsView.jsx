@@ -214,7 +214,7 @@ const NurseHealthEventsView = ({ title, description }) => {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+      <div className="p-6 space-y-6 bg-gray-100 min-h-screen">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Health Events Management</h1>
           <p className="text-gray-600 mt-2">Manage health events and event signups</p>
@@ -227,7 +227,7 @@ const NurseHealthEventsView = ({ title, description }) => {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-6 space-y-6 bg-gray-100 min-h-screen">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">

@@ -167,15 +167,8 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
     }
   };
 
-  const getStatusBadge = (isConfirmed, confirmedAt) => {
-    if (isConfirmed) {
-      return (
-        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-          <CheckCircle className="w-3 h-3 mr-1" />
-          Confirmed
-        </span>
-      );
-    } else {
+  const getStatusBadge = (request) => {
+        if(request.confirmationStatus === 'pending' ) {
       return (
         <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
           <Clock className="w-3 h-3 mr-1" />
@@ -183,6 +176,28 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
         </span>
       );
     }
+    // Check if the request is rejected
+    if ( request.confirmationStatus === 'unconfirmed') {
+      return (
+        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+          <XCircle className="w-3 h-3 mr-1" />
+          Unconfirmed
+        </span>
+      );
+    }
+    
+    // Check if the request is confirmed
+    if (request.confirmationStatus === 'confirmed') {
+      return (
+        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Confirmed
+        </span>
+      );
+    } 
+    
+
+
   };
 
   const formatDate = (dateString) => {
@@ -357,7 +372,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(request.isConfirmed || request.confirmed, request.confirmedAt)}
+                      {getStatusBadge(request)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(request.createdAt)}
@@ -371,7 +386,9 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </button>
-                        {!request.isConfirmed && !request.confirmed && (
+                        {!request.isConfirmed && !request.confirmed && !request.isRejected && !request.rejected && 
+                         request.status !== 'CONFIRMED' && request.status !== 'APPROVED' && request.status !== 'REJECTED' &&
+                         request.confirmationStatus !== 'confirmed' && request.confirmationStatus !== 'rejected' && (
                           <>
                             <button
                               onClick={() => handleEditRequest(request)}
@@ -497,8 +514,20 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                 <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Status:</span>
-                    <span>{getStatusBadge(selectedRequest.isConfirmed || selectedRequest.confirmed, selectedRequest.confirmedAt)}</span>
+                    <span>{getStatusBadge(selectedRequest)}</span>
                   </div>
+                  {(selectedRequest.isRejected || selectedRequest.rejected || selectedRequest.status === 'REJECTED' || selectedRequest.confirmationStatus === 'rejected') && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-3 mt-2">
+                      <p className="text-red-800 text-sm font-medium">
+                        This medication request has been rejected by the school nurse.
+                      </p>
+                      {(selectedRequest.rejectionReason || selectedRequest.rejection_reason || selectedRequest.unconfirmReason) && (
+                        <p className="text-red-700 text-sm mt-1">
+                          You may submit a new request after addressing the concerns mentioned in the rejection reason.
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Created:</span>
                     <span className="text-gray-900">{formatDate(selectedRequest.createdAt)}</span>
@@ -507,6 +536,20 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Confirmed:</span>
                       <span className="text-gray-900">{formatDate(selectedRequest.confirmedAt)}</span>
+                    </div>
+                  )}
+                  {(selectedRequest.rejectedAt || selectedRequest.rejected_at) && (
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Rejected:</span>
+                      <span className="text-gray-900">{formatDate(selectedRequest.rejectedAt || selectedRequest.rejected_at)}</span>
+                    </div>
+                  )}
+                  {(selectedRequest.rejectionReason || selectedRequest.rejection_reason || selectedRequest.unconfirmReason) && (
+                    <div className="space-y-1">
+                      <span className="font-medium text-gray-600">Rejection Reason:</span>
+                      <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                        <p className="text-red-800 text-sm">{selectedRequest.rejectionReason || selectedRequest.rejection_reason || selectedRequest.unconfirmReason}</p>
+                      </div>
                     </div>
                   )}
                   {(selectedRequest.requestedBy || selectedRequest.requested_by) && (
@@ -526,7 +569,9 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
               >
                 Close
               </button>
-              {!selectedRequest.isConfirmed && !selectedRequest.confirmed && (
+              {!selectedRequest.isConfirmed && !selectedRequest.confirmed && !selectedRequest.isRejected && !selectedRequest.rejected &&
+               selectedRequest.status !== 'CONFIRMED' && selectedRequest.status !== 'APPROVED' && selectedRequest.status !== 'REJECTED' &&
+               selectedRequest.confirmationStatus !== 'confirmed' && selectedRequest.confirmationStatus !== 'rejected' && (
                 <button
                   onClick={() => {
                     setShowDetailModal(false);

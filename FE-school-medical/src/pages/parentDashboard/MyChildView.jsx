@@ -175,7 +175,7 @@ const MyChildView = () => {
     );
   }
 
-  return (    <div className="p-6 bg-gray-50 min-h-screen">
+  return (    <div className="p-6 bg-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

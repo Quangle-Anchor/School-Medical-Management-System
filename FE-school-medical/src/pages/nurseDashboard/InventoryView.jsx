@@ -577,7 +577,7 @@ const InventoryView = () => {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-100 p-6">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[9999] space-y-2">
         {toasts.map((toast) => (
