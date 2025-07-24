@@ -133,7 +133,8 @@ const HomepageNova = () => {
           <div className="row">
             <div className="col-12 text-center mb-5">
               <h2
-                className="display-5 fw-bold text-dark mb-3"
+                className="display-5 fw-bold mb-3"
+                style={{ color: "#0d6efd" }}
                 data-aos="fade-up"
               >
                 Why Choose us
@@ -241,12 +242,9 @@ const HomepageNova = () => {
         <div className="container">
           <div className="row">
             <div className="col-12 text-center mb-5">
-              <h2
-                className="display-5 fw-bold text-dark mb-3"
-                data-aos="fade-up"
-              >
+              <h1 className="display-4 fw-bold mb-4" style={{ color: "#0d6efd" }}>
                 Empowering School Health Through Cutting-Edge Services
-              </h2>
+              </h1>
             </div>
           </div>
 

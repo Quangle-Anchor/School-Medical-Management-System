@@ -48,7 +48,7 @@ const NovaFooter = () => {
 
           {/* Quick Links */}
           <div className="col-lg-2 col-md-6">
-            <h6 className="fw-bold mb-3 text-primary">Quick Links</h6>
+            <h5 className="fw-bold mb-3" style={{ color: "#0d6efd" }}>Quick Links</h5>
             <ul className="list-unstyled">
               <li className="mb-2">
                 <Link to="/" className="text-primary text-decoration-none" onClick={handleLinkClick}>
@@ -75,7 +75,7 @@ const NovaFooter = () => {
 
           {/* Services */}
           <div className="col-lg-3 col-md-6">
-            <h6 className="fw-bold mb-3 text-primary">Services</h6>
+            <h5 className="fw-bold mb-3" style={{ color: "#0d6efd" }}>Services</h5>
             <ul className="list-unstyled">
               <li className="mb-2">
                 <span className="text-primary">Student Health Records</span>
@@ -94,7 +94,7 @@ const NovaFooter = () => {
 
           {/* Contact Info */}
           <div className="col-lg-3">
-            <h6 className="fw-bold mb-3 text-primary">Contact Info</h6>
+            <h5 className="fw-bold mb-3" style={{ color: "#0d6efd" }}>Contact Info</h5>
             <div className="d-flex align-items-start mb-2">
               <i className="bi bi-geo-alt text-primary me-2 mt-1"></i>
               <span className="text-primary">
