@@ -159,15 +159,6 @@ const HomepageNova = () => {
                   alt="School Health Management"
                   className="img-fluid rounded-4 shadow-lg"
                 />
-                <div className="position-absolute top-50 start-50 translate-middle">
-                  <a
-                    href="https://www.youtube.com/watch?v=DQx96G4yHd8"
-                    className="btn btn-primary btn-lg rounded-circle p-4"
-                    style={{ width: "80px", height: "80px" }}
-                  >
-                    <i className="bi bi-play-fill fs-3"></i>
-                  </a>
-                </div>
               </div>
             </div>
             <div className="col-12 col-lg-6">

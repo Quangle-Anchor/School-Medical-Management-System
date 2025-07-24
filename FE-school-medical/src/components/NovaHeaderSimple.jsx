@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/img/1.png";
@@ -68,7 +67,10 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
         {/* Logo */}
         <Link className="navbar-brand fw-bold" to="/">
           <div className="d-flex align-items-center">
-            <div className="bg-info rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: "40px", height: "40px" }}>
+            <div
+              className="rounded-circle p-1 d-flex align-items-center justify-content-center"
+              style={{ width: "40px", height: "40px", backgroundColor: "#0d6efd" }}
+            >
               <img
                 alt="Logo"
                 src={logo}
@@ -78,12 +80,18 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
             </div>
             <div className="d-flex flex-column lh-1 ms-2">
               <span
-                className="text-info fw-bold"
-                style={{ fontSize: "16px", marginBottom: "3px" }}
+                className="fw-bold"
+                style={{
+                  fontSize: "16px",
+                  marginBottom: "3px",
+                  color: "#0d6efd",
+                }}
               >
                 SVXS
               </span>
-              <span className="text-info" style={{ fontSize: "12px" }}>
+              <span
+                style={{ fontSize: "12px", color: "#0d6efd" }}
+              >
                 School Medical
               </span>
             </div>
@@ -111,11 +119,15 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
               <Link
                 className={`nav-link fw-semibold px-3 ${
                   isActive("/")
-                    ? "active text-primary"
-                    : isScrolled
+                    ? "active"
+                    : isScrolled || variant === "dark"
                     ? "text-dark"
-                    : "text-dark"
+                    : "text-white"
                 }`}
+                style={{ 
+                  color: isActive("/") ? "#0d6efd" : 
+                         (isScrolled || variant === "dark") ? "#333" : "#fff"
+                }}
                 to="/"
               >
                 Home
@@ -125,11 +137,15 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
               <Link
                 className={`nav-link fw-semibold px-3 ${
                   isActive("/about")
-                    ? "active text-primary"
-                    : isScrolled
+                    ? "active"
+                    : isScrolled || variant === "dark"
                     ? "text-dark"
-                    : "text-dark"
+                    : "text-white"
                 }`}
+                style={{ 
+                  color: isActive("/about") ? "#0d6efd" : 
+                         (isScrolled || variant === "dark") ? "#333" : "#fff"
+                }}
                 to="/about"
               >
                 About
@@ -138,33 +154,39 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
             <li className="nav-item">
               <Link
                 className={`nav-link fw-semibold px-3 ${
-                  isActive("/contact")
-                    ? "active text-primary"
-                    : isScrolled
+                  isActive("/health-lookup")
+                    ? "active"
+                    : isScrolled || variant === "dark"
                     ? "text-dark"
-                    : "text-dark"
+                    : "text-white"
                 }`}
+                style={{ 
+                  color: isActive("/health-lookup") ? "#0d6efd" : 
+                         (isScrolled || variant === "dark") ? "#333" : "#fff"
+                }}
+                to="/health-lookup"
+              >
+                Health Lookup
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                className={`nav-link fw-semibold px-3 ${
+                  isActive("/contact")
+                    ? "active"
+                    : isScrolled || variant === "dark"
+                    ? "text-dark"
+                    : "text-white"
+                }`}
+                style={{ 
+                  color: isActive("/contact") ? "#0d6efd" : 
+                         (isScrolled || variant === "dark") ? "#333" : "#fff"
+                }}
                 to="/contact"
               >
                 Contact
               </Link>
             </li>
-            {!isAuthenticated && (
-              <li className="nav-item">
-                <Link
-                  className={`nav-link fw-semibold px-3 ${
-                    isActive("/health-lookup")
-                      ? "active text-primary"
-                      : isScrolled
-                      ? "text-dark"
-                      : "text-dark"
-                  }`}
-                  to="/health-lookup"
-                >
-                  Health Lookup
-                </Link>
-              </li>
-            )}
           </ul>
 
           {/* Auth buttons */}
