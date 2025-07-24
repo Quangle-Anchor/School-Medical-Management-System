@@ -154,14 +154,19 @@ export default function ContactNova() {
                 role="button"
                 aria-pressed={activeCard === 0}
               >
-                <div className="card-body p-4">
+                <div className="card-body p-4 text-center">
                   <div className="feature-icon mb-4">
                     <i
                       className="bi bi-telephone-fill text-primary"
                       style={{ fontSize: "3rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">Emergency Contact</h5>
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
+                    Emergency Contact
+                  </h5>
                   <p className="card-text text-muted mb-3">
                     For immediate medical emergencies during school hours
                   </p>
@@ -172,8 +177,8 @@ export default function ContactNova() {
                     <p className="mb-1">
                       <strong>Health Office:</strong> 0395-550-123
                     </p>
-                    <p className="text-muted small">
-                      Available: Mon-Fri, 7:30 AM - 4:30 PM
+                    <p className="mb-1">
+                      <strong>Available:</strong> Mon-Fri, 7:30 AM - 4:30 PM
                     </p>
                   </div>
                 </div>
@@ -192,14 +197,19 @@ export default function ContactNova() {
                 role="button"
                 aria-pressed={activeCard === 1}
               >
-                <div className="card-body p-4">
+                <div className="card-body p-4 text-center">
                   <div className="feature-icon mb-4">
                     <i
                       className="bi bi-envelope-fill text-success"
                       style={{ fontSize: "3rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">Email Support</h5>
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
+                    Email Support
+                  </h5>
                   <p className="card-text text-muted mb-3">
                     For non-urgent inquiries and appointment scheduling
                   </p>
@@ -211,7 +221,6 @@ export default function ContactNova() {
                       <strong>Appointments:</strong>{" "}
                       appointments@schoolhealth.com
                     </p>
-                    <p className="text-muted small">Response within 24 hours</p>
                   </div>
                 </div>
               </div>
@@ -229,19 +238,24 @@ export default function ContactNova() {
                 role="button"
                 aria-pressed={activeCard === 2}
               >
-                <div className="card-body p-4">
+                <div className="card-body p-4 text-center">
                   <div className="feature-icon mb-4">
                     <i
                       className="bi bi-geo-alt-fill text-warning"
                       style={{ fontSize: "3rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">Visit Us</h5>
-                  <p className="card-text text-muted mb-3">
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
+                    Visit Us
+                  </h5>
+                  <p className="card-text text-muted mb-4">
                     Health office location and visiting hours
                   </p>
                   <div className="contact-details">
-                    <p className="mb-1">
+                    <p className="mb-3">
                       <strong>Location:</strong> Building A, Room 105
                     </p>
                     <p className="mb-1">
@@ -267,7 +281,10 @@ export default function ContactNova() {
               >
                 <div className="card-body p-5">
                   <div className="text-center mb-5">
-                    <h3 className="fw-bold mb-3" style={{ color: "#0d6efd", fontSize: "2rem" }}>
+                    <h3
+                      className="fw-bold mb-3"
+                      style={{ color: "#0d6efd", fontSize: "2rem" }}
+                    >
                       Send Us A Message
                     </h3>
                     <p className="text-muted" style={{ fontSize: "1.1rem" }}>
@@ -437,7 +454,12 @@ export default function ContactNova() {
                         style={{ fontSize: "3rem" }}
                       ></i>
                     </div>
-                    <h5 className="card-title fw-bold mb-2">{member.name}</h5>
+                    <h5
+                      className="card-title mb-3 text-dark"
+                      style={{ fontWeight: "800" }}
+                    >
+                      {member.name}
+                    </h5>
                     <h6 className="text-primary mb-1">{member.role}</h6>
                     <p className="text-muted small mb-3">{member.specialty}</p>
                     <p className="card-text text-muted small">{member.desc}</p>

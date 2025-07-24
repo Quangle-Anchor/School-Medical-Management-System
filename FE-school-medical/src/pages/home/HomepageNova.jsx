@@ -242,7 +242,10 @@ const HomepageNova = () => {
         <div className="container">
           <div className="row">
             <div className="col-12 text-center mb-5">
-              <h1 className="display-4 fw-bold mb-4" style={{ color: "#0d6efd" }}>
+              <h1
+                className="display-4 fw-bold mb-4"
+                style={{ color: "#0d6efd" }}
+              >
                 Empowering School Health Through Cutting-Edge Services
               </h1>
             </div>
@@ -262,7 +265,10 @@ const HomepageNova = () => {
                       style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
                     Health Records Management
                   </h5>
                   <p className="card-text text-muted mb-4">
@@ -295,7 +301,10 @@ const HomepageNova = () => {
                       style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
                     Medication Management
                   </h5>
                   <p className="card-text text-muted mb-4">
@@ -328,7 +337,10 @@ const HomepageNova = () => {
                       style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
                     Health Event Scheduling
                   </h5>
                   <p className="card-text text-muted mb-4">
@@ -361,7 +373,12 @@ const HomepageNova = () => {
                       style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">Health Analytics</h5>
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
+                    Health Analytics
+                  </h5>
                   <p className="card-text text-muted mb-4">
                     Comprehensive health reports and analytics to track student
                     wellness trends and outcomes.
@@ -391,7 +408,10 @@ const HomepageNova = () => {
                       style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
                     Emergency Notifications
                   </h5>
                   <p className="card-text text-muted mb-4">
@@ -423,7 +443,10 @@ const HomepageNova = () => {
                       style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
                     Parent Integration
                   </h5>
                   <p className="card-text text-muted mb-4">
