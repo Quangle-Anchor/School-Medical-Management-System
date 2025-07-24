@@ -14,23 +14,24 @@ const NovaFooter = () => {
         <div className="row gy-4">
           {/* Company Info */}
           <div className="col-lg-4">
-            <div className="d-flex align-items-center mb-3">
+            <div className="d-flex justify-content-center mb-3">
               <img
                 src="/src/assets/img/logoXoaNen.png"
                 alt="School Medical"
-                height="32"
-                className="me-2"
+                height= "150"
+                width="150"
+                style={{ objectFit: "contain" }}
                 onError={(e) => {
                   e.target.style.display = "none";
                 }}
               />
             </div>
-            <p className="text-primary">
+            <p className="text-primary mb-3 text-center">
               Providing comprehensive medical management solutions for
               educational institutions. Ensuring the health and wellbeing of
               students through innovative technology.
             </p>
-            <div className="d-flex gap-3">
+            <div className="d-flex gap-3 justify-content-center">
               <a href="#" className="text-primary">
                 <i className="bi bi-facebook fs-5"></i>
               </a>
@@ -51,22 +52,38 @@ const NovaFooter = () => {
             <h5 className="fw-bold mb-3" style={{ color: "#0d6efd" }}>Quick Links</h5>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <Link to="/" className="text-primary text-decoration-none" onClick={handleLinkClick}>
+                <Link
+                  to="/"
+                  className="text-primary text-decoration-none"
+                  onClick={handleLinkClick}
+                >
                   Home
                 </Link>
               </li>
               <li className="mb-2">
-                <Link to="/about" className="text-primary text-decoration-none" onClick={handleLinkClick}>
+                <Link
+                  to="/about"
+                  className="text-primary text-decoration-none"
+                  onClick={handleLinkClick}
+                >
                   About
                 </Link>
               </li>
               <li className="mb-2">
-                <Link to="/health-lookup" className="text-primary text-decoration-none" onClick={handleLinkClick}>
+                <Link
+                  to="/health-lookup"
+                  className="text-primary text-decoration-none"
+                  onClick={handleLinkClick}
+                >
                   Health Lookup
                 </Link>
               </li>
               <li className="mb-2">
-                <Link to="/contact" className="text-primary text-decoration-none" onClick={handleLinkClick}>
+                <Link
+                  to="/contact"
+                  className="text-primary text-decoration-none"
+                  onClick={handleLinkClick}
+                >
                   Contact
                 </Link>
               </li>

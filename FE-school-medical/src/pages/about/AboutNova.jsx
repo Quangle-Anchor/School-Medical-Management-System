@@ -36,7 +36,10 @@ export default function AboutNova() {
           <div className="row align-items-center min-vh-60">
             <div className="col-lg-6">
               <div className="hero-content text-white" data-aos="fade-right">
-                <h1 className="display-4 mb-4 text-white" style={{ fontWeight: "800" }}>
+                <h1
+                  className="display-4 mb-4 text-white"
+                  style={{ fontWeight: "800" }}
+                >
                   About School Medical Management
                 </h1>
                 <p className="lead mb-4">
@@ -279,7 +282,12 @@ export default function AboutNova() {
                       style={{ fontSize: "2.5rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">Health Records</h5>
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
+                    Health Records
+                  </h5>
                   <p className="card-text text-muted small">
                     Comprehensive digital health records for every student
                   </p>
@@ -300,7 +308,10 @@ export default function AboutNova() {
                       style={{ fontSize: "2.5rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
                     Medication Management
                   </h5>
                   <p className="card-text text-muted small">
@@ -323,7 +334,12 @@ export default function AboutNova() {
                       style={{ fontSize: "2.5rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">Health Events</h5>
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
+                    Health Events
+                  </h5>
                   <p className="card-text text-muted small">
                     Schedule and manage health events and checkups
                   </p>
@@ -344,7 +360,12 @@ export default function AboutNova() {
                       style={{ fontSize: "2.5rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-3">Notifications</h5>
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
+                    Notifications
+                  </h5>
                   <p className="card-text text-muted small">
                     Real-time alerts and communication system
                   </p>
@@ -391,7 +412,10 @@ export default function AboutNova() {
                       style={{ fontSize: "3rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-2">
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
                     Healthcare Professionals
                   </h5>
                   <p className="text-muted small mb-3">Medical Team</p>
@@ -416,7 +440,12 @@ export default function AboutNova() {
                       style={{ fontSize: "3rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-2">Development Team</h5>
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
+                    Development Team
+                  </h5>
                   <p className="text-muted small mb-3">Technology Experts</p>
                   <p className="card-text text-muted small">
                     Skilled developers creating innovative solutions for school
@@ -439,7 +468,10 @@ export default function AboutNova() {
                       style={{ fontSize: "3rem" }}
                     ></i>
                   </div>
-                  <h5 className="card-title fw-bold mb-2">
+                  <h5
+                    className="card-title mb-3 text-dark"
+                    style={{ fontWeight: "800" }}
+                  >
                     Education Specialists
                   </h5>
                   <p className="text-muted small mb-3">Academic Partners</p>
