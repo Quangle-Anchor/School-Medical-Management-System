@@ -32,15 +32,19 @@ export default function AboutNova() {
           minHeight: "60vh",
         }}
       >
-        <div className="container">
-          <div className="row align-items-center min-vh-60">
-            <div className="col-lg-6">
+        <div className="container-fluid px-0">
+          <div className="row align-items-center min-vh-60 g-0">
+            <div className="col-lg-6 px-5">
               <div className="hero-content text-white" data-aos="fade-right">
                 <h1
                   className="display-4 mb-4 text-white"
                   style={{ fontWeight: "800" }}
                 >
-                  About School Medical Management
+                  About
+                  <br />
+                  School Medical
+                  <br />
+                  Management
                 </h1>
                 <p className="lead mb-4">
                   Transforming healthcare management in educational institutions
@@ -54,15 +58,16 @@ export default function AboutNova() {
                     Our Mission
                   </a>
                   <a
-                    href="#team"
+                    href="/login"
                     className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                   >
-                    Meet Our Team
+                    <i className="bi bi-play me-2"></i>
+                    Get Started
                   </a>
                 </div>
               </div>
             </div>
-            <div className="col-lg-6">
+            <div className="col-lg-6 px-5">
               <div className="hero-image text-center" data-aos="fade-left">
                 <img
                   src="/nova-assets/images/about_2-min.jpg"
@@ -377,7 +382,7 @@ export default function AboutNova() {
       </section>
 
       {/* Team Section */}
-      <section id="team" className="py-5">
+      <section className="py-5">
         <div className="container">
           <div className="row">
             <div className="col-12 text-center mb-5">

@@ -166,13 +166,13 @@ const LoginPage = () => {
         <div className="backdrop-blur-lg bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-8">
           {/* Logo section */}
           <div className="text-center mb-8">
-            <div className="inline-block p-3 bg-white/20 rounded-full backdrop-blur-sm mb-4">
+            <Link to="/" className="inline-block p-3 bg-white/20 rounded-full backdrop-blur-sm mb-4">
               <img
                 alt="Logo"
                 src={logo}
                 className="h-16 w-16 rounded-full shadow-lg"
               />
-            </div>
+            </Link>
             <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
             <p className="text-white/80">Sign in to your account</p>
           </div>

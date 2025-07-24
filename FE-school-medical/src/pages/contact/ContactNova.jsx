@@ -1,9 +1,24 @@
 import React, { useState } from "react";
 import NovaLayout from "../../components/NovaLayout";
 import NovaHeaderSimple from "../../components/NovaHeaderSimple";
-import { useToast } from '../../hooks/useToast';
+import { useToast } from "../../hooks/useToast";
 
-// Thêm style cho card hover - chỉ giữ lại active state
+// Thêm style cho nút hero với hiệu ứng hover xanh lá cây
+const heroBtnStyle = `
+.btn-hero-about {
+  background: transparent !important;
+  border: 2px solid white !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+}
+.btn-hero-about:hover, .btn-hero-about:focus {
+  background: #1976d2 !important;
+  border-color: #1976d2 !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+}
+`;
+
 const contactCardStyle = `
 .contact-card.active {
   border-color: #2196f3 !important;
@@ -75,6 +90,7 @@ export default function ContactNova() {
 
   return (
     <NovaLayout>
+      <style>{heroBtnStyle}</style>
       <style>{contactCardStyle}</style>
       <NovaHeaderSimple variant="light" />
 
@@ -83,36 +99,60 @@ export default function ContactNova() {
         className="hero-section position-relative overflow-hidden py-5"
         style={{
           background: "linear-gradient(135deg, #1976d2 0%, #2196f3 100%)",
-          minHeight: "35vh",
+          minHeight: "60vh",
         }}
       >
-        <div className="container">
-          <div
-            className="row align-items-center justify-content-center"
-            style={{ minHeight: "50vh" }}
-          >
-            <div className="col-lg-8 mx-auto text-center">
-              <div className="hero-content text-white" data-aos="fade-up">
+        <div className="container-fluid px-0">
+          <div className="row align-items-center min-vh-60 g-0">
+            <div className="col-lg-6 px-5">
+              <div className="hero-content text-white" data-aos="fade-right">
                 <h1
-                  className="display-4 mb-4 text-white"
-                  style={{ fontWeight: "800" }}
+                  className="display-4 fw-bold mb-5"
+                  style={{ color: "#ffffff", fontWeight: "800" }}
                 >
-                  Contact Our Health Team
+                  Contact
+                  <br />
+                  Our Health Team
                 </h1>
                 <p className="lead mb-4">
                   Reach out to our school health professionals for support with
                   appointments, emergencies, or general inquiries. We're here to
                   ensure every student's wellbeing.
                 </p>
+                <div className="d-flex flex-wrap gap-3">
+                  <a
+                    href="#MeetOurHealthTeam"
+                    className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
+                  >
+                    Meet Our Health Team
+                  </a>
+                  <a
+                    href="/login"
+                    className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
+                  >
+                    <i className="bi bi-play me-2"></i>
+                    Get Started
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-6 px-5">
+              <div className="hero-image text-center" data-aos="fade-left">
+                <img
+                  src="/nova-assets/images/about_2-min.jpg"
+                  alt="Contact Us"
+                  className="img-fluid rounded-3 shadow-lg"
+                  style={{ maxHeight: "400px", objectFit: "cover" }}
+                />
               </div>
             </div>
           </div>
         </div>
 
         {/* Decorative elements */}
-        <div className="position-absolute top-0 start-0 opacity-10">
+        <div className="position-absolute top-0 end-0 opacity-10">
           <img
-            src="/nova-assets/images/arch-line-reverse.svg"
+            src="/nova-assets/images/arch-line.svg"
             alt=""
             className="w-100"
           />
@@ -417,7 +457,7 @@ export default function ContactNova() {
       </section>
 
       {/* Team Section */}
-      <section className="py-5 bg-light">
+      <section id="MeetOurHealthTeam" className="py-5 bg-light">
         <div className="container">
           <div className="row">
             <div className="col-12 text-center mb-5">
