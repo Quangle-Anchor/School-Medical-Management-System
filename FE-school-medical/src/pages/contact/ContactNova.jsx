@@ -91,7 +91,10 @@ export default function ContactNova() {
           >
             <div className="col-lg-8 mx-auto text-center">
               <div className="hero-content text-white" data-aos="fade-up">
-                <h1 className="display-4 fw-bold mb-4">
+                <h1
+                  className="display-4 mb-4 text-white"
+                  style={{ fontWeight: "800" }}
+                >
                   Contact Our Health Team
                 </h1>
                 <p className="lead mb-4">
@@ -120,7 +123,8 @@ export default function ContactNova() {
           <div className="row">
             <div className="col-12 text-center mb-5">
               <h2
-                className="display-5 fw-bold text-dark mb-3"
+                className="display-5 fw-bold mb-3"
+                style={{ color: "#1976d2" }}
                 data-aos="fade-up"
               >
                 Get In Touch
@@ -255,13 +259,16 @@ export default function ContactNova() {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-8">
-              <div className="card border-0 shadow-lg hover-lift-lg" data-aos="fade-up">
+              <div
+                className="card border-0 shadow-lg hover-lift-lg"
+                data-aos="fade-up"
+              >
                 <div className="card-body p-5">
                   <div className="text-center mb-5">
-                    <h3 className="fw-bold text-dark mb-3">
+                    <h3 className="fw-bold mb-3" style={{ color: "#0d6efd", fontSize: "2rem" }}>
                       Send Us A Message
                     </h3>
-                    <p className="text-muted">
+                    <p className="text-muted" style={{ fontSize: "1.1rem" }}>
                       Fill out the form below and we'll get back to you as soon
                       as possible.
                     </p>
@@ -371,9 +378,10 @@ export default function ContactNova() {
                           type="submit"
                           className="btn btn-lg px-5"
                           style={{
-                            background: "linear-gradient(135deg, #1976d2 0%, #2196f3 100%)",
+                            background:
+                              "linear-gradient(135deg, #1976d2 0%, #2196f3 100%)",
                             border: "none",
-                            color: "white"
+                            color: "white",
                           }}
                         >
                           <i className="bi bi-send me-2"></i>
@@ -395,7 +403,8 @@ export default function ContactNova() {
           <div className="row">
             <div className="col-12 text-center mb-5">
               <h2
-                className="display-5 fw-bold text-dark mb-3"
+                className="display-5 fw-bold mb-3"
+                style={{ color: "#1976d2" }}
                 data-aos="fade-up"
               >
                 Meet Our Health Team

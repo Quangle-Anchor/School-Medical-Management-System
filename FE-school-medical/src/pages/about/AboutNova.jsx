@@ -11,8 +11,8 @@ const heroBtnStyle = `
   transition: all 0.3s ease !important;
 }
 .btn-hero-about:hover, .btn-hero-about:focus {
-  background: #4caf50 !important;
-  border-color: #4caf50 !important;
+  background: #1976d2 !important;
+  border-color: #1976d2 !important;
   color: white !important;
   transform: translateY(-2px) !important;
 }
@@ -36,7 +36,7 @@ export default function AboutNova() {
           <div className="row align-items-center min-vh-60">
             <div className="col-lg-6">
               <div className="hero-content text-white" data-aos="fade-right">
-                <h1 className="display-4 fw-bold mb-4">
+                <h1 className="display-4 mb-4 text-white" style={{ fontWeight: "800" }}>
                   About School Medical Management
                 </h1>
                 <p className="lead mb-4">
@@ -88,7 +88,8 @@ export default function AboutNova() {
           <div className="row">
             <div className="col-12 text-center mb-5">
               <h2
-                className="display-5 fw-bold text-dark mb-3"
+                className="display-5 fw-bold mb-3"
+                style={{ color: "#0d6efd" }}
                 data-aos="fade-up"
               >
                 Our Mission & Vision
@@ -162,7 +163,8 @@ export default function AboutNova() {
           <div className="row">
             <div className="col-12 text-center mb-5">
               <h2
-                className="display-5 fw-bold text-dark mb-3"
+                className="display-5 fw-bold mb-3"
+                style={{ color: "#0d6efd" }}
                 data-aos="fade-up"
               >
                 Our Core Values
@@ -247,7 +249,8 @@ export default function AboutNova() {
           <div className="row">
             <div className="col-12 text-center mb-5">
               <h2
-                className="display-5 fw-bold text-dark mb-3"
+                className="display-5 fw-bold mb-3"
+                style={{ color: "#0d6efd" }}
                 data-aos="fade-up"
               >
                 Key Features
@@ -358,7 +361,8 @@ export default function AboutNova() {
           <div className="row">
             <div className="col-12 text-center mb-5">
               <h2
-                className="display-5 fw-bold text-dark mb-3"
+                className="display-5 fw-bold mb-3"
+                style={{ color: "#0d6efd" }}
                 data-aos="fade-up"
               >
                 Our Team
