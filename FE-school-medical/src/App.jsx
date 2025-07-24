@@ -38,9 +38,19 @@ function AppContent() {
     location.pathname.includes("/principalDashboard") ||
     location.pathname.includes("/parentDashboard");
 
-  const hideFooter =
-    ["/login", "/signup", "/forgot-password", "/forgot-password/verify-otp", "/forgot-password/reset", "/forgot-password/success"].includes(location.pathname) || isDashboardPage;
-  const hideNavbar = isDashboardPage; // Hide navbar on dashboard pages
+  // Pages that should hide both navbar and footer
+  const authPages = [
+    "/login", 
+    "/signup", 
+    "/forgot-password", 
+    "/forgot-password/verify-otp", 
+    "/forgot-password/reset", 
+    "/forgot-password/success",
+    "/profile"
+  ];
+  
+  const hideFooter = authPages.includes(location.pathname) || isDashboardPage;
+  const hideNavbar = authPages.includes(location.pathname) || isDashboardPage; // Hide navbar on dashboard pages
 
   
   return (
