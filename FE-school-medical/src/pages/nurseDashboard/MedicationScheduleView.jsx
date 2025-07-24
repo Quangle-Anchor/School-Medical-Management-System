@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
-import { Calendar, Clock, User, Pill, Plus, Edit, Trash2, AlertCircle, CheckCircle, Eye } from 'lucide-react';
+import { Calendar, Clock, User, Plus, Edit, Trash2, AlertCircle, CheckCircle, Eye } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
 
 const MedicationScheduleManagement = () => {
@@ -106,14 +106,7 @@ const MedicationScheduleManagement = () => {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
-          <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-          <span className="text-green-700">{success}</span>
-        </div>
-      )}
-
+      {/* Error Message */}
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
           <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
