@@ -1,5 +1,7 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
+import com.be_source.School_Medical_Management_System_.model.MedicationRequest;
+import com.be_source.School_Medical_Management_System_.repository.MedicationRequestRepository;
 import com.be_source.School_Medical_Management_System_.request.InventoryRequest;
 import com.be_source.School_Medical_Management_System_.response.InventoryResponse;
 import com.be_source.School_Medical_Management_System_.response.MedicalItemResponse;
@@ -24,12 +26,14 @@ public class InventoryServiceImpl implements InventoryService {
     @Autowired
     private MedicalItemRepository medicalItemRepository;
 
+    @Autowired
+    private MedicationRequestRepository medicationRequestRepository;
+
     @Override
     public InventoryResponse add(InventoryRequest request) {
         MedicalItem item = medicalItemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        // Kiểm tra xem đã có item này trong kho chưa
         Inventory inventory = inventoryRepository.findByMedicalItem(item).orElse(null);
 
         if (inventory == null) {
@@ -43,7 +47,12 @@ public class InventoryServiceImpl implements InventoryService {
             inventory.setUpdatedAt(LocalDateTime.now());
         }
 
-        return toResponse(inventoryRepository.save(inventory));
+        Inventory saved = inventoryRepository.save(inventory);
+
+        // ✅ Cập nhật lại các MedicationRequest liên quan
+        updateMedicationRequestStockStatus(saved);
+
+        return toResponse(saved);
     }
 
     @Override
@@ -61,9 +70,13 @@ public class InventoryServiceImpl implements InventoryService {
         existing.setTotalQuantity(current - quantityToSubtract);
         existing.setUpdatedAt(LocalDateTime.now());
 
-        return toResponse(inventoryRepository.save(existing));
-    }
+        Inventory saved = inventoryRepository.save(existing);
 
+        // ✅ Cập nhật lại các MedicationRequest liên quan
+        updateMedicationRequestStockStatus(saved);
+
+        return toResponse(saved);
+    }
 
     @Override
     public void delete(Long id) {
@@ -107,4 +120,20 @@ public class InventoryServiceImpl implements InventoryService {
                 .updatedAt(inventory.getUpdatedAt())
                 .build();
     }
+
+    // ✅ Hàm cập nhật trạng thái đủ/thiếu thuốc cho các MedicationRequest liên quan
+    private void updateMedicationRequestStockStatus(Inventory inventory) {
+        List<MedicationRequest> requests = medicationRequestRepository.findByInventory(inventory);
+
+        for (MedicationRequest request : requests) {
+            Integer reqQty = request.getTotalQuantity();
+            Integer available = inventory.getTotalQuantity();
+
+            boolean sufficient = reqQty != null && available != null && available >= reqQty;
+            request.setIsSufficientStock(sufficient);
+        }
+
+        medicationRequestRepository.saveAll(requests);
+    }
 }
+

@@ -14,4 +14,5 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     Optional<Inventory> findByMedicalItem(MedicalItem item);
     @Query("SELECT i FROM Inventory i WHERE LOWER(i.medicalItem.itemName) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Inventory> searchByItemName(String keyword);
+    Optional<Inventory> findByMedicalItem_ItemNameIgnoreCase(String itemName);
 }

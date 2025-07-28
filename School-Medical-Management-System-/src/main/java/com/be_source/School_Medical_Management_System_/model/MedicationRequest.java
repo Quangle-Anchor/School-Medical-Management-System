@@ -59,4 +59,8 @@ public class MedicationRequest {
 
     @Column(name = "unconfirm_reason")
     private String unconfirmReason;
+
+    @Column(name = "is_sufficient_stock")
+    private Boolean isSufficientStock;
+
 }

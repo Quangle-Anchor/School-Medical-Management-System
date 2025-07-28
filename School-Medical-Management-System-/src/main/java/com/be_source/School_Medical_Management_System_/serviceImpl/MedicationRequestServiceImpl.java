@@ -1,9 +1,11 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
 import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
+import com.be_source.School_Medical_Management_System_.model.Inventory;
 import com.be_source.School_Medical_Management_System_.model.MedicationRequest;
 import com.be_source.School_Medical_Management_System_.model.Students;
 import com.be_source.School_Medical_Management_System_.model.User;
+import com.be_source.School_Medical_Management_System_.repository.InventoryRepository;
 import com.be_source.School_Medical_Management_System_.repository.MedicationRequestRepository;
 import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
 import com.be_source.School_Medical_Management_System_.request.MedicationRequestRequest;
@@ -31,6 +33,10 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
 
     @Autowired
     private CloudinaryService cloudinaryService;
+
+    @Autowired
+    private InventoryRepository inventoryRepository;
+
 
     @Override
     public List<MedicationRequestResponse> getMyRequests() {
@@ -60,6 +66,20 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         entity.setNoonQuantity(request.getNoonQuantity());
         entity.setEveningQuantity(request.getEveningQuantity());
 
+        Inventory matchedInventory = inventoryRepository
+                .findByMedicalItem_ItemNameIgnoreCase(request.getMedicationName())
+                .orElse(null);
+        entity.setInventory(matchedInventory);
+
+        // ✅ Kiểm tra đủ thuốc
+        if (matchedInventory != null && request.getTotalQuantity() != null) {
+            entity.setIsSufficientStock(
+                    matchedInventory.getTotalQuantity() >= request.getTotalQuantity()
+            );
+        } else {
+            entity.setIsSufficientStock(false);
+        }
+
         if (file != null && !file.isEmpty()) {
             String fileUrl = cloudinaryService.uploadFile(file);
             entity.setPrescriptionFile(fileUrl);
@@ -67,6 +87,9 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
 
         medicationRequestRepository.save(entity);
     }
+
+
+
 
     @Override
     public MedicationRequestResponse update(Long id, MedicationRequestRequest request, MultipartFile file) {
@@ -87,19 +110,31 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         existing.setConfirmedAt(null);
         existing.setUnconfirmReason(null);
 
+        Inventory matchedInventory = inventoryRepository
+                .findByMedicalItem_ItemNameIgnoreCase(request.getMedicationName())
+                .orElse(null);
+        existing.setInventory(matchedInventory);
+
+        // ✅ Kiểm tra lại đủ thuốc
+        if (matchedInventory != null && request.getTotalQuantity() != null) {
+            existing.setIsSufficientStock(
+                    matchedInventory.getTotalQuantity() >= request.getTotalQuantity()
+            );
+        } else {
+            existing.setIsSufficientStock(false);
+        }
+
         if (file != null && !file.isEmpty()) {
-            // Xoá file cũ nếu có
             if (existing.getPrescriptionFile() != null) {
                 cloudinaryService.deleteFileByUrl(existing.getPrescriptionFile());
             }
-
-            // Upload file mới
             String fileUrl = cloudinaryService.uploadFile(file);
             existing.setPrescriptionFile(fileUrl);
         }
 
         return mapToResponse(medicationRequestRepository.save(existing));
     }
+
 
 
     @Override
@@ -168,6 +203,13 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         return student;
     }
 
+    private Inventory findInventoryByName(String medicationName) {
+        return medicationName == null ? null :
+                inventoryRepository.findByMedicalItem_ItemNameIgnoreCase(medicationName).orElse(null);
+    }
+
+
+
     private MedicationRequestResponse mapToResponse(MedicationRequest entity) {
         return MedicationRequestResponse.builder()
                 .requestId(entity.getRequestId())
@@ -188,6 +230,8 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
                 .unconfirmReason(entity.getUnconfirmReason())
                 .createdAt(entity.getCreatedAt())
                 .confirmedAt(entity.getConfirmedAt())
+                .isSufficientStock(entity.getIsSufficientStock())
                 .build();
     }
+
 }
