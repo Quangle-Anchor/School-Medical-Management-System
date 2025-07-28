@@ -33,63 +33,15 @@ public class NotificationEmailScheduler {
                 String to = noti.getUser().getEmail();
                 if (to == null || to.isBlank()) continue;
 
-                // Tên người nhận từ User.fullName
                 String recipientName = Optional.ofNullable(noti.getUser().getFullName()).orElse("Parent");
 
-                String subject = "[School Health Notification] " + noti.getTitle();
+                String emailHeader = getEmailHeader(noti.getNotificationType());
+                String typeLabel = getTypeLabel(noti.getNotificationType());
+                String subject = "[SMMS] " + emailHeader + " – " + noti.getTitle();
 
-                // Xác định label & tiêu đề theo loại thông báo
-                String typeLabel;
-                String emailHeader;
-
-                switch (noti.getNotificationType()) {
-                    case "HEALTH_EVENT" -> {
-                        typeLabel = "📅 Health Event Notice";
-                        emailHeader = "Vừa có sự kiện y tế mới được tạo!";
-                    }
-                    case "HEALTH_INCIDENT" -> {
-                        typeLabel = "🚑 Health Incident Alert";
-                        emailHeader = "Vừa có tai nạn xảy ra liên quan đến học sinh!";
-                    }
-                    case "MEDICATION_REQUEST" -> {
-                        typeLabel = "💊 Medication Request Update";
-                        emailHeader = "Yêu cầu cấp phát thuốc của bạn đã được cập nhật!";
-                    }
-                    case "MEDICATION_ADMINISTERED", "MEDICATION_SCHEDULE" -> {
-                        typeLabel = "✅ Medication Administered";
-                        emailHeader = "Đơn thuốc của học sinh đã được cấp phát.";
-                    }
-                    case "EVENT_SIGNUP" -> {
-                        typeLabel = "📥 Event Signup Status";
-                        emailHeader = "Trạng thái đăng ký sự kiện vừa được thay đổi.";
-                    }
-                    case "EVENT_UPDATED" -> {
-                        typeLabel = "🔄 Event Updated";
-                        emailHeader = "Một sự kiện y tế đã được cập nhật.";
-                    }
-                    case "EVENT_DELETED" -> {
-                        typeLabel = "❌ Event Deleted";
-                        emailHeader = "Một sự kiện y tế đã bị hủy.";
-                    }
-                    case "INTERNAL_ANNOUNCEMENT" -> {
-                        typeLabel = "📩 Message from Principal";
-                        emailHeader = "Bạn có một thông báo mới từ hiệu trưởng.";
-                    }
-                    case "CUSTOM" -> {
-                        typeLabel = "📢 General Notification";
-                        emailHeader = "Thông báo từ trường học.";
-                    }
-                    default -> {
-                        typeLabel = "📌 School Notification";
-                        emailHeader = "Thông báo y tế từ nhà trường.";
-                    }
-                }
-
-                // Gửi email
                 String html = buildEmailTemplate(typeLabel, emailHeader, noti.getContent(), recipientName);
                 emailService.sendEmail(to, subject, html);
 
-                // Cập nhật trạng thái đã gửi
                 noti.setEmailSent(true);
                 notificationRepository.save(noti);
 
@@ -100,16 +52,50 @@ public class NotificationEmailScheduler {
         }
     }
 
+    private String getEmailHeader(String type) {
+        return switch (type) {
+            case "HEALTH_EVENT" -> "Vừa có sự kiện y tế mới được tạo!";
+            case "HEALTH_INCIDENT" -> "Vừa có tai nạn xảy ra liên quan đến học sinh!";
+            case "MEDICATION_REQUEST" -> "Yêu cầu cấp phát thuốc của bạn đã được cập nhật!";
+            case "MEDICATION_ADMINISTERED", "MEDICATION_SCHEDULE" -> "Đơn thuốc của học sinh đã được cấp phát.";
+            case "EVENT_SIGNUP" -> "Trạng thái đăng ký sự kiện vừa được thay đổi.";
+            case "EVENT_UPDATED" -> "Một sự kiện y tế đã được cập nhật.";
+            case "EVENT_DELETED" -> "Một sự kiện y tế đã bị hủy.";
+            case "INTERNAL_ANNOUNCEMENT" -> "Bạn có một thông báo mới từ hiệu trưởng.";
+            case "CUSTOM" -> "Thông báo từ trường học.";
+            case "STUDENT_CONFIRMED" -> "Thông tin học sinh đã được xác nhận.";
+            case "STUDENT_UNCONFIRMED" -> "Thông tin học sinh không được chấp nhận.";
+            default -> "Thông báo y tế từ nhà trường.";
+        };
+    }
+
+    private String getTypeLabel(String type) {
+        return switch (type) {
+            case "HEALTH_EVENT" -> "📅 Health Event Notice";
+            case "HEALTH_INCIDENT" -> "🚑 Health Incident Alert";
+            case "MEDICATION_REQUEST" -> "💊 Medication Request Update";
+            case "MEDICATION_ADMINISTERED", "MEDICATION_SCHEDULE" -> "✅ Medication Administered";
+            case "EVENT_SIGNUP" -> "📥 Event Signup Status";
+            case "EVENT_UPDATED" -> "🔄 Event Updated";
+            case "EVENT_DELETED" -> "❌ Event Deleted";
+            case "INTERNAL_ANNOUNCEMENT" -> "📩 Message from Principal";
+            case "CUSTOM" -> "📢 General Notification";
+            case "STUDENT_CONFIRMED" -> "✅ Student Confirmed";
+            case "STUDENT_UNCONFIRMED" -> "❌ Student Not Accepted";
+            default -> "📌 School Notification";
+        };
+    }
+
     private String buildEmailTemplate(String tag, String header, String content, String recipientName) {
-        return """
+        return String.format("""
                 <!DOCTYPE html>
                 <html>
                 <head>
-                  <meta charset="UTF-8">
+                  <meta charset='UTF-8'>
                   <title>School Health Notification</title>
                   <style>
                     body {
-                      font-family: "Segoe UI", sans-serif;
+                      font-family: 'Segoe UI', sans-serif;
                       background-color: #f4f6f9;
                       color: #333;
                       margin: 0;
@@ -172,37 +158,26 @@ public class NotificationEmailScheduler {
                   </style>
                 </head>
                 <body>
-                  <div class="email-container">
-                    <div class="header">
+                  <div class='email-container'>
+                    <div class='header'>
                       <h2>🏥 School Medical Notification</h2>
-                      <div class="tag">%s</div>
+                      <div class='tag'>%s</div>
                       <p><strong>%s</strong></p>
                     </div>
-
-                    <div class="content">
+                    <div class='content'>
                       <p>Dear %s,</p>
                       <p>%s</p>
-
-                      <div class="note">
+                      <div class='note'>
                         This is an automated health alert from your child’s school. Please check the Parent Portal for more details.
                       </div>
-
-                      <a href="%s" class="button">View in Parent Portal</a>
+                      <a href='%s' class='button'>View in Parent Portal</a>
                     </div>
-
-                    <div class="footer">
+                    <div class='footer'>
                       &copy; %d School Medical Management System – All rights reserved.
                     </div>
                   </div>
                 </body>
                 </html>
-                """.formatted(
-                tag,
-                header,
-                recipientName,
-                content,
-                PARENT_PORTAL_URL,
-                Year.now().getValue()
-        );
+                """, tag, header, recipientName, content, PARENT_PORTAL_URL, Year.now().getValue());
     }
 }

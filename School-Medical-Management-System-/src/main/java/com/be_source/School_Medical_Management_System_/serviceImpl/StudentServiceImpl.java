@@ -1,5 +1,7 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
+import com.be_source.School_Medical_Management_System_.model.Notification;
+import com.be_source.School_Medical_Management_System_.repository.NotificationRepository;
 import com.be_source.School_Medical_Management_System_.response.HealthInfoResponse;
 import com.be_source.School_Medical_Management_System_.response.StudentResponse;
 import com.be_source.School_Medical_Management_System_.model.Students;
@@ -10,12 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
 public class StudentServiceImpl implements StudentService {
+
+    @Autowired
+    private NotificationRepository notificationRepository;
+
 
     @Autowired
     private StudentRepository studentRepository;
@@ -100,8 +107,52 @@ public class StudentServiceImpl implements StudentService {
                 .orElseThrow(() -> new NoSuchElementException("Student not found"));
 
         student.setIsConfirm(true);
-        return toDto(studentRepository.save(student));
+        Students savedStudent = studentRepository.save(student);
+
+        // Gửi thông báo xác nhận thông tin học sinh
+        User currentUser = userUtilService.getCurrentUser(); // Người xác nhận (y tá)
+        User parent = student.getParent();                   // Phụ huynh của học sinh
+
+        Notification notification = new Notification();
+        notification.setTitle("Xác nhận thông tin học sinh");
+        notification.setContent("Thông tin của học sinh '" + student.getFullName() + "' đã được xác nhận bởi y tế nhà trường.");
+        notification.setCreatedBy(currentUser);
+        notification.setUser(parent); // Gửi thông báo cho phụ huynh
+        notification.setNotificationType("STUDENT_CONFIRMED");
+        notification.setCreatedAt(ZonedDateTime.now());
+        notification.setReadStatus(false);
+        notification.setEmailSent(false);
+
+        notificationRepository.save(notification);
+
+        return toDto(savedStudent);
     }
+
+
+    @Override
+    public void rejectStudentByNurse(Long studentId, String reason) {
+        Students student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new NoSuchElementException("Student not found"));
+
+        User currentUser = userUtilService.getCurrentUser(); // Người thực hiện (nurse)
+        User parent = student.getParent(); // Phụ huynh
+
+        // Gửi notification cho phụ huynh
+        Notification notification = new Notification();
+        notification.setTitle("Thông tin học sinh chưa được chấp nhận");
+        notification.setContent("Thông tin của học sinh '" + student.getFullName() +
+                "' chưa được chấp nhận với lý do: " + reason +
+                ". Vui lòng cập nhật lại thông tin hoặc tạo mới. Nếu không, học sinh sẽ không thể sử dụng các dịch vụ y tế trên hệ thống.");
+        notification.setCreatedBy(currentUser);
+        notification.setUser(parent);
+        notification.setNotificationType("STUDENT_UNCONFIRMED");
+        notification.setCreatedAt(ZonedDateTime.now());
+        notification.setReadStatus(false);
+        notification.setEmailSent(false);
+
+        notificationRepository.save(notification);
+    }
+
 
     // ============================ Mapping ============================
 
@@ -118,7 +169,7 @@ public class StudentServiceImpl implements StudentService {
         dto.setWeightKg(s.getWeightKg());
         dto.setHealthStatus(s.getHealthStatus());
         dto.setUpdatedAt(s.getUpdatedAt());
-        dto.setIsConfirm(s.getIsConfirm()); // ✅ mới thêm
+        dto.setIsConfirm(s.getIsConfirm());
 
         if (s.getHealthInfoList() != null) {
             List<HealthInfoResponse> healthDtos = s.getHealthInfoList().stream().map(hi -> {
@@ -147,7 +198,7 @@ public class StudentServiceImpl implements StudentService {
         s.setHeightCm(dto.getHeightCm());
         s.setWeightKg(dto.getWeightKg());
         s.setHealthStatus(dto.getHealthStatus());
-        s.setIsConfirm(dto.getIsConfirm() != null ? dto.getIsConfirm() : false); // ✅ mặc định nếu null
+        s.setIsConfirm(dto.getIsConfirm() != null ? dto.getIsConfirm() : false);
         return s;
     }
 }
