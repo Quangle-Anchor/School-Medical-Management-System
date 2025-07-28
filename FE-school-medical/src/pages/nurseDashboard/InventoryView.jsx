@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   PlusIcon, 
   MagnifyingGlassIcon, 
@@ -19,6 +19,7 @@ import { inventoryAPI } from '../../api/inventoryApi';
 import {formatDateForInput } from '../../utils/dateUtils';
 import { useToast } from '../../hooks/useToast';
 import ItemForm from '../../components/ItemForm';
+import Pagination from '../../components/Pagination';
 
 const InventoryView = () => {
   const { showSuccess, showError, showWarning, showInfo } = useToast();
@@ -50,6 +51,13 @@ const InventoryView = () => {
   const [medicalItemSearchTerm, setMedicalItemSearchTerm] = useState('');
   const [selectedMedicalItem, setSelectedMedicalItem] = useState(null);
   const [showAddQuantityForm, setShowAddQuantityForm] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [paginatedItems, setPaginatedItems] = useState([]);
+  
   const [formData, setFormData] = useState({
     name: '',
     category: 'medications',
@@ -91,6 +99,46 @@ const InventoryView = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showSearchResults]);
+
+  // Pagination logic
+  const updatePaginatedItems = (items) => {
+    const totalItems = items.length;
+    const calculatedTotalPages = Math.ceil(totalItems / itemsPerPage);
+    setTotalPages(calculatedTotalPages);
+    
+    // Reset to page 0 if current page is beyond available pages
+    const safePage = currentPage >= calculatedTotalPages ? 0 : currentPage;
+    if (safePage !== currentPage) {
+      setCurrentPage(safePage);
+    }
+    
+    const startIndex = safePage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedData = items.slice(startIndex, endIndex);
+    setPaginatedItems(paginatedData);
+  };
+
+  // Compute allItems using useMemo to ensure it's available when needed
+  const allItems = useMemo(() => {
+    return [...inventoryData.medications, ...inventoryData.equipment, ...inventoryData.consumables];
+  }, [inventoryData]);
+
+  // Update pagination when currentPage, itemsPerPage, or inventory data changes
+  useEffect(() => {
+    const currentItems = selectedCategory 
+      ? inventoryData[selectedCategory] || []
+      : allItems;
+    updatePaginatedItems(currentItems);
+  }, [currentPage, itemsPerPage, inventoryData, selectedCategory, allItems]);
+
+  // Reset pagination when category changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [selectedCategory]);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
 
   const fetchInventory = async () => {
     try {
@@ -330,6 +378,7 @@ const InventoryView = () => {
   // Handle live search as user types
   const handleLiveSearch = async (term) => {
     setSearchTerm(term);
+    setCurrentPage(0); // Reset pagination when searching
     
     if (!term.trim()) {
       setShowSearchResults(false);
@@ -551,7 +600,7 @@ const InventoryView = () => {
     );
   }
 
-  const allItems = [...inventoryData.medications, ...inventoryData.equipment, ...inventoryData.consumables];
+  // Compute derived data for rendering
   const totalItems = allItems.length;
   const lowStockItems = allItems.filter(item => 
     (item.status || inventoryAPI.getStockStatus(item.quantity)) === 'low'
@@ -640,7 +689,6 @@ const InventoryView = () => {
               </div>
             </div>
           </div>
-          
         </div>
       </div>
 
@@ -890,11 +938,7 @@ const InventoryView = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {(() => {
-                  const currentItems = selectedCategory 
-                    ? inventoryData[selectedCategory] || []
-                    : allItems;
-                  
-                  if (currentItems.length === 0) {
+                  if (paginatedItems.length === 0) {
                     return (
                       <tr>
                         <td colSpan="9" className="px-6 py-12 text-center">
@@ -928,7 +972,7 @@ const InventoryView = () => {
                     );
                   }
                   
-                  return currentItems.map((item) => {
+                  return paginatedItems.map((item) => {
                     const status = item.status || inventoryAPI.getStockStatus(item.totalQuantity || item.quantity);
                     const isExpired = (item.item?.expiryDate || item.expiryDate) && new Date(item.item?.expiryDate || item.expiryDate) < new Date();
                     
@@ -1003,7 +1047,18 @@ const InventoryView = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalElements={allItems.length}
+          pageSize={itemsPerPage}
+          onPageChange={handlePageChange}
+          isFirst={currentPage === 0}
+          isLast={currentPage >= totalPages - 1}
+        />
+      </div>
 
       {/* Add Item Modal */}
       <ItemForm
@@ -1069,7 +1124,7 @@ const InventoryView = () => {
                     className="mr-3 p-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
                     aria-label="Go back to item selection"
                   >
-                    <svg xmlns="http://www.w3z  .org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                     </svg>
                   </button>

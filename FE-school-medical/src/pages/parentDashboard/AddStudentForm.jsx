@@ -13,7 +13,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
     bloodType: '',
     heightCm: '',
     weightKg: '',
-    healthStatus: '', // Default health status to match DB values
+    healthStatus: 'on', // Default health status to match DB values
     medicalConditions: '',
     allergies: '',
     notes: '',
@@ -37,6 +37,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
           bloodType: editingStudent.bloodType || '',
           heightCm: editingStudent.heightCm ? editingStudent.heightCm.toString() : '',
           weightKg: editingStudent.weightKg ? editingStudent.weightKg.toString() : '',
+          healthStatus: editingStudent.healthStatus || 'on', // Get health status from student data
           medicalConditions: '',
           allergies: '',
           notes: '',
@@ -52,7 +53,6 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
             basicData.medicalConditions = healthInfo.medicalConditions || '';
             basicData.allergies = healthInfo.allergies || '';
             basicData.notes = healthInfo.notes || '';
-            basicData.healthStatus = healthInfo.health_status || 'on'; // Use correct database value as fallback
           }        } catch (error) {
           // Continue with empty health info fields
         } finally {
@@ -118,6 +118,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         bloodType: formData.bloodType || null,
         heightCm: formData.heightCm ? parseInt(formData.heightCm) : null,
         weightKg: formData.weightKg ? parseInt(formData.weightKg) : null,
+        healthStatus: formData.healthStatus || 'on', // Add healthStatus to student data
       };
 
       let savedStudent;
@@ -130,11 +131,13 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
       }      // Handle health info (for both create and update)
       const healthInfoData = {
         studentId: savedStudent.studentId,
-        health_status: formData.healthStatus || 'on', // Ensure we're using correct database values
         medicalConditions: formData.medicalConditions || null,
         allergies: formData.allergies || null,
         notes: formData.notes || null,
       };
+
+      // Only create/update health info if there's actual health information
+      const hasHealthInfo = formData.medicalConditions || formData.allergies || formData.notes;
 
       if (isEditing && editingStudent) {
         // When editing, check if health info already exists
@@ -145,21 +148,25 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
           console.log('Health info data to save:', healthInfoData);
           
           if (existingHealthInfo && existingHealthInfo.length > 0) {
-            // Update existing health info (even if all fields are empty)
-            const healthInfoId = existingHealthInfo[0].healthInfoId;
-            console.log('Updating health info ID:', healthInfoId);
-            await studentAPI.updateHealthInfo(healthInfoId, healthInfoData);
-          } else {
-            // No existing health info, create new one regardless of other fields
-            // to ensure health_status is saved
+            // Update existing health info if there's data to save
+            if (hasHealthInfo) {
+              const healthInfoId = existingHealthInfo[0].healthInfoId;
+              console.log('Updating health info ID:', healthInfoId);
+              await studentAPI.updateHealthInfo(healthInfoId, healthInfoData);
+            }
+          } else if (hasHealthInfo) {
+            // No existing health info, create new one only if there's data
             console.log('Creating new health info');
             await studentAPI.createHealthInfo(healthInfoData);
           }
         } catch (error) {
-          // Fallback: create health info to ensure health_status is saved
-          await studentAPI.createHealthInfo(healthInfoData);        }
-      } else {
-        // Always create health info for new students to ensure health_status is saved
+          // Fallback: create health info only if there's data to save
+          if (hasHealthInfo) {
+            await studentAPI.createHealthInfo(healthInfoData);
+          }
+        }
+      } else if (hasHealthInfo) {
+        // Only create health info for new students if there's actual health data
         console.log('Creating health info for new student:', healthInfoData);
         await studentAPI.createHealthInfo(healthInfoData);
       }
@@ -174,7 +181,6 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
           const healthInfo = healthInfoResponse[0];
           completeStudentData = {
             ...savedStudent,
-            healthStatus: healthInfo.health_status || 'on', // Updated to match backend values
             medicalConditions: healthInfo.medicalConditions || '',
             allergies: healthInfo.allergies || '',
             notes: healthInfo.notes || ''
@@ -183,7 +189,6 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
         // If we can't fetch health info, still use the form data
         completeStudentData = {
           ...savedStudent,
-          healthStatus: formData.healthStatus || 'on', // Use correct database value
           medicalConditions: formData.medicalConditions || '',
           allergies: formData.allergies || '',
           notes: formData.notes || ''
@@ -408,10 +413,10 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="on">Healthy</option>
-                  <option value="nhucac">Sick</option>
-                  <option value="khoe">Good</option>
-                  <option value="vam">Normal</option>
+                  <option value="Healthy">Healthy</option>
+                  <option value="Sick">Sick</option>
+                  <option value="Good">Good</option>
+                  <option value="Normal">Normal</option>
                 </select>
               </div>
               <div className="md:col-span-2">

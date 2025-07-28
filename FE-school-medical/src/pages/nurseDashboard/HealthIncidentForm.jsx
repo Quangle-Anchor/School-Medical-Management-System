@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { healthIncidentAPI } from '../../api/healthIncidentApi';
 import { studentAPI } from '../../api/studentsApi';
 import { X, AlertTriangle, Calendar, User, FileText, Save, Search, ChevronDown } from 'lucide-react';
-import { validateIncidentDate, formatDateForInput } from '../../utils/dateUtils';
+import { validateIncidentDate, formatDateForInput, getTodayString } from '../../utils/dateUtils';
 import { useToast } from '../../hooks/useToast';
 
 const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident = null, isEditing = false }) => {
   const [formData, setFormData] = useState({
     studentId: '',
-    incidentDate: '',
+    incidentDate: getTodayString(), // Always set to today
     description: '',
   });
   
@@ -55,7 +55,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       
       setFormData({
         studentId: String(studentId), // Ensure it's always a string
-        incidentDate: editingIncident.incidentDate ? formatDateForInput(editingIncident.incidentDate) : '',
+        incidentDate: getTodayString(), // Always use today's date, even when editing
         description: editingIncident.description || '',
       });
       
@@ -78,7 +78,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
     } else {
       setFormData({
         studentId: '',
-        incidentDate: new Date().toISOString().split('T')[0], // Default to today
+        incidentDate: getTodayString(), // Always use today's date
         description: '',
       });
       setSelectedStudent(null);
@@ -253,7 +253,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       // Reset form
       setFormData({
         studentId: '',
-        incidentDate: new Date().toISOString().split('T')[0],
+        incidentDate: getTodayString(),
         description: '',
       });
 
@@ -544,18 +544,12 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                   type="date"
                   name="incidentDate"
                   value={formData.incidentDate}
-                  onChange={handleInputChange}
+                  readOnly
                   required
-                  max={new Date().toISOString().split('T')[0]} // Can't select future dates
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    dateError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
-                  }`}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none"
                 />
-                {dateError && (
-                  <p className="mt-1 text-sm text-red-600">{dateError}</p>
-                )}
                 <p className="mt-1 text-xs text-gray-500">
-                  Enter incident date (today or earlier)
+                  Incident date is automatically set to today
                 </p>
               </div>
               <div>
