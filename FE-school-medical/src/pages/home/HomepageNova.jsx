@@ -89,8 +89,6 @@ const HomepageNova = () => {
             <div
               className="col-12 col-lg-6 d-flex align-items-center justify-content-center"
               style={{ minHeight: "500px" }}
-              data-aos="fade-left" 
-              data-aos-delay="200" 
             >
               <div
                 className="w-100 h-100 d-flex align-items-center justify-content-center"
@@ -254,7 +252,6 @@ const HomepageNova = () => {
           </div>
 
           <div className="row g-4">
-            {/* Health Records Management */}
             <div
               className="col-12 col-md-6 col-lg-4"
               data-aos="fade-up"
@@ -265,7 +262,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-clipboard-data"
-                      style={{ fontSize: "4rem", color: "#0d6efd" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5
@@ -291,7 +288,6 @@ const HomepageNova = () => {
               </div>
             </div>
 
-            {/* Medication Management */}
             <div
               className="col-12 col-md-6 col-lg-4"
               data-aos="fade-up"
@@ -302,7 +298,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-capsule"
-                      style={{ fontSize: "4rem", color: "#198754" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5
@@ -328,7 +324,6 @@ const HomepageNova = () => {
               </div>
             </div>
 
-            {/* Health Event Scheduling */}
             <div
               className="col-12 col-md-6 col-lg-4"
               data-aos="fade-up"
@@ -339,7 +334,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-calendar-heart"
-                      style={{ fontSize: "4rem", color: "#dc3545" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5
@@ -365,7 +360,6 @@ const HomepageNova = () => {
               </div>
             </div>
 
-            {/* Health Analytics */}
             <div
               className="col-12 col-md-6 col-lg-4"
               data-aos="fade-up"
@@ -376,7 +370,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-graph-up-arrow"
-                      style={{ fontSize: "4rem", color: "#6610f2" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5
@@ -401,7 +395,6 @@ const HomepageNova = () => {
               </div>
             </div>
 
-            {/* Emergency Notifications */}
             <div
               className="col-12 col-md-6 col-lg-4"
               data-aos="fade-up"
@@ -412,7 +405,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-bell"
-                      style={{ fontSize: "4rem", color: "#ffc107" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5
@@ -437,7 +430,6 @@ const HomepageNova = () => {
               </div>
             </div>
 
-            {/* Parent Integration */}
             <div
               className="col-12 col-md-6 col-lg-4"
               data-aos="fade-up"
@@ -448,7 +440,7 @@ const HomepageNova = () => {
                   <div className="mb-4">
                     <i
                       className="bi bi-people"
-                      style={{ fontSize: "4rem", color: "#0dcaf0" }}
+                      style={{ fontSize: "4rem", color: "#2196f3" }}
                     ></i>
                   </div>
                   <h5

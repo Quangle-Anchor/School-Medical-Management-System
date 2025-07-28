@@ -35,12 +35,14 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
         isScrolled
           ? "navbar-light bg-white shadow-sm"
           : variant === "light"
-          ? "navbar-dark"
+          ? "navbar-light bg-white" 
           : "navbar-light bg-white"
       }`}
       style={{
         transition: "all 0.3s ease",
         zIndex: 1030,
+        backgroundColor: "white", 
+        boxShadow: isScrolled ? "0 2px 4px rgba(0,0,0,0.1)" : "none", 
       }}
     >
       <div className="container-fluid px-4">
@@ -121,6 +123,38 @@ const NovaHeaderSimple = ({ variant = "light" }) => {
               </li>
             ))}
           </ul>
+
+          {/* Replace Sign In and Sign Up buttons */}
+          <div className="d-flex gap-2.5">
+            <Link
+              to="/login"
+              style={{
+                backgroundColor: "#0d6efd",
+                borderColor: "#0d6efd",
+                color: "white",
+                fontWeight: "500",
+                padding: "8px 16px",
+                borderRadius: "6px", 
+              }}
+              onClick={scrollToTop}
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/signup"
+              style={{
+                backgroundColor: "#0d6efd",
+                borderColor: "#0d6efd",
+                color: "white",
+                fontWeight: "500",
+                padding: "8px 16px",
+                borderRadius: "6px", 
+              }}
+              onClick={scrollToTop}
+            >
+              Sign Up
+            </Link>
+          </div>
         </div>
       </div>
     </nav>

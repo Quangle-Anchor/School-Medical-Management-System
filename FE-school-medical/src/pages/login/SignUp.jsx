@@ -1,180 +1,187 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Alert } from 'antd';
-import { User, Mail, Phone, Lock, UserCheck, Eye, EyeOff } from 'lucide-react';
-import authApi from '../../api/authApi';
-import { useToast } from '../../hooks/useToast';
-import logo from '../../assets/img/1.png';
-import backgroundImg from '../../assets/img/back2.png';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Alert } from "antd";
+import { User, Mail, Phone, Lock, UserCheck, Eye, EyeOff } from "lucide-react";
+import authApi from "../../api/authApi";
+import { useToast } from "../../hooks/useToast";
+import logo from "../../assets/img/1.png";
+import backgroundImg from "../../assets/img/back2.png";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    fullName: '',
-    phone: ''
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    fullName: "",
+    phone: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { showSuccess } = useToast();
-  
+
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear errors when user starts typing
-    if (error) setError('');
+    if (error) setError("");
   };
-
 
   //check  if the form is valid
   const validateForm = () => {
-    const { username, email, password, confirmPassword, fullName, phone } = formData;
-    
+    const { username, email, password, confirmPassword, fullName, phone } =
+      formData;
+
     if (!username.trim()) {
-      setError('Username is required');
+      setError("Username is required");
       return false;
     }
-    
+
     if (username.length < 3) {
-      setError('Username must be at least 3 characters long');
+      setError("Username must be at least 3 characters long");
       return false;
     }
-    
+
     if (!email.trim()) {
-      setError('Email is required');
+      setError("Email is required");
       return false;
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
+      setError("Please enter a valid email address");
       return false;
     }
-    
+
     if (!password) {
-      setError('Password is required');
+      setError("Password is required");
       return false;
     }
-    
+
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError("Password must be at least 6 characters long");
       return false;
     }
-    
+
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return false;
     }
-    
+
     if (!fullName.trim()) {
-      setError('Full name is required');
+      setError("Full name is required");
       return false;
     }
-    
+
     if (!phone.trim()) {
-      setError('Phone number is required');
+      setError("Phone number is required");
       return false;
     }
-    
+
     const phoneRegex = /^[0-9]{10,15}$/;
-    if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
-      setError('Please enter a valid phone number (10-15 digits)');
+    if (!phoneRegex.test(phone.replace(/\s+/g, ""))) {
+      setError("Please enter a valid phone number (10-15 digits)");
       return false;
     }
-    
+
     return true;
   };
-// chỗ này là chỗ auto chuyển trang sau khi đăng ký thành công
+  // chỗ này là chỗ auto chuyển trang sau khi đăng ký thành công
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
       const signupData = {
         username: formData.username.trim(),
         email: formData.email.trim(),
         password: formData.password,
         fullName: formData.fullName.trim(),
-        phone: formData.phone.replace(/\s+/g, '')
+        phone: formData.phone.replace(/\s+/g, ""),
       };
-      
+
       const response = await authApi.signup(signupData);
-      
-      showSuccess('Account created successfully! You can now sign in.');
-      
+
+      showSuccess("Account created successfully! You can now sign in.");
+
       // Clear form
       setFormData({
-        username: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        fullName: '',
-        phone: ''
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        fullName: "",
+        phone: "",
       });
-      
+
       // Redirect to login page after 2 seconds
       setTimeout(() => {
-        navigate('/login');
+        navigate("/login");
       }, 1000);
-      
     } catch (err) {
-      console.error('Signup error:', err);
-      
+      console.error("Signup error:", err);
+
       if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else if (err.response?.status === 400) {
-        setError('Invalid data provided. Please check all fields.');
+        setError("Invalid data provided. Please check all fields.");
       } else if (err.response?.status === 409) {
-        setError('Username or email already exists. Please choose different ones.');
+        setError(
+          "Username or email already exists. Please choose different ones."
+        );
       } else {
-        setError('Registration failed. Please try again.');
+        setError("Registration failed. Please try again.");
       }
     } finally {
       setLoading(false);
     }
   };
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center relative overflow-hidden py-12"
       style={{
         backgroundImage: `url(${backgroundImg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
       {/* Background overlay no blur */}
-     <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
       {/* Glassmorphism container */}
       <div className="relative z-10 w-full max-w-lg mx-4">
         <div className="backdrop-blur-lg bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-8">
           {/* Logo section */}
           <div className="text-center mb-8">
-            <div className="inline-block p-3 bg-white/20 rounded-full backdrop-blur-sm mb-4">
-              <img 
-                alt="Logo" 
-                src={logo} 
-                className="h-16 w-16 rounded-full shadow-lg" 
-              />
-            </div>            <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Join Us</h2>
-            <p className="text-white drop-shadow-md">Create your account to get started</p>
+            <Link to="/" className="inline-block">
+              <div className="inline-block p-3 bg-white/20 rounded-full backdrop-blur-sm mb-4 hover:bg-white/30 transition-all duration-300">
+                <img
+                  alt="Logo"
+                  src={logo}
+                  className="h-16 w-16 rounded-full shadow-lg cursor-pointer"
+                />
+              </div>
+            </Link>
+            <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
+              Join Us
+            </h2>
+            <p className="text-white drop-shadow-md">
+              Create your account to get started
+            </p>
           </div>
-
           {/* Error Alert */}
           {error && (
             <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl backdrop-blur-sm">
@@ -184,11 +191,15 @@ const SignUp = () => {
               </div>
             </div>
           )}
-
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name */}
-            <div>              <label htmlFor="fullName" className="block text-sm font-medium text-white mb-2 drop-shadow-md">
+            <div>
+              {" "}
+              <label
+                htmlFor="fullName"
+                className="block text-sm font-medium text-white mb-2 drop-shadow-md"
+              >
                 Full Name *
               </label>
               <div className="relative">
@@ -208,7 +219,12 @@ const SignUp = () => {
             </div>
 
             {/* Username */}
-            <div>              <label htmlFor="username" className="block text-sm font-medium text-white mb-2 drop-shadow-md">
+            <div>
+              {" "}
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-white mb-2 drop-shadow-md"
+              >
                 Username *
               </label>
               <div className="relative">
@@ -228,7 +244,12 @@ const SignUp = () => {
             </div>
 
             {/* Email */}
-            <div>              <label htmlFor="email" className="block text-sm font-medium text-white mb-2 drop-shadow-md">
+            <div>
+              {" "}
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-white mb-2 drop-shadow-md"
+              >
                 Email Address *
               </label>
               <div className="relative">
@@ -248,7 +269,12 @@ const SignUp = () => {
             </div>
 
             {/* Phone */}
-            <div>              <label htmlFor="phone" className="block text-sm font-medium text-white mb-2 drop-shadow-md">
+            <div>
+              {" "}
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-white mb-2 drop-shadow-md"
+              >
                 Phone Number *
               </label>
               <div className="relative">
@@ -268,7 +294,12 @@ const SignUp = () => {
             </div>
 
             {/* Password */}
-            <div>              <label htmlFor="password" className="block text-sm font-medium text-white mb-2 drop-shadow-md">
+            <div>
+              {" "}
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-white mb-2 drop-shadow-md"
+              >
                 Password *
               </label>
               <div className="relative">
@@ -290,7 +321,11 @@ const SignUp = () => {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white/90 transition-all duration-200 p-1 rounded-md hover:bg-white/10"
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5 text-white" /> : <Eye className="w-5 h-5 text-white" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5 text-white" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-white" />
+                  )}
                 </button>
               </div>
               <p className="mt-1 text-xs text-white/80 drop-shadow-sm">
@@ -300,7 +335,10 @@ const SignUp = () => {
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white mb-2 drop-shadow-md">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-white mb-2 drop-shadow-md"
+              >
                 Confirm Password *
               </label>
               <div className="relative">
@@ -322,10 +360,11 @@ const SignUp = () => {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white/90 transition-all duration-200 p-1 rounded-md hover:bg-white/10"
                   tabIndex={-1}
                 >
-                  {showConfirmPassword ? 
-                    <EyeOff className="w-5 h-5 text-white" /> : 
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5 text-white" />
+                  ) : (
                     <Eye className="w-5 h-5 text-white" />
-                  }
+                  )}
                 </button>
               </div>
             </div>
@@ -343,15 +382,16 @@ const SignUp = () => {
                     Creating Account...
                   </div>
                 ) : (
-                  'Create Account'
+                  "Create Account"
                 )}
               </button>
             </div>
-          </form>          <div className="mt-8 text-center">
+          </form>{" "}
+          <div className="mt-8 text-center">
             <p className="text-white drop-shadow-md text-sm">
-              Already have an account?{' '}
-              <Link 
-                to="/login" 
+              Already have an account?{" "}
+              <Link
+                to="/login"
                 className="text-blue-200 hover:text-blue-100 font-semibold transition-colors drop-shadow-sm"
               >
                 Sign in here

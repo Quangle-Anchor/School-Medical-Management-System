@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Eye, Edit, Trash2, Bell, Calendar, Search, X } from "lucide-react";
+import { Eye, Trash2, Bell, X } from "lucide-react";
 import notificationApi from "../../api/notificationApi";
 import NotificationForm from "../../components/NotificationForm";
 import ConfirmDeleteModal from "../../components/ConfirmDeleteModal";
@@ -8,11 +8,9 @@ const NotificationsView = ({ user }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState(null);
   const [error, setError] = useState("");
   const [deleteId, setDeleteId] = useState(null);
   const [viewing, setViewing] = useState(null);
-  // Đã bỏ search/filter
 
   useEffect(() => {
     setLoading(true);
@@ -32,15 +30,23 @@ const NotificationsView = ({ user }) => {
     }
   }, [formOpen, user]);
 
+  useEffect(() => {
+    // Update timestamps every minute
+    const timer = setInterval(() => {
+      setNotifications((prev) => [...prev]); // Force re-render to update timestamps
+    }, 60000); // Every minute
+
+    return () => clearInterval(timer);
+  }, []);
+
   const handleAdd = () => {
-    setEditing(null);
     setFormOpen(true);
   };
-  
+
   const handleDelete = async (id) => {
     setDeleteId(id);
   };
-  
+
   const confirmDelete = async () => {
     setLoading(true);
     try {
@@ -55,7 +61,7 @@ const NotificationsView = ({ user }) => {
       setLoading(false);
     }
   };
-  
+
   const handleSubmit = async (data) => {
     setLoading(true);
     try {
@@ -65,7 +71,6 @@ const NotificationsView = ({ user }) => {
         await notificationApi.create(data);
       }
       setFormOpen(false);
-      setEditing(null);
     } catch {
       setError("Save failed");
     } finally {
@@ -87,6 +92,49 @@ const NotificationsView = ({ user }) => {
     return "text-blue-600 bg-blue-100";
   };
 
+  const formatTimeAgo = (timestamp) => {
+    if (!timestamp) return "N/A";
+
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffInSeconds = Math.floor((now - date) / 1000);
+
+      // Just now
+      if (diffInSeconds < 30) return "Just now";
+
+      // Less than 1 minute
+      if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
+
+      // Less than 1 hour
+      const diffInMinutes = Math.floor(diffInSeconds / 60);
+      if (diffInMinutes < 60)
+        return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
+
+      // Less than 24 hours
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      if (diffInHours < 24)
+        return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+
+      // Less than 7 days
+      const diffInDays = Math.floor(diffInHours / 24);
+      if (diffInDays < 7)
+        return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+
+      // Format date for older notifications
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "Invalid date";
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -97,8 +145,8 @@ const NotificationsView = ({ user }) => {
             Notifications
           </h1>
           <p className="text-gray-600">
-            {user && user.role === "Principal" 
-              ? "Manage and view all system notifications" 
+            {user && user.role === "Principal"
+              ? "Manage and view all system notifications"
               : user && user.role === "Parent"
               ? "View your notifications and updates"
               : "Manage and view notifications"}
@@ -170,9 +218,7 @@ const NotificationsView = ({ user }) => {
                       {n.content}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                      {n.createdAt
-                        ? new Date(n.createdAt).toLocaleString()
-                        : ""}
+                      {formatTimeAgo(n.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex space-x-2">
@@ -182,8 +228,8 @@ const NotificationsView = ({ user }) => {
                         >
                           <Eye className="h-4 w-4 mr-1" /> View
                         </button>
-                        {/* Parent can also delete notifications */}
-                        {user && (user.role === "Parent" || user.role !== "Parent") && (
+                        {/* Show delete button for all roles except Parent */}
+                        {user && user.role !== "Parent" && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -211,13 +257,12 @@ const NotificationsView = ({ user }) => {
           open={formOpen}
           onClose={() => {
             setFormOpen(false);
-            setEditing(null);
           }}
           onSubmit={handleSubmit}
           initial={null}
         />
       )}
-      
+
       {/* Confirm Delete Modal - Available for all roles */}
       <ConfirmDeleteModal
         open={!!deleteId}
@@ -291,18 +336,23 @@ const NotificationsView = ({ user }) => {
                 </h4>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm text-gray-500 mb-2">Created At</p>
+                    <p className="text-sm text-gray-500 mb-2">Created</p>
                     <p className="text-gray-900 text-lg">
-                      {viewing.createdAt
-                        ? new Date(viewing.createdAt).toLocaleDateString()
-                        : "N/A"}
+                      {formatTimeAgo(viewing.createdAt)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-2">Time</p>
+                    <p className="text-sm text-gray-500 mb-2">Exact Time</p>
                     <p className="text-gray-900 text-lg">
                       {viewing.createdAt
-                        ? new Date(viewing.createdAt).toLocaleTimeString()
+                        ? new Date(viewing.createdAt).toLocaleString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
                         : "N/A"}
                     </p>
                   </div>
