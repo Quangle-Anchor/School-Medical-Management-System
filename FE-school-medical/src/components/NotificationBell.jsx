@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Fragment } from "react";
+import { useState, useEffect, useRef, } from "react";
 import ReactDOM from "react-dom";
 import { BellIcon } from "@heroicons/react/24/outline";
 import { Transition } from "@headlessui/react";
@@ -7,14 +7,47 @@ import notificationApi from "../api/notificationApi";
 
 function formatTime(dateString) {
   if (!dateString) return "";
-  const now = new Date();
-  const date = new Date(dateString);
-  const diff = (now - date) / 1000; // seconds
-  if (diff < 60) return `${Math.floor(diff)} seconds ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-  if (diff < 172800) return "Yesterday";
-  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+
+  try {
+    const now = new Date();
+    const date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) return "";
+
+    const diff = Math.floor((now - date) / 1000); // seconds
+
+    // Just now
+    if (diff < 30) return "Just now";
+
+    // Seconds
+    if (diff < 60) return `${diff} seconds ago`;
+
+    // Minutes
+    const minutes = Math.floor(diff / 60);
+    if (minutes < 60) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+
+    // Hours
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+
+    // Days
+    const days = Math.floor(hours / 24);
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days} days ago`;
+
+    // Date format
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "";
+  }
 }
 
 function groupNotifications(notifications) {
@@ -60,19 +93,19 @@ const NotificationBell = ({ user, show, setShow }) => {
     const fetchData = async () => {
       try {
         let res;
-        // Principal uses getAll to see all notifications, not just their own
-        if (user.role === "Principal") {
-          console.log("Fetching all notifications for Principal");
-          res = await notificationApi.getAll(0, 20);
-        } else if (["Parent", "Nurse"].includes(user.role)) {
-          console.log("Fetching notifications with getMy for role:", user.role);
+        // Changed to use getMy for Principal instead of getAll
+        if (["Parent", "Nurse", "Principal"].includes(user.role)) {
+          console.log(
+            `Fetching notifications with getMy for role: ${user.role}`
+          );
           res = await notificationApi.getMy(0, 20);
         } else {
-          console.log("Fetching notifications with getAll for role:", user.role);
+          console.log(
+            "Fetching notifications with getAll for role:",
+            user.role
+          );
           res = await notificationApi.getAll(0, 20);
         }
-        console.log("API response:", res);
-        console.log("Notifications data:", res.data.content);
         setNotifications(res.data.content || []);
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -91,10 +124,7 @@ const NotificationBell = ({ user, show, setShow }) => {
     // Không cần lọc theo userId vì API getMy() đã trả về đúng notifications
     filteredNotifications = notifications;
   }
-  
-  console.log("Filtered notifications:", filteredNotifications);
-  console.log("User:", user);
-  
+
   const unread = filteredNotifications.filter((n) => !n.readStatus);
   const unreadCount = unread.length;
 
@@ -109,6 +139,27 @@ const NotificationBell = ({ user, show, setShow }) => {
       );
     } catch {
       setError("Unable to mark as read");
+    }
+  };
+
+  // Mark all as read
+  const handleMarkAllRead = async () => {
+    try {
+      // Get all unread notifications
+      const unreadNotifications = notifications.filter((n) => !n.readStatus);
+
+      // Mark all as read in parallel
+      await Promise.all(
+        unreadNotifications.map((n) =>
+          notificationApi.updateReadStatus(n.notificationId, true)
+        )
+      );
+
+      // Update local state
+      setNotifications((prev) => prev.map((n) => ({ ...n, readStatus: true })));
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+      setError("Unable to mark all as read");
     }
   };
 
@@ -228,12 +279,22 @@ const NotificationBell = ({ user, show, setShow }) => {
         >
           <div className="p-4 font-semibold border-b text-lg flex justify-between items-center">
             Notification
-            <button
-              onClick={handleViewAll}
-              className="text-xs text-blue-500 hover:underline"
-            >
-              View all
-            </button>
+            <div className="flex gap-3">
+              {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="text-xs text-blue-500 hover:underline"
+                >
+                  Mark all read
+                </button>
+              )}
+              <button
+                onClick={handleViewAll}
+                className="text-xs text-blue-500 hover:underline"
+              >
+                View all
+              </button>
+            </div>
           </div>
           <div className="max-h-[500px] overflow-y-auto">
             {loading ? (

@@ -15,13 +15,8 @@ import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard"
 import StudentsView from "./StudentsView";
 import NurseMedicationRequests from "./NurseMedicationRequests";
 import HealthIncidentsView from "./HealthIncidentsView";
-import InventoryView from "./InventoryView";  
-import {
-  Users,
-  Calendar,
-  Heart,
-  Bell,
-} from "lucide-react";
+import InventoryView from "./InventoryView";
+import { Users, Calendar, Heart, Bell } from "lucide-react";
 import { healthIncidentAPI } from "../../api/healthIncidentApi";
 import { studentAPI } from "../../api/studentsApi";
 import { healthEventAPI } from "../../api/healthEventApi";
@@ -40,7 +35,7 @@ const NurseDashboard = () => {
   );
   // Get current view from URL
   const getCurrentView = () => {
-    const path = location.pathname;    
+    const path = location.pathname;
 
     // More precise matching to avoid conflicts
     if (path === "/nurseDashboard/students") return "students";
@@ -72,7 +67,6 @@ const NurseDashboard = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
-      console.log("Starting to fetch all data...");
 
       try {
         await Promise.all([
@@ -81,7 +75,6 @@ const NurseDashboard = () => {
           fetchHealthEvents(),
           fetchMedicationRequests(),
         ]);
-        console.log("All data fetched successfully");
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -253,8 +246,13 @@ const NurseDashboard = () => {
             <div className="mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Nurse Dashboard</h1>
-                  <p className="text-gray-600">Welcome back! Here's your patient care overview and daily tasks.</p>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    Nurse Dashboard
+                  </h1>
+                  <p className="text-gray-600">
+                    Welcome back! Here's your patient care overview and daily
+                    tasks.
+                  </p>
                 </div>
               </div>
             </div>
@@ -291,14 +289,18 @@ const NurseDashboard = () => {
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-      <main className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${sidebarCollapsed ? 'xl:ml-20' : ''}`}>
-        <TopNavbar 
+      <main
+        className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${
+          sidebarCollapsed ? "xl:ml-20" : ""
+        }`}
+      >
+        <TopNavbar
           title="Nurse Dashboard"
           breadcrumb={["Nurse", "Dashboard"]}
           userInfo={{ name: localStorage.getItem("fullname") || "Nurse User" }}
           user={nurseUser}
         />
-        
+
         {renderContent()}
       </main>
     </div>
