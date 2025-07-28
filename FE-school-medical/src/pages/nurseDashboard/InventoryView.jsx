@@ -18,8 +18,7 @@ import {
 import { inventoryAPI } from '../../api/inventoryApi';
 import {formatDateForInput } from '../../utils/dateUtils';
 import { useToast } from '../../hooks/useToast';
-import AddItemForm from '../../components/AddItemForm';
-import EditItemForm from '../../components/EditItemForm';
+import ItemForm from '../../components/ItemForm';
 
 const InventoryView = () => {
   const { showSuccess, showError, showWarning, showInfo } = useToast();
@@ -1030,21 +1029,23 @@ const InventoryView = () => {
         </div>
 
       {/* Add Item Modal */}
-      <AddItemForm
+      <ItemForm
         isOpen={showAddModal}
         onClose={() => {setShowAddModal(false); resetForm();}}
         formData={formData}
         setFormData={setFormData}
         onSubmit={handleAddItem}
+        isEditMode={false}
       />
 
       {/* Edit Item Modal */}
-      <EditItemForm
+      <ItemForm
         isOpen={showEditModal}
         onClose={() => {setShowEditModal(false); resetForm();}}
         formData={formData}
         setFormData={setFormData}
         onSubmit={handleEditItem}
+        isEditMode={true}
       />
 
       {/* Delete Confirmation Modal */}
