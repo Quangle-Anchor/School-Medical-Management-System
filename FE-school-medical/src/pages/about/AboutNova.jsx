@@ -55,6 +55,7 @@ export default function AboutNova() {
                     href="#mission"
                     className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                   >
+                    <i className="bi bi-bullseye me-2"></i>
                     Our Mission
                   </a>
                   <a
@@ -70,7 +71,7 @@ export default function AboutNova() {
             <div className="col-lg-6 px-5">
               <div className="hero-image text-center" data-aos="fade-left">
                 <img
-                  src="/nova-assets/images/about_2-min.jpg"
+                  src="https://png.pngtree.com/background/20230401/original/pngtree-team-of-laboratory-doctor-workers-vector-picture-image_2238006.jpg"
                   alt="About Us"
                   className="img-fluid rounded-3 shadow-lg"
                   style={{ maxHeight: "400px", objectFit: "cover" }}
@@ -524,12 +525,14 @@ export default function AboutNova() {
                   href="/contact"
                   className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                 >
+                  <i className="bi bi-chat-dots-fill me-2"></i>
                   Contact Us
                 </a>
                 <a
                   href="/login"
                   className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                 >
+                  <i className="bi bi-play me-2"></i>
                   Get Started
                 </a>
               </div>
