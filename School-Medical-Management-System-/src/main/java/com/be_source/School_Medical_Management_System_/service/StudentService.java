@@ -15,5 +15,5 @@ public interface StudentService {
     void deleteStudent(Long id);
     StudentResponse getStudentByCode(String studentCode);
     List<StudentResponse> searchStudentsByCode(String keyword);
-
+    StudentResponse confirmStudent(Long studentId);
 }

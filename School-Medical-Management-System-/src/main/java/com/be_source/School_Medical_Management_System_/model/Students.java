@@ -5,8 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
-
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -51,4 +51,8 @@ public class Students {
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Health_Info> healthInfoList;
+
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private Boolean isConfirm = false;
 }

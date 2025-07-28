@@ -19,6 +19,6 @@ public class StudentResponse {
     private Integer weightKg;
     private String healthStatus;
     private LocalDateTime updatedAt;
+    private Boolean isConfirm; // ✅ Thêm trường này
     private List<HealthInfoResponse> healthInfoList;
-
 }

@@ -71,6 +71,8 @@ public class StudentController {
         studentService.deleteStudent(id);
         return ResponseEntity.noContent().build();
     }
-
-
+    @PutMapping("/{id}/confirm")
+    public ResponseEntity<StudentResponse> confirmStudent(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.confirmStudent(id));
+    }
 }

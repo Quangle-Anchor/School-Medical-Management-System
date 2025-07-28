@@ -49,6 +49,7 @@ public class StudentServiceImpl implements StudentService {
         Students student = toEntity(dto);
         student.setStudentId(null);
         student.setParent(userUtilService.getCurrentUser());
+        student.setIsConfirm(false); // mặc định là false khi tạo
         return toDto(studentRepository.save(student));
     }
 
@@ -56,6 +57,7 @@ public class StudentServiceImpl implements StudentService {
     public StudentResponse updateStudent(Long id, StudentResponse dto) {
         Students existing = studentRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Student not found"));
+
         existing.setFullName(dto.getFullName());
         existing.setDateOfBirth(dto.getDateOfBirth());
         existing.setClassName(dto.getClassName());
@@ -64,6 +66,12 @@ public class StudentServiceImpl implements StudentService {
         existing.setHeightCm(dto.getHeightCm());
         existing.setWeightKg(dto.getWeightKg());
         existing.setHealthStatus(dto.getHealthStatus());
+
+        // Có thể cho phép cập nhật lại confirm nếu cần
+        if (dto.getIsConfirm() != null) {
+            existing.setIsConfirm(dto.getIsConfirm());
+        }
+
         return toDto(studentRepository.save(existing));
     }
 
@@ -78,6 +86,7 @@ public class StudentServiceImpl implements StudentService {
                 .orElseThrow(() -> new NoSuchElementException("Student not found with code: " + studentCode));
         return toDto(student);
     }
+
     @Override
     public List<StudentResponse> searchStudentsByCode(String keyword) {
         return studentRepository.findByStudentCodeContainingIgnoreCase(keyword).stream()
@@ -85,6 +94,14 @@ public class StudentServiceImpl implements StudentService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public StudentResponse confirmStudent(Long studentId) {
+        Students student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new NoSuchElementException("Student not found"));
+
+        student.setIsConfirm(true);
+        return toDto(studentRepository.save(student));
+    }
 
     // ============================ Mapping ============================
 
@@ -101,8 +118,8 @@ public class StudentServiceImpl implements StudentService {
         dto.setWeightKg(s.getWeightKg());
         dto.setHealthStatus(s.getHealthStatus());
         dto.setUpdatedAt(s.getUpdatedAt());
+        dto.setIsConfirm(s.getIsConfirm()); // ✅ mới thêm
 
-        // Convert list<Health_Info> to list<HealthInfoResponse>
         if (s.getHealthInfoList() != null) {
             List<HealthInfoResponse> healthDtos = s.getHealthInfoList().stream().map(hi -> {
                 HealthInfoResponse h = new HealthInfoResponse();
@@ -119,7 +136,6 @@ public class StudentServiceImpl implements StudentService {
         return dto;
     }
 
-
     private Students toEntity(StudentResponse dto) {
         Students s = new Students();
         s.setStudentId(dto.getStudentId());
@@ -131,7 +147,8 @@ public class StudentServiceImpl implements StudentService {
         s.setHeightCm(dto.getHeightCm());
         s.setWeightKg(dto.getWeightKg());
         s.setHealthStatus(dto.getHealthStatus());
-        // Note: updatedAt is managed by @UpdateTimestamp
+        s.setIsConfirm(dto.getIsConfirm() != null ? dto.getIsConfirm() : false); // ✅ mặc định nếu null
         return s;
     }
 }
+
