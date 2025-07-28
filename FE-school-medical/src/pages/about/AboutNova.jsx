@@ -55,7 +55,7 @@ export default function AboutNova() {
                     href="#mission"
                     className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                   >
-                    <i className="bi bi-bullseye me-2"></i>
+                    <i className="bi-award me-2"></i>
                     Our Mission
                   </a>
                   <a
@@ -124,7 +124,7 @@ export default function AboutNova() {
                   <div className="feature-icon mb-4">
                     <i
                       className="bi bi-heart-fill"
-                      style={{ fontSize: "3rem", color: "#2196f3" }}
+                      style={{ fontSize: "3rem", color: "#f32121ff" }}
                     ></i>
                   </div>
                   <h3 className="card-title fw-bold text-dark mb-4">Mission</h3>
@@ -525,7 +525,7 @@ export default function AboutNova() {
                   href="/contact"
                   className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                 >
-                  <i className="bi bi-chat-dots-fill me-2"></i>
+                  <i className="bi-chat-dots-fill me-2"></i>
                   Contact Us
                 </a>
                 <a
