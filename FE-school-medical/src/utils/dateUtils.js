@@ -60,20 +60,35 @@ export const validateBirthdate = (dateString) => {
 
 /**
  * Validate schedule date - can be today or future, but reasonable
+ * For medication schedules by nurses, this should always be today
  */
-export const validateScheduleDate = (dateString) => {
+export const validateScheduleDate = (dateString, isMedicationSchedule = false) => {
   if (!dateString)
     return { isValid: false, error: "Schedule date is required" };
 
   const inputDate = new Date(dateString);
   const today = new Date();
-  const maxDate = new Date();
-  maxDate.setFullYear(today.getFullYear() + 5); // Max 5 years in future
+  const todayString = getTodayString();
 
   // Check if date is valid
   if (isNaN(inputDate.getTime())) {
     return { isValid: false, error: "Please enter a valid date" };
   }
+
+  // For medication schedules, force today only
+  if (isMedicationSchedule) {
+    if (dateString !== todayString) {
+      return { 
+        isValid: false, 
+        error: "Medication schedule date must be today only" 
+      };
+    }
+    return { isValid: true, error: null };
+  }
+
+  // For other schedules, allow future dates up to 5 years
+  const maxDate = new Date();
+  maxDate.setFullYear(today.getFullYear() + 5); // Max 5 years in future
 
   // Check if date is too far in the future
   if (inputDate > maxDate) {
@@ -150,6 +165,84 @@ export const validateIncidentDate = (dateString) => {
 };
 
 /**
+ * Validate medication schedule time - must be today and time cannot be in the past
+ */
+export const validateMedicationScheduleTime = (timeString, dateString = null) => {
+  if (!timeString) {
+    return { isValid: false, error: "Schedule time is required" };
+  }
+
+  const now = new Date();
+  const today = getTodayString();
+  
+  // Force date to be today for medication schedules
+  const scheduleDate = dateString || today;
+  
+  // Check if the provided date is today
+  if (scheduleDate !== today) {
+    return { isValid: false, error: "Medication schedule must be for today only" };
+  }
+
+  // Parse the time string (format: HH:MM in 24-hour format)
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  if (!timeRegex.test(timeString)) {
+    return { isValid: false, error: "Please enter a valid time in 24-hour format (HH:MM)" };
+  }
+
+  const [hours, minutes] = timeString.split(':').map(num => parseInt(num, 10));
+  
+  // Create a date object for the scheduled time today
+  const scheduledDateTime = new Date();
+  scheduledDateTime.setHours(hours, minutes, 0, 0);
+
+  // Check if the scheduled time is in the past (only if it's today)
+  if (scheduledDateTime <= now) {
+    return { 
+      isValid: false, 
+      error: "Schedule time cannot be in the past. Please select a future time." 
+    };
+  }
+
+  return { isValid: true, error: null };
+};
+
+/**
+ * Get current time in HH:MM format (24-hour)
+ */
+export const getCurrentTime = () => {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+/**
+ * Get minimum time for medication schedule (current time + 1 minute) in 24-hour format
+ */
+export const getMinScheduleTime = () => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 1); // Add 1 minute to current time
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+/**
+ * Format time to 24-hour format display
+ */
+export const formatTimeTo24Hour = (timeString) => {
+  if (!timeString) return '';
+  
+  // If already in HH:MM format, return as is
+  if (/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timeString)) {
+    const [hours, minutes] = timeString.split(':');
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  }
+  
+  return timeString;
+};
+
+/**
  * Get max date for birthdate input (today)
  */
 export const getMaxBirthdate = () => {
@@ -169,6 +262,13 @@ export const getMinBirthdate = () => {
  * Get min date for schedule input (today)
  */
 export const getMinScheduleDate = () => {
+  return getTodayString();
+};
+
+/**
+ * Get medication schedule date (always today for nurses)
+ */
+export const getMedicationScheduleDate = () => {
   return getTodayString();
 };
 

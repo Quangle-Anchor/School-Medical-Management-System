@@ -4,6 +4,18 @@ import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
 import { medicationAPI } from '../../api/medicationApi';
 import { Calendar, Clock, User, Save, ArrowLeft, AlertCircle, CheckCircle, Package, Users } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
+import TimePicker from 'react-time-picker';
+import 'react-time-picker/dist/TimePicker.css';
+import 'react-clock/dist/Clock.css';
+import '../../styles/time-picker.css';
+import { 
+  getMedicationScheduleDate, 
+  validateMedicationScheduleTime, 
+  validateScheduleDate,
+  getMinScheduleTime,
+  getCurrentTime,
+  formatTimeTo24Hour
+} from '../../utils/dateUtils';
 
 const MedicationScheduleForm = () => {
   const navigate = useNavigate();
@@ -22,12 +34,13 @@ const MedicationScheduleForm = () => {
   const [availableRequests, setAvailableRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
   const { showSuccess, showError: showErrorToast } = useToast();
   
   // Schedule Form State
   const [scheduleForm, setScheduleForm] = useState({
     requestId: '', // Now tracks selected request
-    scheduledDate: '',
+    scheduledDate: getMedicationScheduleDate(), // Always set to today for nurses
     scheduledTime: '',
     notes: '',
     dispensedQuantity: ''
@@ -68,11 +81,12 @@ const MedicationScheduleForm = () => {
       if (schedule) {
         const formattedDate = schedule.scheduledDate ? 
           new Date(schedule.scheduledDate).toISOString().split('T')[0] : '';
+        const formattedTime = formatTimeTo24Hour(schedule.scheduledTime || '');
           
         setScheduleForm({
           requestId: schedule.requestId?.toString() || '',
           scheduledDate: formattedDate,
-          scheduledTime: schedule.scheduledTime || '',
+          scheduledTime: formattedTime,
           notes: schedule.notes || '',
           dispensedQuantity: schedule.dispensedQuantity || ''
         });
@@ -92,10 +106,47 @@ const MedicationScheduleForm = () => {
   };
 
   const handleScheduleFormChange = (field, value) => {
+    // Format time to 24-hour format
+    if (field === 'scheduledTime') {
+      // TimePicker returns null when cleared, handle this case
+      if (value === null || value === undefined) {
+        value = '';
+      } else if (typeof value === 'string') {
+        value = formatTimeTo24Hour(value);
+      }
+    }
+
     setScheduleForm(prev => ({
       ...prev,
       [field]: value
     }));
+
+    // Clear validation error for this field
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [field]: null
+      }));
+    }
+
+    // Real-time validation
+    if (field === 'scheduledDate') {
+      const dateValidation = validateScheduleDate(value, true); // true for medication schedule
+      if (!dateValidation.isValid) {
+        setValidationErrors(prev => ({
+          ...prev,
+          scheduledDate: dateValidation.error
+        }));
+      }
+    } else if (field === 'scheduledTime') {
+      const timeValidation = validateMedicationScheduleTime(value, scheduleForm.scheduledDate);
+      if (!timeValidation.isValid) {
+        setValidationErrors(prev => ({
+          ...prev,
+          scheduledTime: timeValidation.error
+        }));
+      }
+    }
 
     // When a request is selected, update form with request details
     if (field === 'requestId' && value) {
@@ -115,25 +166,54 @@ const MedicationScheduleForm = () => {
   };
 
   const validateForms = () => {
+    let errors = {};
+    let isValid = true;
+
     // Schedule form validation
     if (!scheduleForm.requestId) {
-      showErrorToast('Please select a medication request');
-      return false;
-    }
-    if (!scheduleForm.scheduledDate) {
-      showErrorToast('Please select a scheduled date');
-      return false;
-    }
-    if (!scheduleForm.scheduledTime) {
-      showErrorToast('Please select a scheduled time');
-      return false;
-    }
-    if (!scheduleForm.dispensedQuantity || scheduleForm.dispensedQuantity <= 0) {
-      showErrorToast('Please enter a valid dispensed quantity');
-      return false;
+      errors.requestId = 'Please select a medication request';
+      isValid = false;
     }
 
-    return true;
+    // Date validation
+    if (!scheduleForm.scheduledDate) {
+      errors.scheduledDate = 'Please select a scheduled date';
+      isValid = false;
+    } else {
+      const dateValidation = validateScheduleDate(scheduleForm.scheduledDate, true); // true for medication schedule
+      if (!dateValidation.isValid) {
+        errors.scheduledDate = dateValidation.error;
+        isValid = false;
+      }
+    }
+
+    // Time validation
+    if (!scheduleForm.scheduledTime) {
+      errors.scheduledTime = 'Please select a scheduled time';
+      isValid = false;
+    } else {
+      const timeValidation = validateMedicationScheduleTime(scheduleForm.scheduledTime, scheduleForm.scheduledDate);
+      if (!timeValidation.isValid) {
+        errors.scheduledTime = timeValidation.error;
+        isValid = false;
+      }
+    }
+
+    // Quantity validation
+    if (!scheduleForm.dispensedQuantity || scheduleForm.dispensedQuantity <= 0) {
+      errors.dispensedQuantity = 'Please enter a valid dispensed quantity';
+      isValid = false;
+    }
+
+    setValidationErrors(errors);
+
+    // Show first error in toast
+    if (!isValid) {
+      const firstError = Object.values(errors)[0];
+      showErrorToast(firstError);
+    }
+
+    return isValid;
   };
 
   const handleSubmit = async (e) => {
@@ -282,7 +362,9 @@ const MedicationScheduleForm = () => {
                       handleScheduleFormChange('requestId', e.target.value);
                     }
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    validationErrors.requestId ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   required
                 >
                   <option value="">Select an available request</option>
@@ -323,6 +405,12 @@ const MedicationScheduleForm = () => {
                     </span>
                   </div>
                 </div>
+                {validationErrors.requestId && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    {validationErrors.requestId}
+                  </p>
+                )}
                 {/* Show selected request details */}
                 {scheduleForm.requestId && (() => {
                   const selectedReq = availableRequests.find(
@@ -347,11 +435,19 @@ const MedicationScheduleForm = () => {
                 <input
                   type="date"
                   value={scheduleForm.scheduledDate}
-                  onChange={(e) => handleScheduleFormChange('scheduledDate', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  readOnly
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
                   required
-                  min={new Date().toISOString().split('T')[0]}
                 />
+                <p className="mt-1 text-xs text-blue-600">
+                  📅 Medication schedules can only be created for today
+                </p>
+                {validationErrors.scheduledDate && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    {validationErrors.scheduledDate}
+                  </p>
+                )}
               </div>
 
               {/* Scheduled Time */}
@@ -359,16 +455,35 @@ const MedicationScheduleForm = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <div className="flex items-center">
                     <Clock className="w-4 h-4 mr-2" />
-                    Scheduled Time <span className="text-red-500">*</span>
+                    Scheduled Time (24-hour format) <span className="text-red-500">*</span>
                   </div>
                 </label>
-                <input
-                  type="time"
-                  value={scheduleForm.scheduledTime}
-                  onChange={(e) => handleScheduleFormChange('scheduledTime', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
+                <div className={`w-full px-4 py-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 ${
+                  validationErrors.scheduledTime ? 'border-red-300' : 'border-gray-300'
+                }`}>
+                  <TimePicker
+                    value={scheduleForm.scheduledTime}
+                    onChange={(value) => handleScheduleFormChange('scheduledTime', value)}
+                    className={validationErrors.scheduledTime ? 'time-picker-error' : ''}
+                    clockIcon={null}
+                    clearIcon={null}
+                    format="HH:mm"
+                    locale="en-US"
+                    disableClock={true}
+                    hourPlaceholder="HH"
+                    minutePlaceholder="MM"
+                    required
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-600">
+                  ⏰ Current time: {getCurrentTime()} (24-hour format) - Schedule must be in the future
+                </p>
+                {validationErrors.scheduledTime && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    {validationErrors.scheduledTime}
+                  </p>
+                )}
               </div>
 
               {/* Notes */}
@@ -400,7 +515,9 @@ const MedicationScheduleForm = () => {
                   type="number"
                   value={scheduleForm.dispensedQuantity}
                   onChange={(e) => handleScheduleFormChange('dispensedQuantity', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    validationErrors.dispensedQuantity ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter quantity to dispense"
                   min="1"
                   required
@@ -408,6 +525,12 @@ const MedicationScheduleForm = () => {
                 <p className="mt-1 text-xs text-gray-500">
                   Enter the actual quantity to be dispensed for this administration
                 </p>
+                {validationErrors.dispensedQuantity && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    {validationErrors.dispensedQuantity}
+                  </p>
+                )}
               </div>
             </div>
           </div>
