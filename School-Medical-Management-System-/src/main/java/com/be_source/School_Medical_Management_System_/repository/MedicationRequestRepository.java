@@ -18,5 +18,7 @@ public interface MedicationRequestRepository extends JpaRepository<MedicationReq
     List<MedicationRequest> findByStudentOrderByCreatedAtDesc(Students student);
     List<MedicationRequest> findByConfirmationStatus(ConfirmationStatus status);
     List<MedicationRequest> findByInventory(Inventory inventory);
+    List<MedicationRequest> findByMedicationNameIgnoreCaseAndInventoryIsNull(String medicationName);
+    List<MedicationRequest> findByInventoryIsNull();
 
 }

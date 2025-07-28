@@ -123,7 +123,7 @@ export const inventoryAPI = {
         throw new Error(`Role ${role} is not authorized to delete inventory items. Allowed: Nurse, Principal, Admin`);
       }
       
-      const response = await axiosInstance.delete(`/api/inventory/${id}`);
+      const response = await axiosInstance.delete(`/api/medical-items/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error in deleteInventoryItem:', error);
