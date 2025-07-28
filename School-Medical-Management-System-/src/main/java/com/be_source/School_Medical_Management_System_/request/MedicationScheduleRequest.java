@@ -10,4 +10,5 @@ public class MedicationScheduleRequest {
     private LocalDate scheduledDate;
     private LocalTime scheduledTime;
     private String notes;
+    private Integer dispensedQuantity;
 }

@@ -39,4 +39,8 @@ public class MedicationSchedule {
     private User administeredBy;
 
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "dispensed_quantity")
+    private Integer dispensedQuantity;
+
 }
