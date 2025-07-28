@@ -124,6 +124,7 @@ export default function ContactNova() {
                     href="#MeetOurHealthTeam"
                     className="btn btn-hero-about btn-lg px-4 py-3 fw-semibold rounded-pill"
                   >
+                    <i className="bi bi-people-fill me-2"></i>
                     Meet Our Health Team
                   </a>
                   <a
@@ -139,7 +140,7 @@ export default function ContactNova() {
             <div className="col-lg-6 px-5">
               <div className="hero-image text-center" data-aos="fade-left">
                 <img
-                  src="/nova-assets/images/about_2-min.jpg"
+                  src="https://www.call4health.com/wp-content/uploads/2023/05/Doctor-Call-Answering.jpeg"
                   alt="Contact Us"
                   className="img-fluid rounded-3 shadow-lg"
                   style={{ maxHeight: "400px", objectFit: "cover" }}

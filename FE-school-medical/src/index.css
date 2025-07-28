@@ -111,3 +111,18 @@ input[type="password"]::-webkit-outer-spin-button {
 .animate-slideOutRight {
   animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 1, 1);
 }
+
+.navbar {
+  min-height: 60px !important; /* Giảm chiều cao từ 76px xuống 60px */
+  padding: 0.5rem 0 !important; /* Giảm padding trên dưới */
+}
+
+body {
+  padding-top: 60px; /* Điều chỉnh padding-top của body theo chiều cao mới của navbar */
+}
+
+/* Điều chỉnh logo size */
+.navbar-brand img {
+  height: 28px !important;
+  width: 28px !important;
+}
