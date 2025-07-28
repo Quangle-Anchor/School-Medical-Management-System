@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { studentAPI } from '../../api/studentsApi';
-import { Search, Filter, Eye, Edit, FileText, Heart, Calendar, AlertCircle, Users, User, Activity, X, Plus, Trash2 } from 'lucide-react';
+import { Search, Filter, Eye, Edit, FileText, Heart, Calendar, AlertCircle, Users, User, Activity, X, Plus, Trash2, CheckCircle, Clock, UserCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import AddStudentForm from '../parentDashboard/AddStudentForm';
+import { useToast } from '../../hooks/useToast';
+import { useConfirmation, getConfirmationConfig, handleBulkConfirmation } from '../../utils/confirmationUtils';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 const StudentsView = () => {
   const [students, setStudents] = useState([]);
@@ -15,10 +18,65 @@ const StudentsView = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [patientToDelete, setPatientToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  // Add state for health info
   const [healthInfo, setHealthInfo] = useState({});
+  
+  // New state for filtering and confirmation
+  const [filterType, setFilterType] = useState('all'); // 'all', 'confirmed', 'pending'
 
-  // Fetch all students on component mount
+  // Pagination state
+  const [pageData, setPageData] = useState({
+    number: 0,              // current page (0-based)
+    totalPages: 0,          // total number of pages
+    totalElements: 0,       // total number of records
+    size: 10,               // page size
+    first: true,            // is first page
+    last: true,             // is last page
+    numberOfElements: 0     // elements on current page
+  });
+  const pageSize = 10; // Fixed page size
+
+  // Toast hook
+  const { showSuccess, showError } = useToast();
+
+  // Confirmation hook for student confirmations
+  const studentConfirmation = useConfirmation(
+    async (student) => {
+      const studentData = getStudentData(student);
+      const studentId = studentData.studentId;
+      
+      const updatedStudent = await studentAPI.confirmStudent(studentId);
+      
+      // Update the student in local state
+      setStudents(prev => prev.map(s => {
+        const sData = getStudentData(s);
+        if (sData.studentId === studentId) {
+          // Handle both nested and flat structures
+          if (s.student) {
+            return { ...s, student: { ...s.student, isConfirm: true } };
+          } else {
+            return { ...s, isConfirm: true };
+          }
+        }
+        return s;
+      }));
+      
+      // Close modal if the confirmed student is currently being viewed
+      if (selectedPatient && getStudentData(selectedPatient).studentId === studentId) {
+        setSelectedPatient(prev => {
+          const prevData = getStudentData(prev);
+          if (prev.student) {
+            return { ...prev, student: { ...prev.student, isConfirm: true } };
+          } else {
+            return { ...prev, isConfirm: true };
+          }
+        });
+      }
+    },
+    showSuccess,
+    showError
+  );
+
+  // Fetch all students on component mount and when page changes
   useEffect(() => {
     // Check authentication before fetching data
     const token = localStorage.getItem('token');
@@ -30,7 +88,7 @@ const StudentsView = () => {
     }
     
     fetchAllStudents();
-  }, []);
+  }, [pageData.number]); // Only depend on page number
   const fetchAllStudents = async () => {
     try {
       setLoading(true);
@@ -44,27 +102,32 @@ const StudentsView = () => {
         return;
       }
 
+      const role = localStorage.getItem('role');
       let response;
+      
       try {
-        // First, try the standard endpoint
-        response = await studentAPI.getAllStudents();
+        // First, try the standard endpoint with pagination
+        response = await studentAPI.getAllStudents(pageData.number, pageSize, 'studentId,asc');
       } catch (firstError) {
         if (role === 'Nurse') {
           try {
-            // Try nurse-specific endpoint
-            response = await studentAPI.getAllStudentsForNurse();
-            // Convert array response to page-like structure for consistency
-            if (Array.isArray(response)) {
-              response = { content: response, totalElements: response.length };
-            }
+            // Try nurse-specific endpoint with pagination
+            response = await studentAPI.getAllStudentsForNurse(pageData.number, pageSize, 'studentId,asc');
           } catch (secondError) {
             try {
-              // Try getMyStudents as last resort
-              response = await studentAPI.getMyStudents();
+              // Try getMyStudents as last resort (for parent role fallback)
+              const studentsArray = await studentAPI.getMyStudents();
               // Convert array response to page-like structure for consistency
-              if (Array.isArray(response)) {
-                response = { content: response, totalElements: response.length };
-              }
+              response = { 
+                content: studentsArray, 
+                totalElements: studentsArray.length,
+                totalPages: 1,
+                number: 0,
+                size: studentsArray.length,
+                first: true,
+                last: true,
+                numberOfElements: studentsArray.length
+              };
             } catch (thirdError) {
               // If all fail, throw the original error
               throw firstError;
@@ -78,19 +141,51 @@ const StudentsView = () => {
       
       // Handle the response structure properly
       let studentsData = [];
+      let paginationData = {};
+      
       if (response && response.content) {
         // Paginated response
         studentsData = response.content;
+        paginationData = {
+          number: response.number || 0,
+          totalPages: response.totalPages || 1,
+          totalElements: response.totalElements || studentsData.length,
+          size: response.size || pageSize,
+          first: response.first !== undefined ? response.first : true,
+          last: response.last !== undefined ? response.last : true,
+          numberOfElements: response.numberOfElements || studentsData.length
+        };
       } else if (Array.isArray(response)) {
-        // Direct array response
+        // Direct array response (fallback)
         studentsData = response;
+        paginationData = {
+          number: 0,
+          totalPages: 1,
+          totalElements: studentsData.length,
+          size: studentsData.length,
+          first: true,
+          last: true,
+          numberOfElements: studentsData.length
+        };
       } else {
         console.warn('Unexpected response structure:', response);
         studentsData = [];
+        paginationData = {
+          number: 0,
+          totalPages: 0,
+          totalElements: 0,
+          size: pageSize,
+          first: true,
+          last: true,
+          numberOfElements: 0
+        };
       }
       
       console.log('Students data:', studentsData);
+      console.log('Pagination data:', paginationData);
+      
       setStudents(studentsData);
+      setPageData(paginationData);
       
       // Fetch health info for each student
       const healthData = {};
@@ -153,7 +248,7 @@ const StudentsView = () => {
     }
   };
 
-  // Filter students based on search term and grade
+  // Filter students based on search term and confirmation status
   const filteredStudents = students.filter(student => {
     // Handle possible nested student object structure
     const studentData = student.student || student;
@@ -165,8 +260,92 @@ const StudentsView = () => {
       (studentData.className && typeof studentData.className === 'string' && studentData.className.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     
-    return matchesSearch; // && matchesGrade;
+    // Filter by confirmation status
+    let matchesFilter = true;
+    if (filterType === 'confirmed') {
+      matchesFilter = studentData.isConfirm === true;
+    } else if (filterType === 'pending') {
+      matchesFilter = studentData.isConfirm !== true;
+    }
+    
+    return matchesSearch && matchesFilter;
   });
+
+  // Get counts for different categories (from current page only)
+  const getStudentCounts = () => {
+    const confirmed = students.filter(s => (s.student || s).isConfirm === true).length;
+    const pending = students.filter(s => (s.student || s).isConfirm !== true).length;
+    return { confirmed, pending, total: students.length };
+  };
+
+  // Pagination helper functions
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < pageData.totalPages) {
+      setPageData(prev => ({ ...prev, number: newPage }));
+    }
+  };
+
+  const generatePageNumbers = () => {
+    const { number: currentPage, totalPages } = pageData;
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is small
+      for (let i = 0; i < totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show limited pages with ellipsis logic
+      const half = Math.floor(maxVisiblePages / 2);
+      let start = Math.max(0, currentPage - half);
+      let end = Math.min(totalPages - 1, start + maxVisiblePages - 1);
+      
+      // Adjust start if we're near the end
+      if (end - start < maxVisiblePages - 1) {
+        start = Math.max(0, end - maxVisiblePages + 1);
+      }
+      
+      // Add first page if not already included
+      if (start > 0) {
+        pageNumbers.push(0);
+        if (start > 1) {
+          pageNumbers.push('...');
+        }
+      }
+      
+      // Add middle pages
+      for (let i = start; i <= end; i++) {
+        pageNumbers.push(i);
+      }
+      
+      // Add last page if not already included
+      if (end < totalPages - 1) {
+        if (end < totalPages - 2) {
+          pageNumbers.push('...');
+        }
+        pageNumbers.push(totalPages - 1);
+      }
+    }
+    
+    return pageNumbers;
+  };
+
+  // Handle student confirmation - using the new confirmation system
+  const handleConfirmStudentClick = (student) => {
+    studentConfirmation.handleConfirmClick(student);
+  };
+
+  const handleConfirmStudent = async (student) => {
+    const config = getConfirmationConfig('student', getStudentData(student));
+    await studentConfirmation.handleConfirm(student, {
+      getItemId: config.getItemId,
+      getItemName: config.getItemName,
+      successMessage: `Student ${config.getItemName(getStudentData(student))} has been confirmed successfully!`,
+      errorMessage: 'Failed to confirm student',
+      invalidIdMessage: 'Cannot confirm student: Invalid student ID'
+    });
+  };
 
  
   const handleViewPatient = (student) => {
@@ -338,6 +517,77 @@ const StudentsView = () => {
         </div>
       </div>
 
+      {/* Statistics and Filter Bar */}
+      <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          {/* Statistics */}
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+              <span className="text-sm text-gray-600">
+                Confirmed: <span className="font-semibold text-green-600">{getStudentCounts().confirmed}</span>
+              </span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+              <span className="text-sm text-gray-600">
+                Pending: <span className="font-semibold text-yellow-600">{getStudentCounts().pending}</span>
+              </span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+              <span className="text-sm text-gray-600">
+                Current Page: <span className="font-semibold text-blue-600">{getStudentCounts().total}</span>
+              </span>
+            </div>
+            {pageData.totalElements > 0 && (
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">
+                  Total Records: <span className="font-semibold text-purple-600">{pageData.totalElements}</span>
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {/* Filter Controls */}
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-gray-700">Filter:</label>
+            <select 
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Students</option>
+              <option value="confirmed">Confirmed Only</option>
+              <option value="pending">Pending Only</option>
+            </select>
+            
+            {filterType === 'pending' && getStudentCounts().pending > 0 && (
+              <button
+                onClick={async () => {
+                  const pendingStudents = students.filter(s => (s.student || s).isConfirm !== true);
+                  await handleBulkConfirmation(
+                    pendingStudents,
+                    handleConfirmStudent,
+                    {
+                      confirmMessage: `Are you sure you want to confirm all ${pendingStudents.length} pending students on this page? This action cannot be undone.`,
+                      showSuccessToast: showSuccess,
+                      showErrorToast: showError
+                    }
+                  );
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm flex items-center"
+                disabled={studentConfirmation.confirmingItems.size > 0}
+              >
+                <UserCheck className="w-4 h-4 mr-2" />
+                Confirm All Pending (This Page)
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Search and Filter Bar */}
       <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
@@ -353,9 +603,14 @@ const StudentsView = () => {
             />
           </div>
 
-          {/* Results Count */}
+          {/* Results Count and Pagination Info */}
           <div className="flex items-center text-sm text-gray-600">
-            Showing {filteredStudents.length} of {students.length} patients
+            Showing {filteredStudents.length} of {pageData.numberOfElements} students 
+            {pageData.totalPages > 1 && (
+              <span className="ml-2">
+                (Page {pageData.number + 1} of {pageData.totalPages}, {pageData.totalElements} total)
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -376,6 +631,9 @@ const StudentsView = () => {
                   Health Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Confirmation Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Last Updated
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -386,11 +644,19 @@ const StudentsView = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center">
+                  <td colSpan="6" className="px-6 py-12 text-center">
                     <div className="text-gray-500">
                       <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-lg font-medium">No students found</p>
-                      <p className="text-sm">Try adjusting your search or filter criteria</p>
+                      <p className="text-lg font-medium">
+                        {filterType === 'pending' ? 'No pending students found' : 
+                         filterType === 'confirmed' ? 'No confirmed students found' : 
+                         'No students found'}
+                      </p>
+                      <p className="text-sm">
+                        {filterType === 'pending' ? 'All students have been confirmed' :
+                         filterType === 'confirmed' ? 'No students have been confirmed yet' :
+                         'Try adjusting your search or filter criteria'}
+                      </p>
                     </div>
                   </td>
                 </tr>
@@ -432,6 +698,23 @@ const StudentsView = () => {
                           {studentData.healthStatus || 'Unknown'}
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {studentData.isConfirm ? (
+                          <div className="flex items-center">
+                            <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                            <span className="text-sm font-medium text-green-800 bg-green-100 px-2 py-1 rounded-full">
+                              Confirmed
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 text-yellow-500 mr-2" />
+                            <span className="text-sm font-medium text-yellow-800 bg-yellow-100 px-2 py-1 rounded-full">
+                              Pending
+                            </span>
+                          </div>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(studentData.updatedAt)}
                       </td>                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -450,6 +733,25 @@ const StudentsView = () => {
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </button>
+                          {!studentData.isConfirm && (
+                            <button
+                              onClick={() => handleConfirmStudentClick(student)}
+                              disabled={studentConfirmation.isConfirming(studentData.studentId)}
+                              className="text-emerald-600 hover:text-emerald-900 inline-flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {studentConfirmation.isConfirming(studentData.studentId) ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-emerald-600 mr-1"></div>
+                                  Confirming...
+                                </>
+                              ) : (
+                                <>
+                                  <UserCheck className="h-4 w-4 mr-1" />
+                                  Confirm
+                                </>
+                              )}
+                            </button>
+                          )}
                           <button
                             onClick={() => handleDeletePatient(studentData)}
                             className="text-red-600 hover:text-red-900 inline-flex items-center"
@@ -466,6 +768,67 @@ const StudentsView = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {pageData.totalPages > 1 && (
+          <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
+            <div className="flex items-center justify-between">
+              {/* Pagination Info */}
+              <div className="flex items-center text-sm text-gray-700">
+                <span>
+                  Showing {((pageData.number) * pageData.size) + 1} to{' '}
+                  {Math.min((pageData.number + 1) * pageData.size, pageData.totalElements)} of{' '}
+                  {pageData.totalElements} results
+                </span>
+              </div>
+
+              {/* Pagination Navigation */}
+              <div className="flex items-center space-x-2">
+                {/* Previous Button */}
+                <button
+                  onClick={() => handlePageChange(pageData.number - 1)}
+                  disabled={pageData.first}
+                  className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center space-x-1">
+                  {generatePageNumbers().map((pageNum, index) => (
+                    <React.Fragment key={index}>
+                      {pageNum === '...' ? (
+                        <span className="px-3 py-2 text-gray-400 text-sm">...</span>
+                      ) : (
+                        <button
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium rounded-md ${
+                            pageNum === pageData.number
+                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          {pageNum + 1}
+                        </button>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => handlePageChange(pageData.number + 1)}
+                  disabled={pageData.last}
+                  className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>      {/* Patient Detail Modal */}
       {showModal && selectedPatient && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -511,6 +874,24 @@ const StudentsView = () => {
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-600">Student Code:</span>
                           <span className="text-gray-900">{patientData.studentCode || patientData.studentId || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Confirmation Status:</span>
+                          {patientData.isConfirm ? (
+                            <div className="flex items-center">
+                              <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                              <span className="text-sm font-medium text-green-800 bg-green-100 px-2 py-1 rounded-full">
+                                Confirmed
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center">
+                              <Clock className="w-4 h-4 text-yellow-500 mr-2" />
+                              <span className="text-sm font-medium text-yellow-800 bg-yellow-100 px-2 py-1 rounded-full">
+                                Pending Confirmation
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -591,6 +972,27 @@ const StudentsView = () => {
                     >
                       Close
                     </button>
+                    {!patientData.isConfirm && (
+                      <button
+                        onClick={() => {
+                          handleConfirmStudentClick(selectedPatient);
+                        }}
+                        disabled={studentConfirmation.isConfirming(patientData.studentId)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {studentConfirmation.isConfirming(patientData.studentId) ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Confirming...
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="w-4 h-4 mr-2" />
+                            Confirm Student
+                          </>
+                        )}
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         closeModal();
@@ -693,6 +1095,19 @@ const StudentsView = () => {
           </div>
         </div>
       )}
+
+      {/* Student Confirmation Modal */}
+      <ConfirmationModal
+        show={studentConfirmation.showModal}
+        onConfirm={handleConfirmStudent}
+        onCancel={studentConfirmation.cancelConfirm}
+        item={studentConfirmation.itemToConfirm ? getStudentData(studentConfirmation.itemToConfirm) : null}
+        config={{
+          ...getConfirmationConfig('student', studentConfirmation.itemToConfirm ? getStudentData(studentConfirmation.itemToConfirm) : {}),
+          type: 'student'
+        }}
+        isConfirming={studentConfirmation.itemToConfirm ? studentConfirmation.isConfirming(getStudentData(studentConfirmation.itemToConfirm).studentId) : false}
+      />
     </div>
   );
 };

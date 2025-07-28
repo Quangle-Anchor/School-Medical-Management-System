@@ -28,12 +28,7 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
       return;
     }
     
-    if (role !== 'Parent') {
-      setError('Access denied. Only parents can view medication requests.');
-      setLoading(false);
-      return;
-    }
-    
+   
     fetchMyRequests();
   }, []);
 

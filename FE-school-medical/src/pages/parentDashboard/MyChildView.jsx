@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, Calendar, Phone, Mail, MapPin, Edit,
-   Plus, Eye, Heart, FileText, Activity, X, Trash2 } from 'lucide-react';
+import { User, Calendar, Edit,
+   Plus, Eye, Heart, FileText, Activity, X, Trash2, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
 import AddStudentForm from './AddStudentForm';
 
@@ -8,6 +8,8 @@ import AddStudentForm from './AddStudentForm';
 
 const MyChildView = () => {
   const [students, setStudents] = useState([]);
+  const [allStudents, setAllStudents] = useState([]); // Store all students (confirmed + unconfirmed)
+  const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(true); // Toggle for filtering
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -19,11 +21,19 @@ const MyChildView = () => {
 
   useEffect(() => {
     fetchStudents();
-  }, []);const fetchStudents = async () => {
+  }, [showOnlyConfirmed]); // Re-fetch when filter changes
+
+  const fetchStudents = async () => {
     try {
       // Use getMyStudents which automatically filters by parent for parent role
       const studentsData = await studentAPI.getMyStudents();
-      setStudents(studentsData);
+      setAllStudents(studentsData);
+      
+      // Filter students based on confirmation status
+      const filteredStudents = showOnlyConfirmed 
+        ? studentsData.filter(student => student.isConfirm === true)
+        : studentsData;
+      setStudents(filteredStudents);
       
       // Fetch health info for each student
       const healthData = {};
@@ -55,19 +65,12 @@ const MyChildView = () => {
               notes: '',
               lastCheckup: 'Not available'
             };
-          }        } catch (error) {
-          // Set default values if there's an error
-          healthData[student.studentId] = {
-            bloodType: student.bloodType || 'Not specified',
-            heightCm: student.heightCm,
-            weightKg: student.weightKg,
-            medicalConditions: 'None',
-            allergies: 'None',
-            notes: '',
-            lastCheckup: 'Not available'
-          };
+          }      
+          } catch (error) {
+          console.error(`Error fetching health info for student ${student.studentId}:`, error);
         }
-      }      setHealthInfo(healthData);
+      }
+      setHealthInfo(healthData);
     } catch (error) {
       if (error.message.includes('Authentication required')) {
         setError('Session expired. Please login again.');
@@ -80,7 +83,14 @@ const MyChildView = () => {
       setLoading(false);
     }
   };const handleStudentAdded = (newStudent) => {
-    setStudents(prev => [...prev, newStudent]);
+    // Add to all students list
+    setAllStudents(prev => [...prev, newStudent]);
+    
+    // Add to filtered students list if it matches current filter
+    if (!showOnlyConfirmed || newStudent.isConfirm === true) {
+      setStudents(prev => [...prev, newStudent]);
+    }
+    
     // Add health info for new student
     setHealthInfo(prev => ({
       ...prev,
@@ -182,13 +192,57 @@ const MyChildView = () => {
             <h1 className="text-3xl font-bold text-gray-900">My Children</h1>
             <p className="text-gray-600">Manage your children's profiles and health information</p>
           </div>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Child
-          </button>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Child
+            </button>
+          </div>
+        </div>
+
+        {/* Statistics and Filter */}
+        <div className="mb-6 bg-white rounded-lg shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">
+                  Confirmed: <span className="font-semibold text-green-600">
+                    {allStudents.filter(s => s.isConfirm === true).length}
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">
+                  Pending: <span className="font-semibold text-yellow-600">
+                    {allStudents.filter(s => s.isConfirm !== true).length}
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">
+                  Total: <span className="font-semibold text-blue-600">{allStudents.length}</span>
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Show:</label>
+              <select 
+                value={showOnlyConfirmed ? 'confirmed' : 'all'}
+                onChange={(e) => setShowOnlyConfirmed(e.target.value === 'confirmed')}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="confirmed">Confirmed Only</option>
+                <option value="all">All Students</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Error Display */}
@@ -214,19 +268,76 @@ const MyChildView = () => {
         {students.length === 0 ? (
           <div className="text-center py-12">
             <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No children added yet</h3>
-            <p className="text-gray-600 mb-4">Start by adding your first child's information</p>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Child
-            </button>
+            {allStudents.length === 0 ? (
+              <>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No children added yet</h3>
+                <p className="text-gray-600 mb-4">Start by adding your first child's information</p>
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Your First Child
+                </button>
+              </>
+            ) : showOnlyConfirmed ? (
+              <>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No confirmed children yet</h3>
+                <p className="text-gray-600 mb-4">
+                  You have {allStudents.length} child(ren) waiting for confirmation from school staff.
+                </p>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    onClick={() => setShowOnlyConfirmed(false)}
+                    className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View All Children
+                  </button>
+                  <button
+                    onClick={() => setShowAddForm(true)}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Another Child
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No children match the current filter</h3>
+                <p className="text-gray-600 mb-4">Try adjusting your filter settings</p>
+                <button
+                  onClick={() => setShowOnlyConfirmed(true)}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Show Confirmed Only
+                </button>
+              </>
+            )}
           </div>
         ) : (          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {students.map((student) => (
-              <div key={student.studentId} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">                {/* Delete Button - Top Right */}
+              <div key={student.studentId} className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative border-l-4 ${
+                student.isConfirm ? 'border-green-500' : 'border-yellow-500'
+              }`}>
+                
+                {/* Confirmation Status Badge - Top Left */}
+                <div className="absolute top-4 left-4">
+                  {student.isConfirm ? (
+                    <div className="flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Confirmed
+                    </div>
+                  ) : (
+                    <div className="flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                      <Clock className="w-3 h-3 mr-1" />
+                      Pending
+                    </div>
+                  )}
+                </div>
+                
+                {/* Delete Button - Top Right */}
                 <button
                   onClick={() => setDeleteConfirm(student)}
                   className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
@@ -236,7 +347,7 @@ const MyChildView = () => {
                 </button>
                 
                 {/* Student Avatar */}
-                <div className="flex items-center mb-4 pr-8">
+                <div className="flex items-center mb-4 pr-8 pt-8">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <User className="w-6 h-6 text-blue-600" />
                   </div>
@@ -280,16 +391,7 @@ const MyChildView = () => {
                   )}
                 </div>
 
-                {/* Health Status
-                <div className="mt-4 p-3 bg-green-50 rounded-md">
-                  <div className="flex items-center">
-                    <Heart className="w-4 h-4 text-green-600 mr-2" />
-                    <span className="text-sm font-medium text-green-800">Health Status: Good</span>
-                  </div>
-                  <p className="text-xs text-green-600 mt-1">
-                    Last checkup: {healthInfo[student.studentId]?.lastCheckup || 'Not available'}
-                  </p>
-                </div> */}                {/* Action Buttons */}
+               {/* Action Buttons */}
                 <div className="mt-4 flex space-x-2">
                   <button
                     onClick={() => setSelectedStudent(student)}
