@@ -114,6 +114,7 @@ export const inventoryAPI = {
   // Add new inventory item (creates medical item first, then adds to inventory)
   
   // Delete inventory item (NURSE and PRINCIPAL only)
+  // This deletes the medical item and backend handles inventory cleanup
   deleteInventoryItem: async (id) => {
     try {
       const { role } = checkAuth();
@@ -123,19 +124,32 @@ export const inventoryAPI = {
         throw new Error(`Role ${role} is not authorized to delete inventory items. Allowed: Nurse, Principal, Admin`);
       }
       
+      console.log(`Attempting to delete medical item with ID: ${id}`);
       const response = await axiosInstance.delete(`/api/medical-items/${id}`);
+      console.log('Medical item deleted successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error in deleteInventoryItem:', error);
       console.error('Error response:', error.response?.data);
       console.error('Error status:', error.response?.status);
       
+      // Enhanced error handling with specific messages
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         window.location.href = '/login';
+        throw new Error('Authentication expired. Please log in again.');
+      } else if (error.response?.status === 403) {
+        throw new Error('Access denied. You do not have permission to delete this item.');
+      } else if (error.response?.status === 404) {
+        throw new Error('Item not found. It may have been already deleted.');
+      } else if (error.response?.status === 409) {
+        throw new Error('Cannot delete this item because it is currently in use.');
+      } else if (error.response?.status >= 500) {
+        throw new Error('Server error occurred. Please try again later or contact support.');
+      } else {
+        throw new Error(error.response?.data?.message || error.message || 'Failed to delete item.');
       }
-      throw error;
     }
   },
 
@@ -264,5 +278,10 @@ export const inventoryAPI = {
     }
   }
 };
+
+// Add aliases for backward compatibility
+// Both functions call the same medical-items endpoint
+// Backend handles cascading deletion of inventory records
+inventoryAPI.deleteMedicalItem = inventoryAPI.deleteInventoryItem;
 
 export default inventoryAPI;

@@ -1,11 +1,12 @@
 import React from 'react';
 
-const AddItemForm = ({ 
+const ItemForm = ({ 
   isOpen, 
   onClose, 
   formData, 
   setFormData, 
-  onSubmit 
+  onSubmit,
+  isEditMode = false 
 }) => {
   if (!isOpen) return null;
 
@@ -17,7 +18,7 @@ const AddItemForm = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Add New Item</h2>
+        <h2 className="text-xl font-bold mb-4">{isEditMode ? 'Edit Item' : 'Add New Item'}</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -42,6 +43,18 @@ const AddItemForm = ({
                 <option value="consumables">Consumables</option>
               </select>
             </div>
+            {isEditMode && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Quantity</label>
+                <input
+                  type="number"
+                  value={formData.quantity || ''}
+                  onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700">Unit</label>
               <input
@@ -104,7 +117,7 @@ const AddItemForm = ({
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              Add Item
+              {isEditMode ? 'Save Changes' : 'Add Item'}
             </button>
           </div>
         </form>
@@ -113,4 +126,4 @@ const AddItemForm = ({
   );
 };
 
-export default AddItemForm;
+export default ItemForm;
