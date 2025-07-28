@@ -12,6 +12,7 @@ import com.be_source.School_Medical_Management_System_.request.MedicationRequest
 import com.be_source.School_Medical_Management_System_.response.MedicationRequestResponse;
 import com.be_source.School_Medical_Management_System_.service.MedicationRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,11 +38,10 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
     @Autowired
     private InventoryRepository inventoryRepository;
 
-
     @Override
     public List<MedicationRequestResponse> getMyRequests() {
         User parent = userUtilService.getCurrentUser();
-        return medicationRequestRepository.findByRequestedBy(parent).stream()
+        return medicationRequestRepository.findByRequestedByOrderByCreatedAtDesc(parent).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -71,7 +71,6 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
                 .orElse(null);
         entity.setInventory(matchedInventory);
 
-        // ✅ Kiểm tra đủ thuốc
         if (matchedInventory != null && request.getTotalQuantity() != null) {
             entity.setIsSufficientStock(
                     matchedInventory.getTotalQuantity() >= request.getTotalQuantity()
@@ -87,9 +86,6 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
 
         medicationRequestRepository.save(entity);
     }
-
-
-
 
     @Override
     public MedicationRequestResponse update(Long id, MedicationRequestRequest request, MultipartFile file) {
@@ -115,7 +111,6 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
                 .orElse(null);
         existing.setInventory(matchedInventory);
 
-        // ✅ Kiểm tra lại đủ thuốc
         if (matchedInventory != null && request.getTotalQuantity() != null) {
             existing.setIsSufficientStock(
                     matchedInventory.getTotalQuantity() >= request.getTotalQuantity()
@@ -134,8 +129,6 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
 
         return mapToResponse(medicationRequestRepository.save(existing));
     }
-
-
 
     @Override
     public void delete(Long id) {
@@ -162,14 +155,14 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
 
     @Override
     public List<MedicationRequestResponse> getUnconfirmedRequests() {
-        return medicationRequestRepository.findByConfirmationStatus(ConfirmationStatus.pending).stream()
+        return medicationRequestRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.pending).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<MedicationRequestResponse> getAllRequests() {
-        return medicationRequestRepository.findAll().stream()
+        return medicationRequestRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -181,12 +174,10 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
 
         Inventory inventory = request.getInventory();
 
-        // ✅ Kiểm tra tồn tại inventory
         if (inventory == null) {
             throw new RuntimeException("Cannot confirm: Don't have medical which is request need in inventory. Please add to inventory first.");
         }
 
-        // ✅ Kiểm tra số lượng tồn kho có đủ hay không
         if (!request.getIsSufficientStock()) {
             throw new RuntimeException("Cannot confirm: Insufficient stock in inventory.");
         }
@@ -197,7 +188,6 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
 
         medicationRequestRepository.save(request);
     }
-
 
     @Override
     public void unconfirmRequest(Long id, String reason) {
@@ -223,8 +213,6 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
                 inventoryRepository.findByMedicalItem_ItemNameIgnoreCase(medicationName).orElse(null);
     }
 
-
-
     private MedicationRequestResponse mapToResponse(MedicationRequest entity) {
         return MedicationRequestResponse.builder()
                 .requestId(entity.getRequestId())
@@ -248,5 +236,4 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
                 .isSufficientStock(entity.getIsSufficientStock())
                 .build();
     }
-
 }

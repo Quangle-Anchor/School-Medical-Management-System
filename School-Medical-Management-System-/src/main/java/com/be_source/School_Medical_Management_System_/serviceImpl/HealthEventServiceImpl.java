@@ -7,6 +7,7 @@ import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.HealthEventRepository;
 import com.be_source.School_Medical_Management_System_.service.HealthEventService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,7 +26,7 @@ public class HealthEventServiceImpl implements HealthEventService {
 
     @Override
     public List<HealthEventResponse> getAllEvents() {
-        return healthEventRepository.findAll().stream()
+        return healthEventRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }

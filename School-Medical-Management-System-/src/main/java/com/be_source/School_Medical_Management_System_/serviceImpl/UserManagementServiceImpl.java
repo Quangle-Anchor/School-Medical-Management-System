@@ -10,8 +10,11 @@ import com.be_source.School_Medical_Management_System_.response.UserManagementRe
 import com.be_source.School_Medical_Management_System_.service.UserManagementService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -38,6 +41,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
+        user.setCreatedAt(LocalDateTime.now());
         user.setFullName(request.getFullName());
         user.setRole(role);
 
@@ -74,8 +78,12 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public List<UserManagementResponse> getAllUsers() {
-        return userRepository.findAll().stream().map(this::toResponse).toList();
+        return userRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
+
 
     private UserManagementResponse toResponse(User user) {
         return UserManagementResponse.builder()
