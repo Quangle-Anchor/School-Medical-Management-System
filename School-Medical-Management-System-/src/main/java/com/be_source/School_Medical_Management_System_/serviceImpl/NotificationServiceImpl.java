@@ -10,7 +10,9 @@ import com.be_source.School_Medical_Management_System_.service.NotificationServi
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
@@ -68,14 +70,26 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Page<NotificationResponse> getAllNotifications(Pageable pageable) {
-        return notificationRepository.findAll(pageable)
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+        return notificationRepository.findAll(sortedPageable)
                 .map(this::toDto);
     }
 
     @Override
     public Page<NotificationResponse> getNotificationsForCurrentUser(Pageable pageable) {
         User user = userUtilService.getCurrentUser();
-        return notificationRepository.findByUser_UserId(user.getUserId(), pageable)
+
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return notificationRepository.findByUser_UserId(user.getUserId(), sortedPageable)
                 .map(this::toDto);
     }
 

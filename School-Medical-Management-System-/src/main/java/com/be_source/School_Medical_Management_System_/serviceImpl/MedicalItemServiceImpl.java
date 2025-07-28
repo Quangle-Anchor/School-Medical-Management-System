@@ -11,6 +11,7 @@ import com.be_source.School_Medical_Management_System_.repository.MedicalItemRep
 import com.be_source.School_Medical_Management_System_.service.MedicalItemService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -158,10 +159,11 @@ public class MedicalItemServiceImpl implements MedicalItemService {
 
     @Override
     public List<MedicalItemResponse> getAll() {
-        return medicalItemRepository.findAll().stream()
+        return medicalItemRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public MedicalItemResponse getById(Long id) {

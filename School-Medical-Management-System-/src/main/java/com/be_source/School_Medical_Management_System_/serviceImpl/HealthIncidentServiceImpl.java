@@ -9,6 +9,7 @@ import com.be_source.School_Medical_Management_System_.repository.HealthIncident
 import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
 import com.be_source.School_Medical_Management_System_.service.HealthIncidentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,7 +30,8 @@ public class HealthIncidentServiceImpl implements HealthIncidentService {
 
     @Override
     public List<HealthIncidentResponse> getAll() {
-        return healthIncidentRepository.findAll().stream()
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        return healthIncidentRepository.findAll(sort).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -48,7 +50,6 @@ public class HealthIncidentServiceImpl implements HealthIncidentService {
         Students student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        // ✅ Chặn nếu học sinh chưa được xác nhận
         if (Boolean.FALSE.equals(student.getIsConfirm())) {
             throw new RuntimeException("Student information has not been confirmed by the school. Cannot report health incident.");
         }
@@ -90,7 +91,8 @@ public class HealthIncidentServiceImpl implements HealthIncidentService {
         Students student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        return healthIncidentRepository.findByStudent(student).stream()
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        return healthIncidentRepository.findByStudent(student, sort).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -99,10 +101,10 @@ public class HealthIncidentServiceImpl implements HealthIncidentService {
         return HealthIncidentResponse.builder()
                 .incidentId(incident.getIncidentId())
                 .studentId(incident.getStudent().getStudentId())
-                .studentName(incident.getStudent().getFullName()) // đổi theo entity thực tế
+                .studentName(incident.getStudent().getFullName())
                 .incidentDate(incident.getIncidentDate())
                 .description(incident.getDescription())
-                .createdBy(incident.getCreatedBy().getFullName()) // đổi theo entity thực tế
+                .createdBy(incident.getCreatedBy().getFullName())
                 .createdAt(incident.getCreatedAt())
                 .build();
     }

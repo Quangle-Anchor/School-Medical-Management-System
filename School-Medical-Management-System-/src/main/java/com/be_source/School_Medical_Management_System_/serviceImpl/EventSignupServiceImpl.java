@@ -7,6 +7,7 @@ import com.be_source.School_Medical_Management_System_.model.*;
 import com.be_source.School_Medical_Management_System_.repository.*;
 import com.be_source.School_Medical_Management_System_.service.EventSignupService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -67,20 +68,26 @@ public class EventSignupServiceImpl implements EventSignupService {
         User parent = userUtilService.getCurrentUser();
         List<Students> children = studentRepository.findByParent(parent);
 
-        return eventSignupRepository.findByStudentIn(children).stream()
+        Sort sort = Sort.by(Sort.Direction.DESC, "signupDate");
+
+        return eventSignupRepository.findByStudentIn(children, sort).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public List<EventSignupResponse> getSignupsByEvent(Long eventId) {
         HealthEvent event = healthEventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        return eventSignupRepository.findByEvent(event).stream()
+        Sort sort = Sort.by(Sort.Direction.DESC, "signupDate");
+
+        return eventSignupRepository.findByEvent(event, sort).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public void updateStatus(Long signupId, String status) {
@@ -101,14 +108,18 @@ public class EventSignupServiceImpl implements EventSignupService {
         HealthEvent event = healthEventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        List<EventSignup> signups = eventSignupRepository.findByEvent(event);
+        // Thêm Sort theo ngày đăng ký giảm dần (nếu cần)
+        Sort sort = Sort.by(Sort.Direction.DESC, "signupDate");
+        List<EventSignup> signups = eventSignupRepository.findByEvent(event, sort);
 
-        for (EventSignup signup : signups) {
-            signup.setStatus(SignupStatus.APPROVED);
+        if (signups.isEmpty()) {
+            throw new RuntimeException("No signups found for this event");
         }
 
+        signups.forEach(signup -> signup.setStatus(SignupStatus.APPROVED));
         eventSignupRepository.saveAll(signups);
     }
+
 
     private EventSignupResponse mapToResponse(EventSignup signup) {
         return EventSignupResponse.builder()

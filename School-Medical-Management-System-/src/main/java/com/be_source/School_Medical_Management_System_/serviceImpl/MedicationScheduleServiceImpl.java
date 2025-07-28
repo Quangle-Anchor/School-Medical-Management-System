@@ -10,6 +10,7 @@ import com.be_source.School_Medical_Management_System_.request.MedicationSchedul
 import com.be_source.School_Medical_Management_System_.response.MedicationScheduleResponse;
 import com.be_source.School_Medical_Management_System_.service.MedicationScheduleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -158,10 +159,11 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
 
     @Override
     public List<MedicationScheduleResponse> getAllForNurse() {
-        return scheduleRepository.findAll().stream()
+        return scheduleRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public List<MedicationScheduleResponse> getForCurrentParentStudents() {
@@ -171,11 +173,12 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
                 .map(Students::getStudentId)
                 .collect(Collectors.toList());
 
-        return scheduleRepository.findAll().stream()
+        return scheduleRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
                 .filter(schedule -> studentIds.contains(schedule.getStudent().getStudentId()))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
 
     private MedicationScheduleResponse mapToResponse(MedicationSchedule schedule) {
         return MedicationScheduleResponse.builder()
