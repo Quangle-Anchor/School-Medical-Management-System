@@ -103,7 +103,7 @@ const Sidebar = ({
  
 
   return (
-    <aside className={`max-w-62.5 ease-nav-brand z-990 fixed inset-y-0 my-4 ml-4 block w-full -translate-x-full flex-wrap items-center justify-between bg-gray-50 shadow-sm overflow-y-auto overflow-x-hidden rounded-2xl border-0 p-0 antialiased transition-transform duration-200 xl:left-0 xl:translate-x-0 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`max-w-62.5 ease-nav-brand z-990 fixed inset-y-0 my-4 ml-4 flex flex-col w-full -translate-x-full bg-gray-50 shadow-sm overflow-hidden rounded-2xl border-0 p-0 antialiased transition-transform duration-200 xl:left-0 xl:translate-x-0 ${isCollapsed ? 'w-20' : 'w-64'}`}>
       {/* Logo/Header */}
       <div className="h-19.5">
         <div className="block px-8 py-6 m-0 text-sm whitespace-nowrap text-slate-700">
@@ -141,7 +141,7 @@ const Sidebar = ({
       <hr className="h-px mt-0 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent" />
 
       {/* Navigation Menu */}
-      <div className="items-center block w-auto max-h-screen overflow-y-auto overflow-x-hidden h-sidenav grow basis-full">
+      <div className="flex-1 items-center block w-auto overflow-y-auto overflow-x-hidden pb-20">
         <ul className="flex flex-col pl-0 mb-0">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
@@ -177,10 +177,10 @@ const Sidebar = ({
       </div>
 
       {/* Logout Button */}
-      <div className="absolute bottom-6 left-4 right-4">
+      <div className="p-4 border-t border-gray-200">
         <button
           onClick={handleLogout}
-          className="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap rounded-lg px-4 font-medium transition-colors text-red-500 hover:text-red-600 w-full"
+          className="py-2.7 text-sm ease-nav-brand flex items-center whitespace-nowrap rounded-lg px-4 font-medium transition-colors text-red-500 hover:text-red-600 w-full hover:bg-red-50"
           title={isCollapsed ? 'Logout' : ''}
         >
           <div className="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 bg-center stroke-0 text-center xl:p-2.5 text-red-500">

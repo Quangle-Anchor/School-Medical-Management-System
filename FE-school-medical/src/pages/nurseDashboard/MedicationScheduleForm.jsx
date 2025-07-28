@@ -24,8 +24,7 @@ const MedicationScheduleForm = () => {
   const [inventoryItems, setInventoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const { showSuccess, showError } = useToast();
+  const { showSuccess, showError: showErrorToast } = useToast();
   
   // Schedule Form State
   const [scheduleForm, setScheduleForm] = useState({
@@ -65,7 +64,8 @@ const MedicationScheduleForm = () => {
         : []);
       setInventoryItems(Array.isArray(inventoryData) ? inventoryData : []);
     } catch (error) {
-      setError('Failed to load medication requests and inventory data');
+      const errorMessage = 'Failed to load medication requests and inventory data';
+      showErrorToast(errorMessage);
       setConfirmedRequests([]);
       setInventoryItems([]);
     } finally {
@@ -88,14 +88,17 @@ const MedicationScheduleForm = () => {
           notes: schedule.notes || ''
         });
       } else {
-        setError('Schedule not found');
+        const errorMessage = 'Schedule not found';
+        showErrorToast(errorMessage);
       }
     } catch (error) {
+      let errorMessage;
       if (error.response?.status === 404) {
-        setError(`Schedule with ID ${scheduleId} not found`);
+        errorMessage = `Schedule with ID ${scheduleId} not found`;
       } else {
-        setError('Failed to fetch schedule details for editing');
+        errorMessage = 'Failed to fetch schedule details for editing';
       }
+      showErrorToast(errorMessage);
     }
   };
 
@@ -155,30 +158,30 @@ const MedicationScheduleForm = () => {
   const validateForms = () => {
     // Schedule form validation
     if (!scheduleForm.requestId) {
-      setError('Please select a medication request');
+      showErrorToast('Please select a medication request');
       return false;
     }
     if (!scheduleForm.scheduledDate) {
-      setError('Please select a scheduled date');
+      showErrorToast('Please select a scheduled date');
       return false;
     }
     if (!scheduleForm.scheduledTime) {
-      setError('Please select a scheduled time');
+      showErrorToast('Please select a scheduled time');
       return false;
     }
 
     // Inventory form validation (required for new schedules)
     if (!isEditMode) {
       if (!inventoryForm.inventoryId) {
-        setError('Please select an inventory item to deduct from');
+        showErrorToast('Please select an inventory item to deduct from');
         return false;
       }
       if (!inventoryForm.quantityToDeduct || inventoryForm.quantityToDeduct <= 0) {
-        setError('Please enter a valid quantity to deduct');
+        showErrorToast('Please enter a valid quantity to deduct');
         return false;
       }
       if (selectedInventoryItem && parseInt(inventoryForm.quantityToDeduct) > selectedInventoryItem.totalQuantity) {
-        setError(`Quantity to deduct cannot exceed available stock (${selectedInventoryItem.totalQuantity})`);
+        showErrorToast(`Quantity to deduct cannot exceed available stock (${selectedInventoryItem.totalQuantity})`);
         return false;
       }
     }
@@ -194,7 +197,6 @@ const MedicationScheduleForm = () => {
     }
 
     setSubmitting(true);
-    setError(null);
 
     try {
       const schedulePayload = {
@@ -255,7 +257,8 @@ const MedicationScheduleForm = () => {
         errorMessage = error.message || `Failed to ${isEditMode ? 'update' : 'create'} medication schedule`;
       }
 
-      setError(errorMessage);
+      // Show error only in toast
+      showErrorToast(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -318,21 +321,6 @@ const MedicationScheduleForm = () => {
           </div>
         </div>
       </div>
-
-      {/* Success/Error Messages */}
-      {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
-          <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-          <span className="text-green-700">{success}</span>
-        </div>
-      )}
-
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
-          <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-          <span className="text-red-700">{error}</span>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit}>
         {/* Two-Column Layout */}
