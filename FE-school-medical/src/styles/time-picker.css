@@ -1,0 +1,65 @@
+/* Custom styles for react-time-picker */
+.react-time-picker {
+  width: 100%;
+}
+
+.react-time-picker__wrapper {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.react-time-picker__inputGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.react-time-picker__inputGroup__input {
+  border: none !important;
+  outline: none !important;
+  font-size: 1rem;
+  text-align: center;
+  width: 2.5rem;
+  padding: 0.25rem;
+  background: transparent;
+  color: #374151;
+}
+
+.react-time-picker__inputGroup__input:focus {
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 0.25rem;
+}
+
+.react-time-picker__inputGroup__divider {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+/* Placeholder styling */
+.react-time-picker__inputGroup__input::placeholder {
+  color: #9ca3af;
+}
+
+/* Remove default button styling for clock and clear icons since we disabled them */
+.react-time-picker__button {
+  display: none !important;
+}
+
+/* Custom focus styles */
+.react-time-picker:focus-within .react-time-picker__inputGroup__input {
+  color: #1f2937;
+}
+
+/* Error state styling */
+.time-picker-error .react-time-picker__inputGroup__input {
+  color: #dc2626;
+}
+
+.time-picker-error .react-time-picker__inputGroup__divider {
+  color: #dc2626;
+}
