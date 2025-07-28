@@ -123,7 +123,7 @@ export const validateExpiryDate = (dateString) => {
 };
 
 /**
- * Validate incident date - can be past or today, but not future
+ * Validate incident date - only allows today's date
  */
 export const validateIncidentDate = (dateString) => {
   if (!dateString)
@@ -131,25 +131,19 @@ export const validateIncidentDate = (dateString) => {
 
   const inputDate = new Date(dateString);
   const today = new Date();
-  const minDate = new Date();
-  minDate.setFullYear(today.getFullYear() - 10); // Max 10 years ago
+  
+  // Normalize dates to compare only year, month, day (ignore time)
+  const inputDateOnly = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
+  const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
   // Check if date is valid
   if (isNaN(inputDate.getTime())) {
     return { isValid: false, error: "Please enter a valid date" };
   }
 
-  // Check if date is in the future
-  if (inputDate > today) {
-    return { isValid: false, error: "Incident date cannot be in the future" };
-  }
-
-  // Check if date is too far in the past
-  if (inputDate < minDate) {
-    return {
-      isValid: false,
-      error: "Incident date cannot be more than 10 years ago",
-    };
+  // Check if date is not today
+  if (inputDateOnly.getTime() !== todayOnly.getTime()) {
+    return { isValid: false, error: "Incident date must be today only" };
   }
 
   return { isValid: true, error: null };
@@ -206,19 +200,17 @@ export const getMaxExpiryDate = () => {
 };
 
 /**
- * Get max date for incident input (today)
+ * Get max date for incident input (today only)
  */
 export const getMaxIncidentDate = () => {
   return getTodayString();
 };
 
 /**
- * Get min date for incident input (10 years ago)
+ * Get min date for incident input (today only)
  */
 export const getMinIncidentDate = () => {
-  const date = new Date();
-  date.setFullYear(date.getFullYear() - 10);
-  return formatDateForInput(date);
+  return getTodayString();
 };
 
 /**
