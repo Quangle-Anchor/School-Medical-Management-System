@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { BellIcon } from "@heroicons/react/24/outline";
 import { Transition } from "@headlessui/react";
@@ -106,7 +106,13 @@ const NotificationBell = ({ user, show, setShow }) => {
           );
           res = await notificationApi.getAll(0, 20);
         }
-        setNotifications(res.data.content || []);
+        const notifications = res.data.content || [];
+        console.log("Fetched notifications:", notifications);
+        console.log(
+          "Unread notifications:",
+          notifications.filter((n) => !n.readStatus)
+        );
+        setNotifications(notifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
         setError("Unable to load notifications");
@@ -125,7 +131,7 @@ const NotificationBell = ({ user, show, setShow }) => {
     filteredNotifications = notifications;
   }
 
-  const unread = filteredNotifications.filter((n) => !n.readStatus);
+  const unread = filteredNotifications.filter((n) => n.readStatus === false); // Thêm điều kiện rõ ràng
   const unreadCount = unread.length;
 
   // Mark as read (call API to update read status)
@@ -133,11 +139,16 @@ const NotificationBell = ({ user, show, setShow }) => {
     try {
       await notificationApi.updateReadStatus(id, true);
       setNotifications((prev) =>
-        prev.map((n) =>
-          n.notificationId === id ? { ...n, readStatus: true } : n
-        )
+        prev.map((n) => {
+          if (n.notificationId === id) {
+            console.log("Marking as read:", n);
+            return { ...n, readStatus: true };
+          }
+          return n;
+        })
       );
-    } catch {
+    } catch (error) {
+      console.error("Error marking as read:", error);
       setError("Unable to mark as read");
     }
   };
@@ -169,48 +180,61 @@ const NotificationBell = ({ user, show, setShow }) => {
   // Xem chi tiết thông báo (vừa hiện popup vừa link tới trang tương ứng nếu có notificationType)
   const handleViewDetail = async (n) => {
     setShowList(false);
-    if (!n.readStatus) await handleMarkRead(n.notificationId);
-    // Luôn hiển thị popup chi tiết
-    setSelected(n);
-    // Nếu có notificationType, điều hướng tới trang tương ứng
-    if (user.role === "Nurse" && n.notificationType) {
-      if (n.notificationType === "HEALTH_INCIDENT") {
-        navigate("/nurseDashboard/health-incidents");
-        return;
-      } else if (n.notificationType === "HEALTH_EVENT") {
-        navigate("/nurseDashboard/health-events");
-        return;
-      } else if (n.notificationType === "MEDICATION_REQUEST") {
-        navigate("/nurseDashboard/medication-requests");
+    try {
+      if (!n.readStatus) {
+        await handleMarkRead(n.notificationId);
+        // Đảm bảo cập nhật state ngay sau khi mark as read
+        setNotifications((prev) =>
+          prev.map((item) =>
+            item.notificationId === n.notificationId
+              ? { ...item, readStatus: true }
+              : item
+          )
+        );
+      }
+      setSelected(n);
+      // Nếu có notificationType, điều hướng tới trang tương ứng
+      if (user.role === "Nurse" && n.notificationType) {
+        if (n.notificationType === "HEALTH_INCIDENT") {
+          navigate("/nurseDashboard/health-incidents");
+          return;
+        } else if (n.notificationType === "HEALTH_EVENT") {
+          navigate("/nurseDashboard/health-events");
+          return;
+        } else if (n.notificationType === "MEDICATION_REQUEST") {
+          navigate("/nurseDashboard/medication-requests");
+          return;
+        }
+        navigate("/nurseDashboard/notifications");
         return;
       }
-      navigate("/nurseDashboard/notifications");
-      return;
-    }
-    if (user.role === "Principal" && n.notificationType) {
-      if (n.notificationType === "HEALTH_INCIDENT") {
-        navigate("/principalDashboard/health-incidents");
-        return;
-      } else if (n.notificationType === "HEALTH_EVENT") {
-        navigate("/principalDashboard/health-events");
-        return;
-      } else if (n.notificationType === "MEDICATION_REQUEST") {
-        navigate("/principalDashboard/medication-requests");
-        return;
-      }
-      navigate("/principalDashboard/notifications");
-      return;
-    }
-    if (user.role === "Parent" && n.notificationType) {
-      if (n.notificationType === "HEALTH_INCIDENT") {
-        navigate("/parentDashboard/medical-records");
-        return;
-      } else if (n.notificationType === "HEALTH_EVENT") {
-        navigate("/parentDashboard/health-event");
+      if (user.role === "Principal" && n.notificationType) {
+        if (n.notificationType === "HEALTH_INCIDENT") {
+          navigate("/principalDashboard/health-incidents");
+          return;
+        } else if (n.notificationType === "HEALTH_EVENT") {
+          navigate("/principalDashboard/health-events");
+          return;
+        } else if (n.notificationType === "MEDICATION_REQUEST") {
+          navigate("/principalDashboard/medication-requests");
+          return;
+        }
+        navigate("/principalDashboard/notifications");
         return;
       }
-      navigate("/parentDashboard/notifications");
-      return;
+      if (user.role === "Parent" && n.notificationType) {
+        if (n.notificationType === "HEALTH_INCIDENT") {
+          navigate("/parentDashboard/medical-records");
+          return;
+        } else if (n.notificationType === "HEALTH_EVENT") {
+          navigate("/parentDashboard/health-event");
+          return;
+        }
+        navigate("/parentDashboard/notifications");
+        return;
+      }
+    } catch (error) {
+      console.error("Error handling notification:", error);
     }
   };
 
