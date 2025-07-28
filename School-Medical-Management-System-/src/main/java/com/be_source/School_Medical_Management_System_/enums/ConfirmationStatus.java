@@ -4,5 +4,6 @@ public enum ConfirmationStatus {
     pending,
     confirmed,
     unconfirmed,
+    in_progress,
     done
 }
