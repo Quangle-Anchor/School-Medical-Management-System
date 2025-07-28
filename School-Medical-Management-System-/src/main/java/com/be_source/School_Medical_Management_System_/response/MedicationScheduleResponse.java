@@ -18,4 +18,5 @@ public class MedicationScheduleResponse {
     private String notes;
     private String administeredBy;
     private LocalDateTime createdAt;
+    private Integer dispensedQuantity;
 }

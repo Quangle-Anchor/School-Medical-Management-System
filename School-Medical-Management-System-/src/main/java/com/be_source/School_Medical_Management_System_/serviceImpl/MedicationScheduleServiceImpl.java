@@ -1,9 +1,8 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
-import com.be_source.School_Medical_Management_System_.model.MedicationRequest;
-import com.be_source.School_Medical_Management_System_.model.MedicationSchedule;
-import com.be_source.School_Medical_Management_System_.model.Students;
-import com.be_source.School_Medical_Management_System_.model.User;
+import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
+import com.be_source.School_Medical_Management_System_.model.*;
+import com.be_source.School_Medical_Management_System_.repository.InventoryRepository;
 import com.be_source.School_Medical_Management_System_.repository.MedicationRequestRepository;
 import com.be_source.School_Medical_Management_System_.repository.MedicationScheduleRepository;
 import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
@@ -24,12 +23,12 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
     private final MedicationRequestRepository requestRepository;
     private final StudentRepository studentRepository;
     private final UserUtilService userUtilService;
+    private final InventoryRepository inventoryRepository;
 
     @Override
     public MedicationScheduleResponse getById(Long id) {
         MedicationSchedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Schedule not found with id: " + id));
-
         return mapToResponse(schedule);
     }
 
@@ -38,14 +37,38 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
         MedicationRequest medicationRequest = requestRepository.findById(request.getRequestId())
                 .orElseThrow(() -> new RuntimeException("Medication request not found"));
 
+        int dispensed = request.getDispensedQuantity();
+        if (dispensed <= 0) throw new RuntimeException("Dispensed quantity must be greater than 0");
+
+        Inventory inventory = medicationRequest.getInventory();
+        if (inventory == null) throw new RuntimeException("No inventory linked to this medication request");
+
+        if (inventory.getTotalQuantity() < dispensed)
+            throw new RuntimeException("Insufficient stock in inventory");
+
+        if (medicationRequest.getTotalQuantity() < dispensed)
+            throw new RuntimeException("Dispensed quantity exceeds remaining request quantity");
+
+        inventory.setTotalQuantity(inventory.getTotalQuantity() - dispensed);
+        medicationRequest.setTotalQuantity(medicationRequest.getTotalQuantity() - dispensed);
+        medicationRequest.setIsSufficientStock(inventory.getTotalQuantity() >= medicationRequest.getTotalQuantity());
+
+        // ✅ Nếu hết thuốc thì chuyển sang trạng thái "done"
+        if (medicationRequest.getTotalQuantity() == 0) {
+            medicationRequest.setConfirmationStatus(ConfirmationStatus.done);
+        }
+
         MedicationSchedule schedule = new MedicationSchedule();
         schedule.setRequest(medicationRequest);
         schedule.setStudent(medicationRequest.getStudent());
         schedule.setScheduledDate(request.getScheduledDate());
         schedule.setScheduledTime(request.getScheduledTime());
         schedule.setNotes(request.getNotes());
+        schedule.setDispensedQuantity(dispensed);
         schedule.setAdministeredBy(userUtilService.getCurrentUser());
 
+        inventoryRepository.save(inventory);
+        requestRepository.save(medicationRequest);
         return mapToResponse(scheduleRepository.save(schedule));
     }
 
@@ -57,19 +80,72 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
         MedicationRequest medicationRequest = requestRepository.findById(request.getRequestId())
                 .orElseThrow(() -> new RuntimeException("Medication request not found"));
 
+        Inventory inventory = medicationRequest.getInventory();
+        if (inventory == null) throw new RuntimeException("No inventory linked");
+
+        int oldQty = schedule.getDispensedQuantity();
+        int newQty = request.getDispensedQuantity();
+
+        if (newQty <= 0) throw new RuntimeException("Dispensed quantity must be greater than 0");
+
+        // Trả lại số cũ
+        inventory.setTotalQuantity(inventory.getTotalQuantity() + oldQty);
+        medicationRequest.setTotalQuantity(medicationRequest.getTotalQuantity() + oldQty);
+
+        if (inventory.getTotalQuantity() < newQty)
+            throw new RuntimeException("Insufficient inventory stock");
+
+        if (medicationRequest.getTotalQuantity() < newQty)
+            throw new RuntimeException("Dispensed quantity exceeds medication request's available quantity");
+
+        // Trừ số mới
+        inventory.setTotalQuantity(inventory.getTotalQuantity() - newQty);
+        medicationRequest.setTotalQuantity(medicationRequest.getTotalQuantity() - newQty);
+        medicationRequest.setIsSufficientStock(inventory.getTotalQuantity() >= medicationRequest.getTotalQuantity());
+
+        // ✅ Nếu hết thuốc thì chuyển sang trạng thái "done"
+        if (medicationRequest.getTotalQuantity() == 0) {
+            medicationRequest.setConfirmationStatus(ConfirmationStatus.done);
+        }
+
         schedule.setRequest(medicationRequest);
         schedule.setStudent(medicationRequest.getStudent());
         schedule.setScheduledDate(request.getScheduledDate());
         schedule.setScheduledTime(request.getScheduledTime());
         schedule.setNotes(request.getNotes());
+        schedule.setDispensedQuantity(newQty);
         schedule.setAdministeredBy(userUtilService.getCurrentUser());
 
+        inventoryRepository.save(inventory);
+        requestRepository.save(medicationRequest);
         return mapToResponse(scheduleRepository.save(schedule));
     }
 
     @Override
     public void delete(Long id) {
-        scheduleRepository.deleteById(id);
+        MedicationSchedule schedule = scheduleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+
+        MedicationRequest medicationRequest = schedule.getRequest();
+        Inventory inventory = medicationRequest.getInventory();
+
+        int qty = schedule.getDispensedQuantity();
+        if (inventory != null) {
+            inventory.setTotalQuantity(inventory.getTotalQuantity() + qty);
+            medicationRequest.setTotalQuantity(medicationRequest.getTotalQuantity() + qty);
+            medicationRequest.setIsSufficientStock(inventory.getTotalQuantity() >= medicationRequest.getTotalQuantity());
+
+            // ✅ Nếu thuốc bị xoá mà totalQuantity > 0 thì về lại trạng thái confirmed
+            if (medicationRequest.getTotalQuantity() > 0 &&
+                    medicationRequest.getConfirmationStatus() == ConfirmationStatus.done) {
+                medicationRequest.setConfirmationStatus(ConfirmationStatus.confirmed);
+            }
+
+            inventoryRepository.save(inventory);
+            requestRepository.save(medicationRequest);
+        }
+
+        scheduleRepository.delete(schedule);
     }
 
     @Override
@@ -82,8 +158,6 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
     @Override
     public List<MedicationScheduleResponse> getForCurrentParentStudents() {
         User parent = userUtilService.getCurrentUser();
-
-        // Lấy danh sách học sinh thuộc phụ huynh đang đăng nhập
         List<Long> studentIds = studentRepository.findByParent(parent)
                 .stream()
                 .map(Students::getStudentId)
@@ -106,6 +180,7 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
                 .notes(schedule.getNotes())
                 .administeredBy(schedule.getAdministeredBy().getFullName())
                 .createdAt(schedule.getCreatedAt())
+                .dispensedQuantity(schedule.getDispensedQuantity())
                 .build();
     }
 }
