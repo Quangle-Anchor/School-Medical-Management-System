@@ -29,4 +29,5 @@ public class MedicationRequestResponse {
     private String unconfirmReason;
     private LocalDateTime createdAt;
     private LocalDateTime confirmedAt;
+    private Boolean isSufficientStock;
 }

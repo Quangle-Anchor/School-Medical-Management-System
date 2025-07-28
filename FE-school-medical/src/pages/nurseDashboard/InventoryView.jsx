@@ -7,7 +7,7 @@ import {
   ChartBarIcon,
   ClockIcon,
   ArchiveBoxIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,XMarkIcon,CheckIcon
 } from '@heroicons/react/24/outline';
 
 // Add CSS animation style in index.css
