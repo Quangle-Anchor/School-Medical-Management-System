@@ -16,4 +16,6 @@ public interface StudentService {
     StudentResponse getStudentByCode(String studentCode);
     List<StudentResponse> searchStudentsByCode(String keyword);
     StudentResponse confirmStudent(Long studentId);
+    void rejectStudentByNurse(Long studentId, String reason);
+
 }

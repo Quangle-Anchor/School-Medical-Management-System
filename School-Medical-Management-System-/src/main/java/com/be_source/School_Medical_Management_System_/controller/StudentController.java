@@ -1,5 +1,6 @@
 package com.be_source.School_Medical_Management_System_.controller;
 
+import com.be_source.School_Medical_Management_System_.request.DeleteStudentRequest;
 import com.be_source.School_Medical_Management_System_.response.StudentResponse;
 import com.be_source.School_Medical_Management_System_.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,5 +75,13 @@ public class StudentController {
     @PutMapping("/{id}/confirm")
     public ResponseEntity<StudentResponse> confirmStudent(@PathVariable Long id) {
         return ResponseEntity.ok(studentService.confirmStudent(id));
+    }
+
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<String> rejectStudentByNurse(
+            @PathVariable Long id,
+            @RequestBody DeleteStudentRequest request) {
+        studentService.rejectStudentByNurse(id, request.getReason());
+        return ResponseEntity.ok("Student marked as unconfirmed. Notification sent to parent.");
     }
 }

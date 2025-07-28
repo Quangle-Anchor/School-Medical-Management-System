@@ -28,6 +28,7 @@ public class EventSignupServiceImpl implements EventSignupService {
     @Autowired
     private UserUtilService userUtilService;
 
+    @Override
     public EventSignupResponse createSignup(EventSignupRequest request) {
         User parent = userUtilService.getCurrentUser();
 
@@ -38,10 +39,14 @@ public class EventSignupServiceImpl implements EventSignupService {
             throw new RuntimeException("Student does not belong to current parent");
         }
 
+        // ✅ Kiểm tra trạng thái xác nhận
+        if (Boolean.FALSE.equals(student.getIsConfirm())) {
+            throw new RuntimeException("Student information is not confirmed by school. Please update before registering.");
+        }
+
         HealthEvent event = healthEventRepository.findById(request.getEventId())
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Kiểm tra nếu đã đăng ký
         if (eventSignupRepository.existsByStudentAndEvent(student, event)) {
             throw new RuntimeException("Student already signed up for this event");
         }
@@ -54,6 +59,7 @@ public class EventSignupServiceImpl implements EventSignupService {
 
         return mapToResponse(eventSignupRepository.save(signup));
     }
+
 
 
     @Override
