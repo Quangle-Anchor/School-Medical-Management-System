@@ -4,7 +4,11 @@ import { healthEventAPI } from '../api/healthEventApi';
 
 const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Initialize selectedDate to today to avoid selecting past dates by default
+    const today = new Date();
+    return today;
+  });
   const [healthEvents, setHealthEvents] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -114,6 +118,14 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
            today.getFullYear() === currentYear;
   };
 
+  // Check if date is in the past
+  const isPastDate = (day) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+    const checkDate = new Date(currentYear, currentMonth, day);
+    return checkDate < today;
+  };
+
   // Check if date is selected
   const isSelected = (day) => {
     return selectedDate.getDate() === day &&
@@ -139,20 +151,22 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
     for (let day = 1; day <= daysInMonth; day++) {
       const events = getDateEvents(day);
       const hasEvents = events.length > 0;
+      const isPast = isPastDate(day);
       const todayClass = isToday(day) ? 'bg-sky-500 text-white shadow-sm' : '';
       const selectedClass = isSelected(day) ? 'ring-2 ring-sky-400' : '';
       const eventBackgroundClass = hasEvents && !isToday(day) ? getDateBackgroundColor(events) : '';
+      const pastDateClass = isPast ? 'text-slate-300 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-50';
       
       days.push(
         <div
           key={day}
-          onClick={() => setSelectedDate(new Date(currentYear, currentMonth, day))}
-          className={`p-2 text-sm cursor-pointer hover:bg-slate-50 rounded-lg transition-all duration-200 relative text-center ${todayClass} ${selectedClass} ${eventBackgroundClass}`}
+          onClick={() => !isPast && setSelectedDate(new Date(currentYear, currentMonth, day))}
+          className={`p-2 text-sm rounded-lg transition-all duration-200 relative text-center ${todayClass} ${selectedClass} ${eventBackgroundClass} ${pastDateClass}`}
         >
-          <span className={`${hasEvents && !isToday(day) ? 'font-semibold text-slate-700' : 'text-slate-700'}`}>
+          <span className={`${hasEvents && !isToday(day) && !isPast ? 'font-semibold text-slate-700' : isPast ? 'text-slate-300' : 'text-slate-700'}`}>
             {day}
           </span>
-          {hasEvents && events.length > 1 && (
+          {hasEvents && events.length > 1 && !isPast && (
             <div className="absolute -top-1 -right-1">
               <span className="text-xs bg-gradient-to-tl from-slate-600 to-slate-400 text-white rounded-full px-1 shadow-sm">
                 {events.length}
@@ -255,14 +269,58 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
                 </h6>
                 {onCreateEvent && (
                   <button
-                    onClick={() => onCreateEvent(selectedDate)}
-                    className="px-3 py-1 text-sm font-semibold text-white bg-sky-500 rounded-lg hover:bg-sky-600 transition"
+                    onClick={() => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const selected = new Date(selectedDate);
+                      selected.setHours(0, 0, 0, 0);
+                      
+                      if (selected >= today) {
+                        onCreateEvent(selectedDate);
+                      }
+                    }}
+                    disabled={(() => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const selected = new Date(selectedDate);
+                      selected.setHours(0, 0, 0, 0);
+                      return selected < today;
+                    })()}
+                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition ${
+                      (() => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const selected = new Date(selectedDate);
+                        selected.setHours(0, 0, 0, 0);
+                        return selected < today;
+                      })()
+                        ? 'text-gray-400 bg-gray-200 cursor-not-allowed' 
+                        : 'text-white bg-sky-500 hover:bg-sky-600'
+                    }`}
                   >
                     <span className="mr-1">+</span>
                     Add Event
                   </button>
                 )}
               </div>
+              {(() => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const selected = new Date(selectedDate);
+                selected.setHours(0, 0, 0, 0);
+                const isPastSelected = selected < today;
+                
+                if (isPastSelected) {
+                  return (
+                    <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-700">
+                        ⚠️ Cannot create events for past dates. Please select today or a future date.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               {getDateEvents(selectedDate.getDate()).length > 0 ? (
                 <div className="space-y-2">
                   {getDateEvents(selectedDate.getDate()).map((event, idx) => (

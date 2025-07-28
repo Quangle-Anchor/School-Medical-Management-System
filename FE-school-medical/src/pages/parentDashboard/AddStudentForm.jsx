@@ -13,7 +13,7 @@ const AddStudentForm = ({ isOpen, onClose, onStudentAdded, editingStudent = null
     bloodType: '',
     heightCm: '',
     weightKg: '',
-    healthStatus: 'on', // Default health status to match DB values
+    healthStatus: '', // Default health status to match DB values
     medicalConditions: '',
     allergies: '',
     notes: '',

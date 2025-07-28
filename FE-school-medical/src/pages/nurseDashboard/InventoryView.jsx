@@ -7,13 +7,19 @@ import {
   ChartBarIcon,
   ClockIcon,
   ArchiveBoxIcon,
-  ExclamationTriangleIcon,XMarkIcon,CheckIcon
+
+  ExclamationTriangleIcon,
+  CheckIcon,
+  XMarkIcon
+
 } from '@heroicons/react/24/outline';
 
 // Add CSS animation style in index.css
 import { inventoryAPI } from '../../api/inventoryApi';
 import {formatDateForInput } from '../../utils/dateUtils';
 import { useToast } from '../../hooks/useToast';
+import AddItemForm from '../../components/AddItemForm';
+import EditItemForm from '../../components/EditItemForm';
 
 const InventoryView = () => {
   const { showSuccess, showError, showWarning, showInfo } = useToast();
@@ -108,11 +114,14 @@ const InventoryView = () => {
         
         return {
           id: inventoryItem.inventoryId,
+          inventoryId: inventoryItem.inventoryId, // Keep inventory ID for reference
+          item: inventoryItem.item, // Keep the original item structure for edit/delete operations
           name: inventoryItem.item?.itemName || 'Unknown Item',
           itemName: inventoryItem.item?.itemName || 'Unknown Item',
           category: category,
           description: inventoryItem.item?.description || '',
           quantity: inventoryItem.totalQuantity || 0,
+          totalQuantity: inventoryItem.totalQuantity || 0, // Keep original quantity for comparison
           unit: inventoryItem.item?.unit || 'units',
           manufacturer: inventoryItem.item?.manufacturer || '',
           expiryDate: inventoryItem.item?.expiryDate ? formatDateForInput(inventoryItem.item.expiryDate) : '',
@@ -420,6 +429,10 @@ const InventoryView = () => {
         backendCategory = 'Consumables';
       }
 
+      console.log('Updating medical item with ID:', selectedItem.item.itemId);
+      console.log('Form data:', formData);
+      console.log('Backend category:', backendCategory);
+
       // First update the medical item details
       await inventoryAPI.updateMedicalItem(selectedItem.item.itemId, {
         name: formData.name,
@@ -428,13 +441,15 @@ const InventoryView = () => {
         manufacturer: formData.manufacturer || '',
         expiryDate: formData.expiryDate || null,
         storageInstructions: formData.storageInstructions || '',
+        unit: formData.unit || 'units'
       });
 
       // Then update the inventory quantity if it has changed
       if (formData.quantity !== selectedItem.totalQuantity) {
+        console.log('Updating quantity from', selectedItem.totalQuantity, 'to', formData.quantity);
         const inventoryPayload = {
           itemId: selectedItem.item.itemId,
-          totalQuantity: formData.quantity
+          totalQuantity: parseInt(formData.quantity)
         };
         await inventoryAPI.updateInventoryItem(selectedItem.inventoryId, inventoryPayload);
       }
@@ -445,14 +460,14 @@ const InventoryView = () => {
       
       showSuccess('Item updated successfully!');
     } catch (error) {
-
+      console.error('Error updating item:', error);
       
       // Provide more specific error messages
       let errorMessage = 'Failed to update item. ';
       
-      if (error.message.includes('403') || error.message.includes('Access denied')) {
+      if (error.response?.status === 403 || error.message.includes('Access denied')) {
         errorMessage += 'You do not have permission to update inventory items. Please check with your administrator.';
-      } else if (error.message.includes('404')) {
+      } else if (error.response?.status === 404) {
         errorMessage += 'The item was not found. It may have been deleted.';
       } else if (error.message.includes('Network Error')) {
         errorMessage += 'Network connection issue. Please check your internet connection.';
@@ -466,14 +481,28 @@ const InventoryView = () => {
 
   const handleDeleteItem = async () => {
     try {
-      await inventoryAPI.deleteInventoryItem(selectedItem.id);
+      console.log('Deleting medical item with ID:', selectedItem.item.itemId);
+      console.log('Selected item structure:', selectedItem);
+      
+      // Delete the medical item using the correct medical item ID
+      await inventoryAPI.deleteMedicalItem(selectedItem.item.itemId);
       setShowDeleteModal(false);
       setSelectedItem(null);
       fetchInventory();
       showSuccess('Item deleted successfully!');
     } catch (error) {
       console.error('Error deleting item:', error);
-      showError('Failed to delete item. Please check your permissions.');
+      
+      let errorMessage = 'Failed to delete item. ';
+      if (error.response?.status === 403 || error.message.includes('Access denied')) {
+        errorMessage += 'You do not have permission to delete this item.';
+      } else if (error.response?.status === 404) {
+        errorMessage += 'The item was not found. It may have been already deleted.';
+      } else {
+        errorMessage += error.message || 'Please try again or contact support.';
+      }
+      
+      showError(errorMessage);
     }
   };
 
@@ -1001,212 +1030,22 @@ const InventoryView = () => {
         </div>
 
       {/* Add Item Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Add New Item</h2>
-            <form onSubmit={handleAddItem}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Category</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="medications">Medications</option>
-                    <option value="equipment">Equipment</option>
-                    <option value="consumables">Consumables</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Unit</label>
-                  <input
-                    type="text"
-                    value={formData.unit}
-                    onChange={(e) => setFormData({...formData, unit: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., boxes, units, ml"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Manufacturer</label>
-                  <input
-                    type="text"
-                    value={formData.manufacturer}
-                    onChange={(e) => setFormData({...formData, manufacturer: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., MediCorp, PharmaCo"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
-                  <input
-                    type="date"
-                    value={formData.expiryDate}
-                    onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Storage Instructions</label>
-                  <textarea
-                    value={formData.storageInstructions}
-                    onChange={(e) => setFormData({...formData, storageInstructions: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    rows="2"
-                    placeholder="e.g., Store in a cool, dry place"
-                  ></textarea>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    rows="2"
-                    placeholder="Item description (optional)"
-                  ></textarea>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => {setShowAddModal(false); resetForm();}}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Add Item
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AddItemForm
+        isOpen={showAddModal}
+        onClose={() => {setShowAddModal(false); resetForm();}}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleAddItem}
+      />
 
       {/* Edit Item Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Edit Item</h2>
-            <form onSubmit={handleEditItem}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Category</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="medications">Medications</option>
-                    <option value="equipment">Equipment</option>
-                    <option value="consumables">Consumables</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Quantity</label>
-                  <input
-                    type="number"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value)})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Unit</label>
-                  <input
-                    type="text"
-                    value={formData.unit}
-                    onChange={(e) => setFormData({...formData, unit: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., boxes, units, ml"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Manufacturer</label>
-                  <input
-                    type="text"
-                    value={formData.manufacturer}
-                    onChange={(e) => setFormData({...formData, manufacturer: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., MediCorp, PharmaCo"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
-                  <input
-                    type="date"
-                    value={formData.expiryDate}
-                    onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Storage Instructions</label>
-                  <textarea
-                    value={formData.storageInstructions}
-                    onChange={(e) => setFormData({...formData, storageInstructions: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    rows="2"
-                    placeholder="e.g., Store in a cool, dry place"
-                  ></textarea>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    rows="2"
-                    placeholder="Item description (optional)"
-                  ></textarea>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => {setShowEditModal(false); resetForm();}}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <EditItemForm
+        isOpen={showEditModal}
+        onClose={() => {setShowEditModal(false); resetForm();}}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleEditItem}
+      />
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

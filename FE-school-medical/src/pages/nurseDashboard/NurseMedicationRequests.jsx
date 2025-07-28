@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { medicationAPI } from '../../api/medicationApi';
 import { CheckCircle, XCircle, Clock, Eye, User, Pill, Calendar, AlertCircle, FileText, Download, X, RefreshCw } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
+import { useConfirmation, getConfirmationConfig, handleBulkConfirmation } from '../../utils/confirmationUtils';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 const NurseMedicationRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -12,10 +14,20 @@ const NurseMedicationRequests = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
-  const [confirming, setConfirming] = useState(null);
   const [rejecting, setRejecting] = useState(null);
   const [activeTab, setActiveTab] = useState('pending'); // 'pending', 'confirmed', or 'rejected'
   const { showSuccess, showError, showWarning } = useToast();
+
+  // Confirmation hook for medication requests
+  const medicationConfirmation = useConfirmation(
+    async (request) => {
+      await medicationAPI.confirmMedicationRequest(request.requestId);
+      await fetchPendingRequests(); // Refresh the current list
+      await fetchAllRequestsForCounts(); // Refresh counts
+    },
+    showSuccess,
+    showError
+  );
   useEffect(() => {
     // Check if user is authenticated before fetching data
     const token = localStorage.getItem('token');
@@ -99,23 +111,19 @@ const NurseMedicationRequests = () => {
     }
   };
 
-  const handleConfirmRequest = async (requestId) => {
-    if (!window.confirm('Are you sure you want to confirm this medication request?')) {
-      return;
-    }
+  const handleConfirmRequest = async (request) => {
+    const config = getConfirmationConfig('medical-request', request);
+    await medicationConfirmation.handleConfirm(request, {
+      getItemId: config.getItemId,
+      getItemName: config.getItemName,
+      successMessage: `Medication request has been confirmed successfully. Parent will be notified.`,
+      errorMessage: 'Failed to confirm medication request',
+      invalidIdMessage: 'Cannot confirm request: Invalid request ID'
+    });
+  };
 
-    try {
-      setConfirming(requestId);
-      setError(null);
-      await medicationAPI.confirmMedicationRequest(requestId);
-      showSuccess('Medication request confirmed successfully. Parent will be notified.');
-      await fetchPendingRequests(); // Refresh the current list
-      await fetchAllRequestsForCounts(); // Refresh counts
-    } catch (error) {
-      setError('Failed to confirm medication request. Please try again.');
-    } finally {
-      setConfirming(null);
-    }
+  const handleConfirmRequestClick = (request) => {
+    medicationConfirmation.handleConfirmClick(request);
   };
 
   const handleRejectRequest = async () => {
@@ -549,11 +557,11 @@ const NurseMedicationRequests = () => {
                           {request.confirmationStatus === 'pending' && (
                             <>
                               <button
-                                onClick={() => handleConfirmRequest(request.requestId)}
-                                disabled={confirming === request.requestId}
+                                onClick={() => handleConfirmRequestClick(request)}
+                                disabled={medicationConfirmation.isConfirming(request.requestId)}
                                 className="text-green-600 hover:text-green-900 inline-flex items-center disabled:opacity-50"
                               >
-                                {confirming === request.requestId ? (
+                                {medicationConfirmation.isConfirming(request.requestId) ? (
                                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
                                 ) : (
                                   <CheckCircle className="h-4 w-4 mr-1" />
@@ -718,7 +726,7 @@ const NurseMedicationRequests = () => {
                 <button
                   onClick={() => {
                     setShowDetailModal(false);
-                    handleConfirmRequest(selectedRequest.requestId);
+                    handleConfirmRequestClick(selectedRequest);
                   }}
                   className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center"
                 >
@@ -806,6 +814,19 @@ const NurseMedicationRequests = () => {
           </div>
         </div>
       )}
+
+      {/* Medication Request Confirmation Modal */}
+      <ConfirmationModal
+        show={medicationConfirmation.showModal}
+        onConfirm={handleConfirmRequest}
+        onCancel={medicationConfirmation.cancelConfirm}
+        item={medicationConfirmation.itemToConfirm}
+        config={{
+          ...getConfirmationConfig('medical-request', medicationConfirmation.itemToConfirm || {}),
+          type: 'medical-request'
+        }}
+        isConfirming={medicationConfirmation.itemToConfirm ? medicationConfirmation.isConfirming(medicationConfirmation.itemToConfirm.requestId) : false}
+      />
     </div>
   );
 };

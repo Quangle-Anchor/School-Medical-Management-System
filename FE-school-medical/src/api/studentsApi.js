@@ -33,20 +33,9 @@ export const studentAPI = {
   // Get current user's students (automatically filtered by role and parent)
   getMyStudents: async () => {
     try {
-      const userRole = localStorage.getItem('role');
-      
-      if (userRole === 'Parent') {
-        // Use the /my endpoint that automatically filters by authenticated parent
         const response = await axiosInstance.get('/api/students/my');
         console.log('getMyStudents (parent) response:', response.data);
         return Array.isArray(response.data) ? response.data : [];
-      } else {
-        // For other roles, get all students with pagination
-        const response = await axiosInstance.get('/api/students?page=0&size=100');
-        console.log('getMyStudents (other roles) response:', response.data);
-        // Handle paginated response - extract content array
-        return response.data.content || [];
-      }
     } catch (error) {
       console.error('Error in getMyStudents:', error);
       if (error.response?.status === 401) {
@@ -55,6 +44,41 @@ export const studentAPI = {
         window.location.href = '/login';
       }
       return []; // Return empty array on error
+    }
+  },
+
+  // Get only confirmed students for current parent
+  getMyConfirmedStudents: async () => {
+    try {
+      const response = await axiosInstance.get('/api/students/my');
+      console.log('getMyConfirmedStudents response:', response.data);
+      const allStudents = Array.isArray(response.data) ? response.data : [];
+      // Filter only confirmed students
+      return allStudents.filter(student => student.isConfirm === true);
+    } catch (error) {
+      console.error('Error in getMyConfirmedStudents:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      return []; // Return empty array on error
+    }
+  },
+
+  // Confirm a student (for nurses/admins)
+  confirmStudent: async (studentId) => {
+    try {
+      const response = await axiosInstance.put(`/api/students/${studentId}/confirm`);
+      return response.data;
+    } catch (error) {
+      console.error('Error in confirmStudent:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
     }
   },
   
@@ -125,12 +149,9 @@ export const studentAPI = {
   // Create health info
   createHealthInfo: async (healthInfoData) => {
     try {
-      console.log('Creating health info with data:', healthInfoData);
       const response = await axiosInstance.post('/api/health-info', healthInfoData);
-      console.log('Health info creation response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error in createHealthInfo:', error);
       console.error('Error response:', error.response?.data);
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
@@ -196,12 +217,12 @@ export const studentAPI = {
   },
 
   // Get all students for nurse (nurse-specific endpoint if available)
-  getAllStudentsForNurse: async () => {
+  getAllStudentsForNurse: async (page = 0, size = 20, sort = 'studentId,asc') => {
     try {
       // Use the general students endpoint with pagination
-      const response = await axiosInstance.get('/api/students?page=0&size=100');
+      const response = await axiosInstance.get(`/api/students?page=${page}&size=${size}&sort=${sort}`);
       console.log('getAllStudentsForNurse response:', response.data);
-      return response.data.content || [];
+      return response.data; // Return the full page object
     } catch (error) {
       console.error('Error in getAllStudentsForNurse:', error);
       if (error.response?.status === 401) {
@@ -209,7 +230,7 @@ export const studentAPI = {
         localStorage.removeItem('role');
         window.location.href = '/login';
       }
-      return []; // Return empty array on error
+      return { content: [], totalElements: 0, totalPages: 0 }; // Return empty page structure on error
     }
   },
 };
