@@ -1,6 +1,7 @@
 package com.be_source.School_Medical_Management_System_.repository;
 
 import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
+import com.be_source.School_Medical_Management_System_.model.Inventory;
 import com.be_source.School_Medical_Management_System_.model.MedicationRequest;
 import com.be_source.School_Medical_Management_System_.model.Students;
 import com.be_source.School_Medical_Management_System_.model.User;
@@ -16,5 +17,6 @@ public interface MedicationRequestRepository extends JpaRepository<MedicationReq
     Optional<MedicationRequest> findByRequestIdAndRequestedBy(Long id, User parent);
     List<MedicationRequest> findByStudentOrderByCreatedAtDesc(Students student);
     List<MedicationRequest> findByConfirmationStatus(ConfirmationStatus status);
+    List<MedicationRequest> findByInventory(Inventory inventory);
 
 }
