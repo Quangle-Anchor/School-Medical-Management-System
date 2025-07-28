@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
 import { medicationAPI } from '../../api/medicationApi';
-import { inventoryAPI } from '../../api/inventoryApi';
 import { Calendar, Clock, User, Save, ArrowLeft, AlertCircle, CheckCircle, Package, Users } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
 
@@ -20,8 +19,7 @@ const MedicationScheduleForm = () => {
   const scheduleId = id || getScheduleIdFromPath();
   const isEditMode = Boolean(scheduleId);
   
-  const [confirmedRequests, setConfirmedRequests] = useState([]);
-  const [inventoryItems, setInventoryItems] = useState([]);
+  const [availableRequests, setAvailableRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { showSuccess, showError: showErrorToast } = useToast();
@@ -31,17 +29,9 @@ const MedicationScheduleForm = () => {
     requestId: '', // Now tracks selected request
     scheduledDate: '',
     scheduledTime: '',
-    notes: ''
+    notes: '',
+    dispensedQuantity: ''
   });
-
-  // Inventory Export Form State
-  const [inventoryForm, setInventoryForm] = useState({
-    inventoryId: '',
-    quantityToDeduct: ''
-  });
-
-  // Selected inventory item details
-  const [selectedInventoryItem, setSelectedInventoryItem] = useState(null);
 
   useEffect(() => {
     fetchInitialData();
@@ -54,20 +44,18 @@ const MedicationScheduleForm = () => {
     try {
       setLoading(true);
       // Fetch all medication requests for nurse
-      const [requestsData, inventoryData] = await Promise.all([
-        medicationAPI.getAllRequests(),
-        inventoryAPI.getAllInventory()
-      ]);
-      // Only confirmed requests
-      setConfirmedRequests(Array.isArray(requestsData)
-        ? requestsData.filter(r => r.confirmationStatus?.toLowerCase() === 'confirmed')
+      const requestsData = await medicationAPI.getAllRequests();
+      // Include both confirmed and in_progress requests
+      setAvailableRequests(Array.isArray(requestsData)
+        ? requestsData.filter(r => {
+            const status = r.confirmationStatus?.toLowerCase();
+            return status === 'confirmed' || status === 'in_progress';
+          })
         : []);
-      setInventoryItems(Array.isArray(inventoryData) ? inventoryData : []);
     } catch (error) {
-      const errorMessage = 'Failed to load medication requests and inventory data';
+      const errorMessage = 'Failed to load medication requests data';
       showErrorToast(errorMessage);
-      setConfirmedRequests([]);
-      setInventoryItems([]);
+      setAvailableRequests([]);
     } finally {
       setLoading(false);
     }
@@ -85,7 +73,8 @@ const MedicationScheduleForm = () => {
           requestId: schedule.requestId?.toString() || '',
           scheduledDate: formattedDate,
           scheduledTime: schedule.scheduledTime || '',
-          notes: schedule.notes || ''
+          notes: schedule.notes || '',
+          dispensedQuantity: schedule.dispensedQuantity || ''
         });
       } else {
         const errorMessage = 'Schedule not found';
@@ -110,7 +99,7 @@ const MedicationScheduleForm = () => {
 
     // When a request is selected, update form with request details
     if (field === 'requestId' && value) {
-      const selectedReq = confirmedRequests.find(
+      const selectedReq = availableRequests.find(
         r => r.requestId?.toString() === value.toString()
       );
       if (selectedReq) {
@@ -123,36 +112,6 @@ const MedicationScheduleForm = () => {
         }));
       }
     }
-  };
-
-  const handleInventoryFormChange = (field, value) => {
-    setInventoryForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
-    // Update selected inventory item details when inventory is selected
-    if (field === 'inventoryId' && value) {
-      const selectedItem = inventoryItems.find(item => 
-        item.inventoryId.toString() === value
-      );
-      setSelectedInventoryItem(selectedItem || null);
-      // Reset quantity when changing inventory item
-      setInventoryForm(prev => ({
-        ...prev,
-        quantityToDeduct: ''
-      }));
-    }
-  };
-
-  const handleInventorySelect = (e) => {
-    const value = e.target.value;
-    handleInventoryFormChange('inventoryId', value);
-  };
-
-  const handleQuantityChange = (e) => {
-    const value = e.target.value;
-    handleInventoryFormChange('quantityToDeduct', value);
   };
 
   const validateForms = () => {
@@ -169,21 +128,9 @@ const MedicationScheduleForm = () => {
       showErrorToast('Please select a scheduled time');
       return false;
     }
-
-    // Inventory form validation (required for new schedules)
-    if (!isEditMode) {
-      if (!inventoryForm.inventoryId) {
-        showErrorToast('Please select an inventory item to deduct from');
-        return false;
-      }
-      if (!inventoryForm.quantityToDeduct || inventoryForm.quantityToDeduct <= 0) {
-        showErrorToast('Please enter a valid quantity to deduct');
-        return false;
-      }
-      if (selectedInventoryItem && parseInt(inventoryForm.quantityToDeduct) > selectedInventoryItem.totalQuantity) {
-        showErrorToast(`Quantity to deduct cannot exceed available stock (${selectedInventoryItem.totalQuantity})`);
-        return false;
-      }
+    if (!scheduleForm.dispensedQuantity || scheduleForm.dispensedQuantity <= 0) {
+      showErrorToast('Please enter a valid dispensed quantity');
+      return false;
     }
 
     return true;
@@ -203,34 +150,16 @@ const MedicationScheduleForm = () => {
         requestId: parseInt(scheduleForm.requestId),
         scheduledDate: scheduleForm.scheduledDate,
         scheduledTime: scheduleForm.scheduledTime,
-        notes: scheduleForm.notes || ""
+        notes: scheduleForm.notes || "",
+        dispensedQuantity: parseInt(scheduleForm.dispensedQuantity)
       };
 
-      try {
-        if (isEditMode) {
-          await medicationScheduleAPI.updateSchedule(scheduleId, schedulePayload);
-          showSuccess('Medication schedule updated successfully');
-        } else {
-          // For new schedule, first try to deduct from inventory
-          const inventoryPayload = {
-            inventoryId: parseInt(inventoryForm.inventoryId),
-            quantityToDeduct: parseInt(inventoryForm.quantityToDeduct)
-          };
-
-          // First try to deduct from inventory
-          await medicationScheduleAPI.deductInventory(inventoryPayload);
-
-          // If inventory deduction succeeds, create the schedule
-          await medicationScheduleAPI.createSchedule(schedulePayload);
-          showSuccess('Medication schedule created and inventory updated successfully');
-        }
-      } catch (deductError) {
-        // If inventory deduction fails, throw a more specific error
-        if (deductError.response?.status === 400) {
-          throw new Error('Not enough quantity in inventory. Please check available stock.');
-        } else {
-          throw deductError;
-        }
+      if (isEditMode) {
+        await medicationScheduleAPI.updateSchedule(scheduleId, schedulePayload);
+        showSuccess('Medication schedule updated successfully');
+      } else {
+        await medicationScheduleAPI.createSchedule(schedulePayload);
+        showSuccess('Medication schedule created successfully');
       }
 
       // Navigate back after showing success message
@@ -316,7 +245,7 @@ const MedicationScheduleForm = () => {
               {isEditMode ? 'Edit' : 'Create'} Medication Schedule
             </h1>
             <p className="text-gray-600 mt-1">
-              {isEditMode ? 'Update the medication schedule details' : 'Schedule medication administration and manage inventory'}
+              {isEditMode ? 'Update the medication schedule details' : 'Schedule medication administration for available requests'}
             </p>
           </div>
         </div>
@@ -339,44 +268,69 @@ const MedicationScheduleForm = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <div className="flex items-center">
                     <Users className="w-4 h-4 mr-2" />
-                    Confirmed Request <span className="text-red-500">*</span>
+                    Available Request <span className="text-red-500">*</span>
                   </div>
                 </label>
                 <select
                   value={scheduleForm.requestId}
-                  onChange={(e) => handleScheduleFormChange('requestId', e.target.value)}
+                  onChange={(e) => {
+                    const selectedReq = availableRequests.find(
+                      r => r.requestId?.toString() === e.target.value
+                    );
+                    // Only allow selection if stock is sufficient
+                    if (!selectedReq || selectedReq.isSufficientStock !== false) {
+                      handleScheduleFormChange('requestId', e.target.value);
+                    }
+                  }}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 >
-                  <option value="">Select a confirmed request</option>
-                  {confirmedRequests.map((req) => (
-                    <option key={req.requestId} value={req.requestId}>
-                      {req.studentName || req.fullName || 'Unknown'} - {req.studentCode} (Request #{req.requestId})
-                    </option>
-                  ))}
+                  <option value="">Select an available request</option>
+                  {availableRequests.map((req) => {
+                    const hasInsufficientStock = req.isSufficientStock === false;
+                    const status = req.confirmationStatus?.toLowerCase();
+                    return (
+                      <option 
+                        key={req.requestId} 
+                        value={req.requestId}
+                        disabled={hasInsufficientStock}
+                        style={{
+                          color: hasInsufficientStock ? '#dc2626' : (status === 'confirmed' ? '#059669' : '#d97706'),
+                          backgroundColor: hasInsufficientStock ? '#fef2f2' : (status === 'confirmed' ? '#f0fdf4' : '#fffbeb')
+                        }}
+                      >
+                        {hasInsufficientStock ? '🚫 ' : (status === 'confirmed' ? '✅ ' : '🟡 ')}
+                        {req.studentName || req.fullName || 'Unknown'} - {req.studentCode} (Request #{req.requestId})
+                        {hasInsufficientStock ? ' - Insufficient Stock' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
+                {/* Legend for status colors */}
+                <div className="mt-2 text-xs text-gray-600 space-y-1">
+                  <div className="flex items-center space-x-4">
+                    <span className="flex items-center">
+                      <span className="text-green-600 mr-1">✅</span>
+                      Confirmed
+                    </span>
+                    <span className="flex items-center">
+                      <span className="text-orange-600 mr-1">🟡</span>
+                      In Progress
+                    </span>
+                    <span className="flex items-center">
+                      <span className="text-red-600 mr-1">🚫</span>
+                      Insufficient Stock (Disabled)
+                    </span>
+                  </div>
+                </div>
                 {/* Show selected request details */}
                 {scheduleForm.requestId && (() => {
-                  const selectedReq = confirmedRequests.find(
+                  const selectedReq = availableRequests.find(
                     r => r.requestId?.toString() === scheduleForm.requestId.toString()
                   );
                   if (!selectedReq) return (
                     <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-                      <h3 className="font-medium text-red-900 mb-2">No confirmed request found for this request ID.</h3>
-                    </div>
-                  );
-                  return (
-                    <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h3 className="font-medium text-blue-900 mb-2">Request Details</h3>
-                      <div className="space-y-1 text-sm text-blue-800">
-                        <p><span className="font-medium">Student Name:</span> {selectedReq.studentName || selectedReq.fullName || 'Unknown'}</p>
-                        <p><span className="font-medium">Student Code:</span> {selectedReq.studentCode}</p>
-                        <p><span className="font-medium">Class:</span> {selectedReq.studentClass}</p>
-                        <p><span className="font-medium">Medication Name:</span> {selectedReq.medicationName}</p>
-                        <p><span className="font-medium">Total Quantity:</span> {selectedReq.totalQuantity}</p>
-                        <p><span className="font-medium">Parent Name:</span> {selectedReq.parentName}</p>
-                        
-                      </div>
+                      <h3 className="font-medium text-red-900 mb-2">No available request found for this request ID.</h3>
                     </div>
                   );
                 })()}
@@ -433,123 +387,148 @@ const MedicationScheduleForm = () => {
                   placeholder="Additional notes for medication administration..."
                 />
               </div>
+
+              {/* Dispensed Quantity */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <div className="flex items-center">
+                    <Package className="w-4 h-4 mr-2" />
+                    Dispensed Quantity <span className="text-red-500">*</span>
+                  </div>
+                </label>
+                <input
+                  type="number"
+                  value={scheduleForm.dispensedQuantity}
+                  onChange={(e) => handleScheduleFormChange('dispensedQuantity', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter quantity to dispense"
+                  min="1"
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter the actual quantity to be dispensed for this administration
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Export Inventory Form - Right Side */}
-          {!isEditMode && (
-            <div className="bg-white shadow-md rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                <Package className="w-5 h-5 mr-2 text-green-600" />
-                Inventory Export
-              </h2>
-              
-              <div className="space-y-6">
-                {/* Inventory Item Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <div className="flex items-center">
-                      <Package className="w-4 h-4 mr-2" />
-                      Inventory Item <span className="text-red-500">*</span>
-                    </div>
-                  </label>
-                  <select
-                    value={inventoryForm.inventoryId}
-                    onChange={handleInventorySelect}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    required
-                  >
-                    <option value="">Select an inventory item</option>
-                    {inventoryItems.map((item) => (
-                      <option key={item.inventoryId} value={item.inventoryId}>
-                        {item.item?.itemName} (Available: {item.totalQuantity} {item.item?.unit})
-                      </option>
-                    ))}
-                  </select>
+          {/* Request Summary - Right Side */}
+          <div className="bg-white shadow-md rounded-xl p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+              <Users className="w-5 h-5 mr-2 text-green-600" />
+              Request Summary
+            </h2>
+            
+            {scheduleForm.requestId ? (() => {
+              const selectedReq = availableRequests.find(
+                r => r.requestId?.toString() === scheduleForm.requestId.toString()
+              );
+              if (!selectedReq) return (
+                <div className="text-center text-gray-500 py-8">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                  <p>Request not found</p>
                 </div>
-
-                {/* Available Quantity Display */}
-                {selectedInventoryItem && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-2">Selected Item Details</h3>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p><span className="font-medium">Item:</span> {selectedInventoryItem.item?.itemName}</p>
-                      <p><span className="font-medium">Available Quantity:</span> {selectedInventoryItem.totalQuantity} {selectedInventoryItem.item?.unit}</p>
-                      <p><span className="font-medium">Category:</span> {selectedInventoryItem.item?.category}</p>
-                      {selectedInventoryItem.item?.description && (
-                        <p><span className="font-medium">Description:</span> {selectedInventoryItem.item.description}</p>
-                      )}
+              );
+              return (
+                <div className="space-y-4">
+                  {/* Request Status */}
+                  <div className={`border rounded-lg p-4 ${
+                    selectedReq.confirmationStatus?.toLowerCase() === 'confirmed' 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-orange-50 border-orange-200'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <span className={`font-medium ${
+                          selectedReq.confirmationStatus?.toLowerCase() === 'confirmed' 
+                            ? 'text-green-900' 
+                            : 'text-orange-900'
+                        }`}>
+                          {selectedReq.confirmationStatus?.toLowerCase() === 'confirmed' ? '✅' : '🟡'} 
+                          {selectedReq.confirmationStatus || 'Unknown Status'}
+                        </span>
+                      </div>
+                      <span className="text-xs font-medium text-gray-600">
+                        Request #{selectedReq.requestId}
+                      </span>
                     </div>
-                    
-                    {/* Stock Status Indicator */}
-                    <div className="mt-3">
-                      {selectedInventoryItem.totalQuantity === 0 ? (
-                        <div className="flex items-center text-red-600">
-                          <AlertCircle className="w-4 h-4 mr-1" />
-                          <span className="text-sm font-medium">Out of Stock</span>
-                        </div>
-                      ) : selectedInventoryItem.totalQuantity <= 5 ? (
-                        <div className="flex items-center text-yellow-600">
-                          <AlertCircle className="w-4 h-4 mr-1" />
-                          <span className="text-sm font-medium">Low Stock Warning</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-green-600">
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          <span className="text-sm font-medium">In Stock</span>
+                  </div>
+
+                  {/* Student Information */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 className="font-medium text-gray-900 mb-2">Student Information</h3>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <p><span className="font-medium">Name:</span> {selectedReq.studentName || selectedReq.fullName || 'Unknown'}</p>
+                      <p><span className="font-medium">Class:</span> {selectedReq.studentClass}</p>
+                    </div>
+                  </div>
+
+                  {/* Parent Information */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 className="font-medium text-gray-900 mb-2">Parent Information</h3>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <p><span className="font-medium">Name:</span> {selectedReq.parentName}</p>
+                      <p><span className="font-medium">Email:</span> {selectedReq.parentEmail}</p>
+                    </div>
+                  </div>
+
+                  {/* Medication Information */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="font-medium text-blue-900 mb-2">Medication Information</h3>
+                    <div className="space-y-1 text-sm text-blue-800">
+                      <p><span className="font-medium">Medication:</span> {selectedReq.medicationName}</p>
+                      <p><span className="font-medium">Dosage:</span> {selectedReq.dosage}</p>
+                      <p><span className="font-medium">Frequency:</span> {selectedReq.frequency}</p>
+                      <p><span className="font-medium">Total Requested:</span> {selectedReq.totalQuantity}</p>
+                      
+                      {(selectedReq.morningQuantity || selectedReq.noonQuantity || selectedReq.eveningQuantity) && (
+                        <div className="mt-2 pt-2 border-t border-blue-300">
+                          <p className="font-medium mb-1">Daily Distribution:</p>
+                          {selectedReq.morningQuantity && (
+                            <p className="ml-2">• Morning: {selectedReq.morningQuantity}</p>
+                          )}
+                          {selectedReq.noonQuantity && (
+                            <p className="ml-2">• Noon: {selectedReq.noonQuantity}</p>
+                          )}
+                          {selectedReq.eveningQuantity && (
+                            <p className="ml-2">• Evening: {selectedReq.eveningQuantity}</p>
+                          )}
                         </div>
                       )}
                     </div>
                   </div>
-                )}
 
-                {/* Quantity to Deduct */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quantity to Deduct <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={inventoryForm.quantityToDeduct}
-                    onChange={handleQuantityChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Enter quantity to deduct"
-                    min="1"
-                    max={selectedInventoryItem?.totalQuantity || ''}
-                    required
-                  />
-                  {selectedInventoryItem && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Maximum available: {selectedInventoryItem.totalQuantity} {selectedInventoryItem.item?.unit}
-                    </p>
+                  {/* Stock Status */}
+                  {selectedReq.isSufficientStock !== undefined && (
+                    <div className={`border rounded-lg p-4 ${
+                      selectedReq.isSufficientStock 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {selectedReq.isSufficientStock ? (
+                          <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 mr-2 text-red-600" />
+                        )}
+                        <span className={`font-medium ${
+                          selectedReq.isSufficientStock ? 'text-green-900' : 'text-red-900'
+                        }`}>
+                          {selectedReq.isSufficientStock ? 'Sufficient Stock Available' : 'Insufficient Stock Warning'}
+                        </span>
+                      </div>
+                    </div>
                   )}
                 </div>
-
-                {/* Export Summary */}
-                {inventoryForm.quantityToDeduct && selectedInventoryItem && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h3 className="font-medium text-green-900 mb-2">Export Summary</h3>
-                    <div className="space-y-1 text-sm text-green-800">
-                      <p>Item: {selectedInventoryItem.item?.itemName}</p>
-                      <p>Quantity to deduct: {inventoryForm.quantityToDeduct} {selectedInventoryItem.item?.unit}</p>
-                      <p>Remaining after export: {selectedInventoryItem.totalQuantity - parseInt(inventoryForm.quantityToDeduct || 0)} {selectedInventoryItem.item?.unit}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Edit Mode: Show placeholder for inventory section */}
-          {isEditMode && (
-            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-6 flex items-center justify-center">
-              <div className="text-center text-gray-500">
+              );
+            })() : (
+              <div className="text-center text-gray-500 py-8">
                 <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-medium mb-2">Inventory Export</h3>
-                <p className="text-sm">Inventory adjustments are not available when editing existing schedules.</p>
+                <h3 className="text-lg font-medium mb-2">No Request Selected</h3>
+                <p className="text-sm">Please select a medication request to view details.</p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Form Actions */}
@@ -574,7 +553,7 @@ const MedicationScheduleForm = () => {
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                {isEditMode ? 'Update Schedule' : 'Create Schedule & Export Inventory'}
+                {isEditMode ? 'Update Schedule' : 'Create Schedule'}
               </>
             )}
           </button>

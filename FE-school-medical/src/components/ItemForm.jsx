@@ -1,4 +1,5 @@
 import React from 'react';
+import { getMinExpiryDate, getMaxExpiryDate } from '../utils/dateUtils';
 
 const ItemForm = ({ 
   isOpen, 
@@ -81,7 +82,10 @@ const ItemForm = ({
                 type="date"
                 value={formData.expiryDate}
                 onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
+                min={getMinExpiryDate()}
+                max={getMaxExpiryDate()}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                title="Expiry date must be within 6 months from today (past or future)"
               />
             </div>
             <div>
