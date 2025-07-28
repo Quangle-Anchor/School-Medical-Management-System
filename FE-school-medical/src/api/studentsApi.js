@@ -233,6 +233,34 @@ export const studentAPI = {
       return { content: [], totalElements: 0, totalPages: 0 }; // Return empty page structure on error
     }
   },
+
+  // Get only confirmed students for health incidents and other operations
+  getConfirmedStudents: async () => {
+    try {
+      const role = localStorage.getItem('role');
+      
+      if (role === 'Parent') {
+        // For parents, use the existing getMyConfirmedStudents
+        return await studentAPI.getMyConfirmedStudents();
+      } else {
+        // For nurses/admins, get all students and filter confirmed ones
+        const response = await axiosInstance.get('/api/students?page=0&size=1000&sort=studentId,asc');
+        console.log('getConfirmedStudents response:', response.data);
+        
+        const allStudents = response.data?.content || [];
+        // Filter only confirmed students
+        return allStudents.filter(student => student.isConfirm === true);
+      }
+    } catch (error) {
+      console.error('Error in getConfirmedStudents:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      return []; // Return empty array on error
+    }
+  },
 };
 
 // Search student by code (for Health Lookup)

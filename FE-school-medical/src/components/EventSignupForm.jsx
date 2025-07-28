@@ -36,7 +36,8 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess, signupAllMod
   const fetchStudents = async () => {
     try {
       setLoadingStudents(true);
-      const studentsData = await studentAPI.getMyStudents();
+      // Use getConfirmedStudents to only show confirmed students for event signup
+      const studentsData = await studentAPI.getConfirmedStudents();
       const studentsArray = Array.isArray(studentsData) ? studentsData : [];
       setStudents(studentsArray);
       
@@ -51,8 +52,8 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess, signupAllMod
         }, 100);
       }
     } catch (error) {
-      console.error('Error fetching students:', error);
-      setError('Failed to load your children. Please try again.');
+      console.error('Error fetching confirmed students:', error);
+      setError('Failed to load your confirmed children. Please try again.');
       setStudents([]);
     } finally {
       setLoadingStudents(false);
@@ -255,11 +256,12 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess, signupAllMod
                 <label className="block text-sm font-medium mb-2">
                   <User className="w-4 h-4 inline mr-1" />
                   {signupAllMode ? 'Select Children to Sign Up' : 'Select Student'} <span className="text-red-500">*</span>
+                  <span className="ml-2 text-xs text-green-600 font-normal">(Confirmed students only)</span>
                 </label>
                 {loadingStudents ? (
                   <div className="flex items-center py-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                    <span className="text-sm text-gray-600">Loading your children...</span>
+                    <span className="text-sm text-gray-600">Loading your confirmed children...</span>
                   </div>
                 ) : students.length > 0 ? (
                   signupAllMode ? (
@@ -299,12 +301,19 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess, signupAllMod
                                 htmlFor={`student-${student.studentId}`}
                                 className={`ml-3 flex-1 cursor-pointer ${isAlreadySignedUp ? 'text-gray-500' : ''}`}
                               >
-                                <div className="text-sm font-medium">
-                                  {student.fullName}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  Code: {student.studentCode || student.studentId} - {student.className || 'No Class'}
-                                  {isAlreadySignedUp && ' - Already signed up'}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <div className="text-sm font-medium">
+                                      {student.fullName}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      Code: {student.studentCode || 'N/A'} - {student.className || 'No Class'}
+                                      {isAlreadySignedUp && ' - Already signed up'}
+                                    </div>
+                                  </div>
+                                  <div className="text-green-600 ml-2">
+                                    <span className="text-xs">✅ Confirmed</span>
+                                  </div>
                                 </div>
                               </label>
                             </div>
@@ -321,7 +330,7 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess, signupAllMod
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Choose a student</option>
+                      <option value="">Choose a confirmed student</option>
                       {students.map(student => {
                         const isAlreadySignedUp = isStudentAlreadySignedUp(student.studentId);
                         return (
@@ -330,7 +339,7 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess, signupAllMod
                             value={student.studentId}
                             disabled={isAlreadySignedUp}
                           >
-                            {student.fullName} (Code: {student.studentCode || student.studentId}) - {student.className || 'No Class'}
+                            ✅ {student.fullName} (Code: {student.studentCode || 'N/A'}) - {student.className || 'No Class'}
                             {isAlreadySignedUp ? ' - Already signed up' : ''}
                           </option>
                         );
@@ -339,7 +348,7 @@ const EventSignupForm = ({ isOpen, onClose, event, onSignupSuccess, signupAllMod
                   )
                 ) : (
                   <div className="text-gray-500 p-4 border border-gray-200 rounded-md">
-                    No students found. Please add your children to your account first.
+                    No confirmed students found. Only confirmed students can sign up for events.
                   </div>
                 )}
               </div>

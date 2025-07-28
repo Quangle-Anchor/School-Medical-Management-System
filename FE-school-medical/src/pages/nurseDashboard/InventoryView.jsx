@@ -858,29 +858,6 @@ const InventoryView = () => {
                 })()}
               </p>
             </div>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setShowExistingItemsModal(true)}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <ArrowUpTrayIcon className="-ml-0.5 mr-2 h-4 w-4" />
-                Import
-              </button>
-              <button
-                onClick={() => setShowUpdateItemsModal(true)}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <DocumentArrowDownIcon className="-ml-0.5 mr-2 h-4 w-4" />
-                Export
-              </button>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <PlusIcon className="-ml-0.5 mr-2 h-4 w-4" />
-                Add Item
-              </button>
-            </div>
           </div>
         </div>
         

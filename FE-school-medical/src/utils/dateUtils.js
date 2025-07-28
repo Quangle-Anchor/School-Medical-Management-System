@@ -87,31 +87,35 @@ export const validateScheduleDate = (dateString) => {
 };
 
 /**
- * Validate expiry date - must be future date
+ * Validate expiry date - must be within 6 months past to 6 months future
  */
 export const validateExpiryDate = (dateString) => {
   if (!dateString) return { isValid: false, error: "Expiry date is required" };
 
   const inputDate = new Date(dateString);
   const today = new Date();
+  const minDate = new Date();
   const maxDate = new Date();
-  maxDate.setFullYear(today.getFullYear() + 50); // Max 50 years in future
+  
+  // Set range: 6 months in the past to 6 months in the future
+  minDate.setMonth(today.getMonth() - 6);
+  maxDate.setMonth(today.getMonth() + 6);
 
   // Check if date is valid
   if (isNaN(inputDate.getTime())) {
     return { isValid: false, error: "Please enter a valid date" };
   }
 
-  // Check if date is in the past
-  if (inputDate < today) {
-    return { isValid: false, error: "Expiry date cannot be in the past" };
+  // Check if date is too far in the past (more than 6 months ago)
+  if (inputDate < minDate) {
+    return { isValid: false, error: "Expiry date cannot be more than 6 months in the past" };
   }
 
-  // Check if date is too far in the future
+  // Check if date is too far in the future (more than 6 months ahead)
   if (inputDate > maxDate) {
     return {
       isValid: false,
-      error: "Expiry date cannot be more than 50 years in the future",
+      error: "Expiry date cannot be more than 6 months in the future",
     };
   }
 
@@ -184,10 +188,21 @@ export const getMaxScheduleDate = () => {
 };
 
 /**
- * Get min date for expiry input (today)
+ * Get min date for expiry input (6 months ago)
  */
 export const getMinExpiryDate = () => {
-  return getTodayString();
+  const date = new Date();
+  date.setMonth(date.getMonth() - 6);
+  return formatDateForInput(date);
+};
+
+/**
+ * Get max date for expiry input (6 months from now)
+ */
+export const getMaxExpiryDate = () => {
+  const date = new Date();
+  date.setMonth(date.getMonth() + 6);
+  return formatDateForInput(date);
 };
 
 /**

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, UserPlus, CheckCircle, Clock, AlertCircle, Eye, Filter, X } from 'lucide-react';
+import { Calendar, Users, UserPlus, CheckCircle, Clock, AlertCircle, Eye, Filter, X, Search } from 'lucide-react';
 import { healthEventAPI } from '../../api/healthEventApi';
 import { eventSignupAPI } from '../../api/eventSignupApi';
 import { formatEventDate, getCategoryStyle, safeDisplay } from '../../utils/dashboardUtils';
@@ -16,6 +16,7 @@ const NurseHealthEventsView = ({ title, description }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showSignupDetails, setShowSignupDetails] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending', 'confirmed', 'rejected'
+  const [searchTerm, setSearchTerm] = useState(''); // Add search term state
 
   // Toast hook
   const { showSuccess, showError } = useToast();
@@ -209,19 +210,29 @@ const NurseHealthEventsView = ({ title, description }) => {
 
   const filteredSignups = signups.filter(signup => {
     // First filter by selected event if one is selected
-    let eventFiltered = signups;
-    if (selectedEvent) {
-      eventFiltered = signups.filter(s => s.eventId === selectedEvent.eventId);
+    if (selectedEvent && signup.eventId !== selectedEvent.eventId) {
+      return false;
+    }
+    
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        (signup.studentName && String(signup.studentName).toLowerCase().includes(searchLower)) ||
+        (signup.studentCode && String(signup.studentCode).toLowerCase().includes(searchLower)) ||
+        (signup.studentId && String(signup.studentId).toLowerCase().includes(searchLower)) ||
+        (signup.eventTitle && String(signup.eventTitle).toLowerCase().includes(searchLower)) ||
+        (signup.parentName && String(signup.parentName).toLowerCase().includes(searchLower));
+      
+      if (!matchesSearch) return false;
     }
     
     // Then filter by status
-    if (filterStatus === 'all') return selectedEvent ? signup.eventId === selectedEvent.eventId : true;
+    if (filterStatus === 'all') return true;
     if (filterStatus === 'confirmed') {
-      const isConfirmed = signup.status?.toUpperCase() === 'APPROVED' || signup.status?.toUpperCase() === 'CONFIRMED';
-      return selectedEvent ? (signup.eventId === selectedEvent.eventId && isConfirmed) : isConfirmed;
+      return signup.status?.toUpperCase() === 'APPROVED' || signup.status?.toUpperCase() === 'CONFIRMED';
     }
-    const matchesStatus = signup.status?.toUpperCase() === filterStatus.toUpperCase();
-    return selectedEvent ? (signup.eventId === selectedEvent.eventId && matchesStatus) : matchesStatus;
+    return signup.status?.toUpperCase() === filterStatus.toUpperCase();
   });
 
   const pendingCount = signups.filter(s => {
@@ -443,7 +454,7 @@ const NurseHealthEventsView = ({ title, description }) => {
                   )}
                 </div>
                 
-                {/* Filter Dropdown */}
+                {/* Filter and Search Controls */}
                 <div className="flex items-center space-x-3">
                   {/* Confirm All Pending Button */}
                   {pendingCount > 0 && (
@@ -488,6 +499,35 @@ const NurseHealthEventsView = ({ title, description }) => {
                     Refresh
                   </button>
                 </div>
+              </div>
+
+              {/* Search Box */}
+              <div className="mb-6">
+                <div className="relative max-w-md">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search by student name, code, event title, or parent name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    </button>
+                  )}
+                </div>
+                {searchTerm && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Showing {filteredSignups.length} result{filteredSignups.length !== 1 ? 's' : ''} for "{searchTerm}"
+                  </p>
+                )}
               </div>
 
               {/* Quick Stats */}
@@ -642,10 +682,13 @@ const NurseHealthEventsView = ({ title, description }) => {
                 <div className="text-center py-12">
                   <UserPlus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {filterStatus === 'all' ? 'No signups found' : `No ${filterStatus} signups`}
+                    {searchTerm ? `No signups found for "${searchTerm}"` : 
+                     filterStatus === 'all' ? 'No signups found' : `No ${filterStatus} signups`}
                   </h3>
                   <p className="text-gray-600">
-                    {filterStatus === 'all' 
+                    {searchTerm 
+                      ? 'Try adjusting your search terms or clear the search to see all signups.'
+                      : filterStatus === 'all' 
                       ? 'Event signups will appear here when parents submit requests.'
                       : filterStatus === 'pending'
                       ? 'No pending signups at this time.'
@@ -654,6 +697,15 @@ const NurseHealthEventsView = ({ title, description }) => {
                       : 'No rejected signups at this time.'
                     }
                   </p>
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Clear Search
+                    </button>
+                  )}
                 </div>
               )}
             </div>
