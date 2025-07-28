@@ -49,15 +49,19 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
         if (medicationRequest.getTotalQuantity() < dispensed)
             throw new RuntimeException("Dispensed quantity exceeds remaining request quantity");
 
+        // Trừ kho và request
         inventory.setTotalQuantity(inventory.getTotalQuantity() - dispensed);
         medicationRequest.setTotalQuantity(medicationRequest.getTotalQuantity() - dispensed);
         medicationRequest.setIsSufficientStock(inventory.getTotalQuantity() >= medicationRequest.getTotalQuantity());
 
-        // ✅ Nếu hết thuốc thì chuyển sang trạng thái "done"
+        // ✅ Cập nhật trạng thái confirmation
         if (medicationRequest.getTotalQuantity() == 0) {
             medicationRequest.setConfirmationStatus(ConfirmationStatus.done);
+        } else {
+            medicationRequest.setConfirmationStatus(ConfirmationStatus.in_progress);
         }
 
+        // Tạo schedule mới
         MedicationSchedule schedule = new MedicationSchedule();
         schedule.setRequest(medicationRequest);
         schedule.setStudent(medicationRequest.getStudent());
@@ -88,7 +92,7 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
 
         if (newQty <= 0) throw new RuntimeException("Dispensed quantity must be greater than 0");
 
-        // Trả lại số cũ
+        // Hoàn lại số cũ
         inventory.setTotalQuantity(inventory.getTotalQuantity() + oldQty);
         medicationRequest.setTotalQuantity(medicationRequest.getTotalQuantity() + oldQty);
 
@@ -103,11 +107,14 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
         medicationRequest.setTotalQuantity(medicationRequest.getTotalQuantity() - newQty);
         medicationRequest.setIsSufficientStock(inventory.getTotalQuantity() >= medicationRequest.getTotalQuantity());
 
-        // ✅ Nếu hết thuốc thì chuyển sang trạng thái "done"
+        // ✅ Cập nhật lại trạng thái confirmation
         if (medicationRequest.getTotalQuantity() == 0) {
             medicationRequest.setConfirmationStatus(ConfirmationStatus.done);
+        } else {
+            medicationRequest.setConfirmationStatus(ConfirmationStatus.in_progress);
         }
 
+        // Cập nhật schedule
         schedule.setRequest(medicationRequest);
         schedule.setStudent(medicationRequest.getStudent());
         schedule.setScheduledDate(request.getScheduledDate());
@@ -135,10 +142,11 @@ public class MedicationScheduleServiceImpl implements MedicationScheduleService 
             medicationRequest.setTotalQuantity(medicationRequest.getTotalQuantity() + qty);
             medicationRequest.setIsSufficientStock(inventory.getTotalQuantity() >= medicationRequest.getTotalQuantity());
 
-            // ✅ Nếu thuốc bị xoá mà totalQuantity > 0 thì về lại trạng thái confirmed
-            if (medicationRequest.getTotalQuantity() > 0 &&
-                    medicationRequest.getConfirmationStatus() == ConfirmationStatus.done) {
-                medicationRequest.setConfirmationStatus(ConfirmationStatus.confirmed);
+            // ✅ Cập nhật lại trạng thái nếu bị xoá
+            if (medicationRequest.getTotalQuantity() == 0) {
+                medicationRequest.setConfirmationStatus(ConfirmationStatus.done);
+            } else {
+                medicationRequest.setConfirmationStatus(ConfirmationStatus.in_progress);
             }
 
             inventoryRepository.save(inventory);
