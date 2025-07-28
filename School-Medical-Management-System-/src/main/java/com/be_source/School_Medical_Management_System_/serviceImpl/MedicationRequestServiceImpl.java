@@ -178,11 +178,26 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
     public void confirmRequest(Long id) {
         MedicationRequest request = medicationRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Medication request not found"));
+
+        Inventory inventory = request.getInventory();
+
+        // ✅ Kiểm tra tồn tại inventory
+        if (inventory == null) {
+            throw new RuntimeException("Cannot confirm: Don't have medical which is request need in inventory. Please add to inventory first.");
+        }
+
+        // ✅ Kiểm tra số lượng tồn kho có đủ hay không
+        if (!request.getIsSufficientStock()) {
+            throw new RuntimeException("Cannot confirm: Insufficient stock in inventory.");
+        }
+
         request.setConfirmationStatus(ConfirmationStatus.confirmed);
         request.setConfirmedAt(LocalDateTime.now());
         request.setUnconfirmReason(null);
+
         medicationRequestRepository.save(request);
     }
+
 
     @Override
     public void unconfirmRequest(Long id, String reason) {
