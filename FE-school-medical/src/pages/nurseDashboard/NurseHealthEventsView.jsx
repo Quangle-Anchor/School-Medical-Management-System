@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, UserPlus, CheckCircle, Clock, AlertCircle, Eye, Filter, X } from 'lucide-react';
-import { healthEventAPI } from '../api/healthEventApi';
-import { eventSignupAPI } from '../api/eventSignupApi';
-import { formatEventDate, getCategoryStyle, safeDisplay } from '../utils/dashboardUtils';
+import { healthEventAPI } from '../../api/healthEventApi';
+import { eventSignupAPI } from '../../api/eventSignupApi';
+import { formatEventDate, getCategoryStyle, safeDisplay } from '../../utils/dashboardUtils';
+import { useConfirmation, getConfirmationConfig, handleBulkConfirmation } from '../../utils/confirmationUtils';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import { useToast } from '../../hooks/useToast';
 
 const NurseHealthEventsView = ({ title, description }) => {
   const [healthEvents, setHealthEvents] = useState([]);
@@ -12,10 +15,42 @@ const NurseHealthEventsView = ({ title, description }) => {
   const [activeTab, setActiveTab] = useState('events'); // 'events' or 'signups'
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showSignupDetails, setShowSignupDetails] = useState(false);
-  const [processingSignup, setProcessingSignup] = useState(null);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending', 'confirmed', 'rejected'
+
+  // Toast hook
+  const { showSuccess, showError } = useToast();
+
+  // Confirmation hook for event signup confirmations
+  const signupConfirmation = useConfirmation(
+    async (signup) => {
+      await eventSignupAPI.updateStatus(signup.signupId, 'APPROVED');
+      
+      // Update the signup in the local state
+      setSignups(prev => prev.map(s => 
+        s.signupId === signup.signupId 
+          ? { ...s, status: 'APPROVED' }
+          : s
+      ));
+    },
+    showSuccess,
+    showError
+  );
+
+  // Confirmation hook for rejection
+  const rejectionConfirmation = useConfirmation(
+    async (signup) => {
+      await eventSignupAPI.updateStatus(signup.signupId, 'REJECTED');
+      
+      // Update the signup in the local state
+      setSignups(prev => prev.map(s => 
+        s.signupId === signup.signupId 
+          ? { ...s, status: 'REJECTED' }
+          : s
+      ));
+    },
+    showSuccess,
+    showError
+  );
 
   useEffect(() => {
     fetchHealthEvents();
@@ -32,7 +67,7 @@ const NurseHealthEventsView = ({ title, description }) => {
     } catch (error) {
       console.error('Error fetching health events:', error);
       setHealthEvents([]);
-      setError('Failed to load health events');
+      showError('Failed to load health events');
     } finally {
       setLoading(false);
     }
@@ -40,9 +75,7 @@ const NurseHealthEventsView = ({ title, description }) => {
 
   const fetchAllSignups = async () => {
     try {
-      setSignupsLoading(true);
-      setError('');
-      
+      setSignupsLoading(true);     
       // Get all events first, then fetch signups for each
       const events = healthEvents.length > 0 ? healthEvents : await healthEventAPI.getAllEvents();
       const allSignups = [];
@@ -67,80 +100,72 @@ const NurseHealthEventsView = ({ title, description }) => {
       setSignups(allSignups);
     } catch (error) {
       console.error('Error fetching signups:', error);
-      setError('Failed to load event signups');
+      showError('Failed to load event signups');
       setSignups([]);
     } finally {
       setSignupsLoading(false);
     }
   };
 
-  const handleSignupStatusUpdate = async (signupId, newStatus) => {
-    try {
-      setProcessingSignup(signupId);
-      setError('');
-      setSuccess('');
-      
-      await eventSignupAPI.updateStatus(signupId, newStatus);
-      
-      // Update the signup in the local state
-      setSignups(prev => prev.map(signup => 
-        signup.signupId === signupId 
-          ? { ...signup, status: newStatus }
-          : signup
-      ));
-      
-      setSuccess(`Signup confirmed successfully`);
-      setTimeout(() => setSuccess(''), 3000);
-      
-    } catch (error) {
-      console.error('Error updating signup status:', error);
-      setError('Failed to confirm signup. Please try again.');
-    } finally {
-      setProcessingSignup(null);
+  const handleSignupStatusUpdate = async (signup, newStatus) => {
+    if (newStatus === 'APPROVED') {
+      const config = getConfirmationConfig('event-signup', signup);
+      await signupConfirmation.handleConfirm(signup, {
+        getItemId: config.getItemId,
+        getItemName: config.getItemName,
+        successMessage: `Event signup confirmed successfully for ${signup.studentName || 'student'}`,
+        errorMessage: 'Failed to confirm signup',
+        invalidIdMessage: 'Cannot confirm signup: Invalid signup ID'
+      });
+    } else if (newStatus === 'REJECTED') {
+      const config = getConfirmationConfig('event-signup-reject', signup);
+      await rejectionConfirmation.handleConfirm(signup, {
+        getItemId: config.getItemId,
+        getItemName: config.getItemName,
+        successMessage: `Event signup rejected for ${signup.studentName || 'student'}`,
+        errorMessage: 'Failed to reject signup',
+        invalidIdMessage: 'Cannot reject signup: Invalid signup ID'
+      });
     }
   };
 
+  const handleConfirmSignupClick = (signup) => {
+    signupConfirmation.handleConfirmClick(signup);
+  };
+
+  const handleRejectSignupClick = (signup) => {
+    rejectionConfirmation.handleConfirmClick(signup);
+  };
+
   const handleConfirmAllPending = async () => {
-    try {
-      setError('');
-      setSuccess('');
-      
-      // Get all pending signups (filtered by selected event if any)
-      const pendingSignups = signups.filter(s => {
-        const isPending = s.status?.toUpperCase() === 'PENDING';
-        return selectedEvent ? (s.eventId === selectedEvent.eventId && isPending) : isPending;
-      });
-      
-      if (pendingSignups.length === 0) {
-        setError('No pending signups to confirm');
-        return;
-      }
-      
-      setSignupsLoading(true);
-      
-      // Update all pending signups to APPROVED
-      const updatePromises = pendingSignups.map(signup => 
-        eventSignupAPI.updateStatus(signup.signupId, 'APPROVED')
-      );
-      
-      await Promise.all(updatePromises);
-      
-      // Update local state
-      setSignups(prev => prev.map(signup => 
-        pendingSignups.some(pending => pending.signupId === signup.signupId)
-          ? { ...signup, status: 'APPROVED' }
-          : signup
-      ));
-      
-      setSuccess(`Successfully confirmed ${pendingSignups.length} signup(s)`);
-      setTimeout(() => setSuccess(''), 3000);
-      
-    } catch (error) {
-      console.error('Error confirming all pending signups:', error);
-      setError('Failed to confirm all signups. Please try again.');
-    } finally {
-      setSignupsLoading(false);
+    // Get all pending signups (filtered by selected event if any)
+    const pendingSignups = signups.filter(s => {
+      const isPending = s.status?.toUpperCase() === 'PENDING';
+      return selectedEvent ? (s.eventId === selectedEvent.eventId && isPending) : isPending;
+    });
+    
+    if (pendingSignups.length === 0) {
+      showError('No pending signups to confirm');
+      return;
     }
+
+    await handleBulkConfirmation(
+      pendingSignups,
+      async (signup) => {
+        await eventSignupAPI.updateStatus(signup.signupId, 'APPROVED');
+        // Update local state
+        setSignups(prev => prev.map(s => 
+          s.signupId === signup.signupId 
+            ? { ...s, status: 'APPROVED' }
+            : s
+        ));
+      },
+      {
+        confirmMessage: `Are you sure you want to confirm all ${pendingSignups.length} pending signup(s)${selectedEvent ? ` for ${selectedEvent.title || selectedEvent.eventName}` : ''}? This action cannot be undone.`,
+        showSuccessToast: showSuccess,
+        showErrorToast: showError
+      }
+    );
   };
 
   const getStatusBadge = (status) => {
@@ -237,21 +262,6 @@ const NurseHealthEventsView = ({ title, description }) => {
           {description || 'Manage health events and review parent signup requests'}
         </p>
       </div>
-
-      {/* Success/Error Messages */}
-      {success && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
-          <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-          <p className="text-green-800">{success}</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
-          <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
-          <p className="text-red-800">{error}</p>
-        </div>
-      )}
 
       {/* Tab Navigation */}
       <div className="bg-white rounded-lg shadow-sm border">
@@ -439,10 +449,10 @@ const NurseHealthEventsView = ({ title, description }) => {
                   {pendingCount > 0 && (
                     <button
                       onClick={handleConfirmAllPending}
-                      disabled={signupsLoading}
+                      disabled={signupsLoading || signupConfirmation.confirmingItems.size > 0}
                       className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {signupsLoading ? (
+                      {signupsLoading || signupConfirmation.confirmingItems.size > 0 ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       ) : (
                         <CheckCircle className="w-4 h-4 mr-2" />
@@ -582,11 +592,11 @@ const NurseHealthEventsView = ({ title, description }) => {
                               {(signup.status?.toUpperCase() === 'PENDING' || !signup.status) && (
                                 <>
                                   <button
-                                    onClick={() => handleSignupStatusUpdate(signup.signupId, 'APPROVED')}
-                                    disabled={processingSignup === signup.signupId}
+                                    onClick={() => handleConfirmSignupClick(signup)}
+                                    disabled={signupConfirmation.isConfirming(signup.signupId)}
                                     className="text-green-600 hover:text-green-900 inline-flex items-center disabled:opacity-50 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors border border-green-200"
                                   >
-                                    {processingSignup === signup.signupId ? (
+                                    {signupConfirmation.isConfirming(signup.signupId) ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
                                     ) : (
                                       <CheckCircle className="h-4 w-4 mr-1" />
@@ -594,11 +604,11 @@ const NurseHealthEventsView = ({ title, description }) => {
                                     Confirm
                                   </button>
                                   <button
-                                    onClick={() => handleSignupStatusUpdate(signup.signupId, 'REJECTED')}
-                                    disabled={processingSignup === signup.signupId}
+                                    onClick={() => handleRejectSignupClick(signup)}
+                                    disabled={rejectionConfirmation.isConfirming(signup.signupId)}
                                     className="text-red-600 hover:text-red-900 inline-flex items-center disabled:opacity-50 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors border border-red-200"
                                   >
-                                    {processingSignup === signup.signupId ? (
+                                    {rejectionConfirmation.isConfirming(signup.signupId) ? (
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1"></div>
                                     ) : (
                                       <X className="h-4 w-4 mr-1" />
@@ -650,6 +660,32 @@ const NurseHealthEventsView = ({ title, description }) => {
           )}
         </div>
       </div>
+
+      {/* Event Signup Confirmation Modal */}
+      <ConfirmationModal
+        show={signupConfirmation.showModal}
+        onConfirm={(signup) => handleSignupStatusUpdate(signup, 'APPROVED')}
+        onCancel={signupConfirmation.cancelConfirm}
+        item={signupConfirmation.itemToConfirm}
+        config={{
+          ...getConfirmationConfig('event-signup', signupConfirmation.itemToConfirm || {}),
+          type: 'event-signup'
+        }}
+        isConfirming={signupConfirmation.itemToConfirm ? signupConfirmation.isConfirming(signupConfirmation.itemToConfirm.signupId) : false}
+      />
+
+      {/* Event Signup Rejection Modal */}
+      <ConfirmationModal
+        show={rejectionConfirmation.showModal}
+        onConfirm={(signup) => handleSignupStatusUpdate(signup, 'REJECTED')}
+        onCancel={rejectionConfirmation.cancelConfirm}
+        item={rejectionConfirmation.itemToConfirm}
+        config={{
+          ...getConfirmationConfig('event-signup-reject', rejectionConfirmation.itemToConfirm || {}),
+          type: 'event-signup-reject'
+        }}
+        isConfirming={rejectionConfirmation.itemToConfirm ? rejectionConfirmation.isConfirming(rejectionConfirmation.itemToConfirm.signupId) : false}
+      />
     </div>
   );
 };

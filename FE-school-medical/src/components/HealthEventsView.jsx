@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, UserPlus } from 'lucide-react';
+import { Calendar, UserPlus, Users } from 'lucide-react';
 import { healthEventAPI } from '../api/healthEventApi';
 import { formatEventDate, getCategoryStyle, safeDisplay } from '../utils/dashboardUtils';
 import EventSignupForm from './EventSignupForm';
@@ -37,7 +37,7 @@ const HealthEventsView = ({ userRole = 'parent', title, description }) => {
     }
   };
 
-  const handleSignupClick = (event) => {
+  const handleSignupAllClick = (event) => {
     setSelectedEvent(event);
     setSignupFormOpen(true);
   };
@@ -186,13 +186,15 @@ const HealthEventsView = ({ userRole = 'parent', title, description }) => {
                               {statusText}
                             </span>
                             {userRole === 'parent' && !isPast && (
-                              <button
-                                onClick={() => handleSignupClick(event)}
-                                className="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
-                              >
-                                <UserPlus className="w-3 h-3 mr-1" />
-                                Sign Up
-                              </button>
+                              <div className="flex flex-col space-y-1">
+                                <button
+                                  onClick={() => handleSignupAllClick(event)}
+                                  className="inline-flex items-center px-3 py-1 bg-green-600 text-white text-xs rounded-md hover:bg-green-700 transition-colors"
+                                >
+                                  <Users className="w-3 h-3 mr-1" />
+                                  Sign Up All Children
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -218,6 +220,7 @@ const HealthEventsView = ({ userRole = 'parent', title, description }) => {
         onClose={handleCloseSignupForm}
         event={selectedEvent}
         onSignupSuccess={handleSignupSuccess}
+        signupAllMode={true}
       />
     </div>
   );

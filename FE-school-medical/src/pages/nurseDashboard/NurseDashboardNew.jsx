@@ -10,7 +10,7 @@ import TopNavbar from "../../components/Navbar";
 import DashboardCard from "../../components/DashboardCard";
 import ChartCard from "../../components/ChartCard";
 import HealthEventsView from "../../components/HealthEventsView";
-import NurseHealthEventsView from "../../components/NurseHealthEventsView";
+import NurseHealthEventsView from "./NurseHealthEventsView";
 import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard";
 import StudentsView from "./StudentsView";
 import NurseMedicationRequests from "./NurseMedicationRequests";
