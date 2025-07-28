@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { medicationAPI } from '../../api/medicationApi';
-import { CheckCircle, XCircle, Clock, Eye, User, Pill, Calendar, AlertCircle, FileText, Download, X, RefreshCw } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, User, Pill, Calendar, AlertCircle, FileText, Download, X, RefreshCw, Trash2 } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
 import { useConfirmation, getConfirmationConfig, handleBulkConfirmation } from '../../utils/confirmationUtils';
 import ConfirmationModal from '../../components/ConfirmationModal';
@@ -15,6 +15,7 @@ const NurseMedicationRequests = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [rejecting, setRejecting] = useState(null);
+  const [deleting, setDeleting] = useState(null);
   const [activeTab, setActiveTab] = useState('pending'); // 'pending', 'confirmed', or 'rejected'
   const { showSuccess, showError, showWarning } = useToast();
 
@@ -117,7 +118,7 @@ const NurseMedicationRequests = () => {
       getItemId: config.getItemId,
       getItemName: config.getItemName,
       successMessage: `Medication request has been confirmed successfully. Parent will be notified.`,
-      errorMessage: 'Failed to confirm medication request',
+      errorMessage: 'Cannot confirm: Don\'t have medical which is request need in inventory. Please add to inventory first.',
       invalidIdMessage: 'Cannot confirm request: Invalid request ID'
     });
   };
@@ -153,6 +154,27 @@ const NurseMedicationRequests = () => {
     setSelectedRequest(request);
     setRejectReason('');
     setShowRejectModal(true);
+  };
+
+  const handleDeleteRequest = async (request) => {
+    if (!window.confirm(`Are you sure you want to delete the medication request for ${request.studentName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setDeleting(request.requestId);
+      setError(null);
+      await medicationAPI.deleteMedicationRequest(request.requestId);
+      showSuccess('Medication request deleted successfully.');
+      await fetchPendingRequests(); // Refresh the current list
+      await fetchAllRequestsForCounts(); // Refresh counts
+    } catch (error) {
+      console.error('Error deleting medication request:', error);
+      setError('Failed to delete medication request. Please try again.');
+      showError('Failed to delete medication request. Please try again.');
+    } finally {
+      setDeleting(null);
+    }
   };
 
   const handleViewRequest = (request) => {
@@ -322,14 +344,6 @@ const NurseMedicationRequests = () => {
           <p className="text-gray-600">Review and confirm medication requests from parents</p>
         </div>
         <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-600">
-            {activeTab === 'pending' 
-              ? `${allRequests.filter(r => r.confirmationStatus === 'pending').length} pending requests`
-              : activeTab === 'confirmed'
-              ? `${allRequests.filter(r => r.confirmationStatus === 'confirmed').length} confirmed requests`
-              : `${allRequests.filter(r => r.confirmationStatus === 'unconfirmed').length} rejected requests`
-            }
-          </span>
           <button
             onClick={() => {
               fetchPendingRequests();
@@ -506,7 +520,7 @@ const NurseMedicationRequests = () => {
                             {request.studentName || 'Unknown Student'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            Code: {request.studentCode || request.studentId || 'N/A'}
+                            Code: {request.studentCode || 'N/A'}
                           </div>
                           <div className="text-sm text-gray-500">
                             Parent: {request.parentName || 'Unknown'}
@@ -521,6 +535,27 @@ const NurseMedicationRequests = () => {
                           <div className="text-sm text-gray-500">
                             {request.dosage} - {request.frequency}
                           </div>
+                          {request.totalQuantity && (
+                            <div className="text-sm text-gray-500">
+                              Total: {request.totalQuantity}
+                              {(request.morningQuantity || request.noonQuantity || request.eveningQuantity) && (
+                                <span className="ml-1">
+                                  ({[
+                                    request.morningQuantity && `M:${request.morningQuantity}`,
+                                    request.noonQuantity && `N:${request.noonQuantity}`,
+                                    request.eveningQuantity && `E:${request.eveningQuantity}`
+                                  ].filter(Boolean).join(', ')})
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {request.isSufficientStock !== undefined && (
+                            <div className={`text-xs mt-1 ${
+                              request.isSufficientStock ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {request.isSufficientStock ? '✅ Stock Available' : '⚠️ Low Stock'}
+                            </div>
+                          )}
                           {request.prescriptionFile && (
                             <div className="text-sm text-blue-600 flex items-center mt-1">
                               <FileText className="w-3 h-3 mr-1" />
@@ -582,6 +617,34 @@ const NurseMedicationRequests = () => {
                               </button>
                             </>
                           )}
+                          {request.confirmationStatus === 'confirmed' && (
+                            <button
+                              onClick={() => handleDeleteRequest(request)}
+                              disabled={deleting === request.requestId}
+                              className="text-red-600 hover:text-red-900 inline-flex items-center disabled:opacity-50"
+                            >
+                              {deleting === request.requestId ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1"></div>
+                              ) : (
+                                <Trash2 className="h-4 w-4 mr-1" />
+                              )}
+                              Delete
+                            </button>
+                          )}
+                          {request.confirmationStatus === 'unconfirmed' && (
+                            <button
+                              onClick={() => handleConfirmRequestClick(request)}
+                              disabled={medicationConfirmation.isConfirming(request.requestId)}
+                              className="text-green-600 hover:text-green-900 inline-flex items-center disabled:opacity-50"
+                            >
+                              {medicationConfirmation.isConfirming(request.requestId) ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
+                              ) : (
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                              )}
+                              Confirm
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -622,7 +685,7 @@ const NurseMedicationRequests = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Student Code:</span>
-                    <span className="text-gray-900">{selectedRequest.studentCode || selectedRequest.studentId || 'N/A'}</span>
+                    <span className="text-gray-900 font-mono">{selectedRequest.studentCode || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Class:</span>
@@ -659,11 +722,52 @@ const NurseMedicationRequests = () => {
                     <span className="text-gray-900">{selectedRequest.frequency}</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Total Quantity:</span>
+                    <span className="text-gray-900">{selectedRequest.totalQuantity || 'N/A'}</span>
+                  </div>
+                  {(selectedRequest.morningQuantity || selectedRequest.noonQuantity || selectedRequest.eveningQuantity) && (
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <span className="font-medium text-gray-600 block mb-2">Daily Distribution:</span>
+                      <div className="space-y-1 text-sm">
+                        {selectedRequest.morningQuantity && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Morning:</span>
+                            <span className="text-gray-900">{selectedRequest.morningQuantity}</span>
+                          </div>
+                        )}
+                        {selectedRequest.noonQuantity && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Noon:</span>
+                            <span className="text-gray-900">{selectedRequest.noonQuantity}</span>
+                          </div>
+                        )}
+                        {selectedRequest.eveningQuantity && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Evening:</span>
+                            <span className="text-gray-900">{selectedRequest.eveningQuantity}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Priority:</span>
                     <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getPriorityLevel(selectedRequest.createdAt).color}`}>
                       {getPriorityLevel(selectedRequest.createdAt).text}
                     </span>
                   </div>
+                  {selectedRequest.isSufficientStock !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Stock Status:</span>
+                      <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
+                        selectedRequest.isSufficientStock 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {selectedRequest.isSufficientStock ? '✅ Sufficient Stock' : '⚠️ Insufficient Stock'}
+                      </span>
+                    </div>
+                  )}
                   {selectedRequest.prescriptionFile && (
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Prescription:</span>
@@ -723,6 +827,18 @@ const NurseMedicationRequests = () => {
                 Close
               </button>
               {selectedRequest.confirmationStatus === 'pending' && (
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    handleConfirmRequestClick(selectedRequest);
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Confirm Request
+                </button>
+              )}
+              {selectedRequest.confirmationStatus === 'unconfirmed' && (
                 <button
                   onClick={() => {
                     setShowDetailModal(false);

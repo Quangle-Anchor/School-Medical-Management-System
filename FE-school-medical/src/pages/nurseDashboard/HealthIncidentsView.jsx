@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { healthIncidentAPI } from '../../api/healthIncidentApi';
 import { studentAPI } from '../../api/studentsApi';
 import { Plus, Eye, Edit, Trash2, Calendar, AlertTriangle, User, Search, Filter, FileText, X } from 'lucide-react';
-import HealthIncidentForm from '../../components/HealthIncidentForm';
+import HealthIncidentForm from './HealthIncidentForm';
 import { useToast } from '../../hooks/useToast';
 
 const HealthIncidentsView = ({ isParentView = false, students = [], parentLoading = false }) => {
@@ -46,7 +46,6 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
             studentDetailsMap.set(studentId, studentDetails);
           }
         } catch (error) {
-          // Continue with other students even if one fails
         }
       }
       

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { healthIncidentAPI } from '../api/healthIncidentApi';
-import { studentAPI } from '../api/studentsApi';
+import { healthIncidentAPI } from '../../api/healthIncidentApi';
+import { studentAPI } from '../../api/studentsApi';
 import { X, AlertTriangle, Calendar, User, FileText, Save, Search, ChevronDown } from 'lucide-react';
-import { validateIncidentDate, formatDateForInput } from '../utils/dateUtils';
-import { useToast } from '../hooks/useToast';
+import { validateIncidentDate, formatDateForInput } from '../../utils/dateUtils';
+import { useToast } from '../../hooks/useToast';
 
 const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident = null, isEditing = false }) => {
   const [formData, setFormData] = useState({
@@ -115,17 +115,17 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
         return;
       }
       
-      console.log('Fetching students...');
-        // Use getMyStudents which handles role-based access properly
-      const response = await studentAPI.getMyStudents();
+      console.log('Fetching confirmed students...');
+      // Use getConfirmedStudents to get only confirmed students
+      const response = await studentAPI.getConfirmedStudents();
       
-      // getMyStudents returns an array directly, not a paginated response
+      // getConfirmedStudents returns an array directly
       const studentsData = Array.isArray(response) ? response : [];
       
       setStudents(studentsData);
       
       if (studentsData.length === 0) {
-        setError('No students found. Please make sure students are registered in the system.');
+        setError('No confirmed students found. Only confirmed students can have health incidents recorded.');
       }
     } catch (error) {
       
@@ -137,13 +137,13 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
         if (status === 401) {
           setError('Session expired. Please login again.');
         } else if (status === 403) {
-          setError('Access denied. You may not have permission to view the student list, but you can still enter a student code manually.');
+          setError('Access denied. You may not have permission to view confirmed students, but you can still enter a student code manually.');
         } else if (status === 404) {
           setError('Student data endpoint not found. Please contact support.');
         } else if (status >= 500) {
           setError('Server error occurred. Please try again later.');
         } else {
-          setError(`Failed to load students (Error ${status}). You can still enter a student code manually.`);
+          setError(`Failed to load confirmed students (Error ${status}). You can still enter a student code manually.`);
         }
       } else if (error.request) {
         // Request was made but no response received
@@ -354,6 +354,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Select Student <span className="text-red-500">*</span>
+                <span className="ml-2 text-xs text-green-600 font-normal">(Confirmed students only)</span>
               </label>
               {loadingStudents ? (
                 <div className="flex items-center py-2">
@@ -372,7 +373,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                           value={searchTerm}
                           onChange={handleSearchChange}
                           onFocus={() => setIsDropdownOpen(true)}
-                          placeholder="Search students by name, code, or class..."
+                          placeholder="Search confirmed students by name, code, or class..."
                           className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required={!selectedStudent}
                         />
@@ -389,10 +390,11 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                       {selectedStudent && (
                         <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
                           <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium text-blue-900">{selectedStudent.fullName}</div>
+                            <div className="flex-1">
+                              <div className="flex items-center">
+                                <div className="font-medium text-blue-900">{selectedStudent.fullName}</div>                              </div>
                               <div className="text-sm text-blue-700">
-                                Code: {selectedStudent.studentCode || selectedStudent.studentId} • Class: {selectedStudent.className || 'No Class'}
+                                Code: {selectedStudent.studentCode || 'N/A'} • Class: {selectedStudent.className || 'No Class'}
                               </div>
                             </div>
                             <button
@@ -424,15 +426,21 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                                 onClick={() => handleStudentSelect(student)}
                                 className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-blue-50"
                               >
-                                <div className="font-medium text-gray-900">{student.fullName}</div>
-                                <div className="text-sm text-gray-600">
-                                  ID: {student.studentId} • Class: {student.className || 'No Class'}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <div className="font-medium text-gray-900">{student.fullName}</div>
+                                    <div className="text-sm text-gray-600">
+                                      ID: {student.studentId} • Class: {student.className || 'No Class'}
+                                    </div>
+                                  </div>
+                                  <div className="text-green-600 ml-2">
+                                  </div>
                                 </div>
                               </button>
                             ))
                           ) : (
                             <div className="px-4 py-3 text-gray-500 text-center">
-                              {searchTerm ? 'No students found matching your search' : 'No students available'}
+                              {searchTerm ? 'No confirmed students found matching your search' : 'No confirmed students available'}
                             </div>
                           )}
                         </div>
