@@ -42,29 +42,6 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
     }
 
     fetchMyRequests();
-
-    // Only refresh when the window regains focus
-    const handleFocus = () => {
-      fetchMyRequests();
-    };
-
-    window.addEventListener("focus", handleFocus);
-
-    // Listen for custom events from other components
-    const handleMedicationUpdate = () => {
-      fetchMyRequests();
-    };
-
-    window.addEventListener("medicationRequestUpdated", handleMedicationUpdate);
-
-    // Cleanup event listener on component unmount
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener(
-        "medicationRequestUpdated",
-        handleMedicationUpdate
-      );
-    };
   }, []);
 
   const handleViewPrescription = async (prescriptionFileUrl) => {
