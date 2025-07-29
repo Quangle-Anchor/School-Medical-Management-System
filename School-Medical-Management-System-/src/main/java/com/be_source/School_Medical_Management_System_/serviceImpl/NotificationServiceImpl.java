@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -41,7 +42,7 @@ public class NotificationServiceImpl implements NotificationService {
             noti.setContent(request.getContent());
             noti.setCreatedBy(createdBy);
             noti.setUser(parent);
-            noti.setCreatedAt(ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            noti.setCreatedAt(LocalDateTime.now());
             noti.setReadStatus(false);
             noti.setEmailSent(false);
             noti.setNotificationType("CUSTOM_NOTIFICATION");
@@ -143,7 +144,7 @@ public class NotificationServiceImpl implements NotificationService {
             noti.setContent(request.getContent());
             noti.setCreatedBy(principal);
             noti.setUser(nurse);
-            noti.setCreatedAt(ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            noti.setCreatedAt(LocalDateTime.now());
             noti.setReadStatus(false);
             noti.setEmailSent(false);
             noti.setNotificationType("INTERNAL_ANNOUNCEMENT");
