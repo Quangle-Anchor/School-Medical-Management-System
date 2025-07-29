@@ -261,6 +261,38 @@ export const studentAPI = {
       return []; // Return empty array on error
     }
   },
+
+  // Confirm student (nurse only)
+  confirmStudent: async (studentId) => {
+    try {
+      const response = await axiosInstance.put(`/api/students/${studentId}/confirm`);
+      return response.data;
+    } catch (error) {
+      console.error('Error confirming student:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
+  },
+
+  // Reject student (nurse only)
+  rejectStudent: async (studentId, reason) => {
+    try {
+      const response = await axiosInstance.put(`/api/students/${studentId}/reject`, { reason });
+      return response.data;
+    } catch (error) {
+      console.error('Error rejecting student:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
+  },
 };
 
 // Search student by code (for Health Lookup)

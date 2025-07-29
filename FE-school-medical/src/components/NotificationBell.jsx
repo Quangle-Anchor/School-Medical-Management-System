@@ -5,23 +5,60 @@ import { Transition } from "@headlessui/react";
 import { useNavigate } from "react-router-dom";
 import notificationApi from "../api/notificationApi";
 
+function groupNotifications(notifications) {
+  const now = new Date();
+  const today = now.toDateString();
+  const yesterday = new Date(now.getTime() - 86400000).toDateString();
+  const groups = { new: [], today: [], earlier: [] };
+
+  notifications.forEach((n) => {
+    const d = new Date(n.createdAt);
+    const notificationDate = d.toDateString();
+
+    // Áp dụng logic giống nhau cho tất cả loại thông báo
+    if (notificationDate === today) {
+      // Thông báo trong vòng 6 tiếng được coi là "new"
+      const timeDiff = (now - d) / 1000; // seconds
+      if (timeDiff < 3600 * 6) {
+        // 6 hours
+        groups.new.push(n);
+      } else {
+        groups.today.push(n);
+      }
+    } else if (notificationDate === yesterday) {
+      groups.earlier.push(n);
+    } else if (d < now) {
+      groups.earlier.push(n);
+    }
+  });
+
+  return groups;
+}
+
+// Sửa lại hàm formatTime để xử lý đồng nhất tất cả loại thông báo
 function formatTime(dateString) {
   if (!dateString) return "";
 
   try {
-    const now = new Date();
+    // Parse date và convert về Vietnam timezone
     const date = new Date(dateString);
+    const now = new Date();
+
+    // Đảm bảo cả hai đều ở cùng timezone
+    const vietnamNow = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+    );
+    const vietnamDate = new Date(
+      date.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+    );
 
     // Check if date is valid
-    if (isNaN(date.getTime())) return "";
+    if (isNaN(vietnamDate.getTime())) return "";
 
-    const diff = Math.floor((now - date) / 1000); // seconds
+    const diff = Math.floor((vietnamNow - vietnamDate) / 1000); // seconds
 
-    // Just now
-    if (diff < 30) return "Just now";
-
-    // Seconds
-    if (diff < 60) return `${diff} seconds ago`;
+    // Áp dụng cùng threshold cho tất cả loại thông báo
+    if (diff < 300) return "Just now";  
 
     // Minutes
     const minutes = Math.floor(diff / 60);
@@ -36,11 +73,11 @@ function formatTime(dateString) {
     if (days === 1) return "Yesterday";
     if (days < 7) return `${days} days ago`;
 
-    // Date format
-    return date.toLocaleDateString("en-US", {
+    // Date format cho trường hợp cũ hơn - áp dụng cho tất cả
+    return vietnamDate.toLocaleDateString("vi-VN", {
       year: "numeric",
-      month: "short",
-      day: "numeric",
+      month: "2-digit",
+      day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -50,27 +87,23 @@ function formatTime(dateString) {
   }
 }
 
-function groupNotifications(notifications) {
-  const now = new Date();
-  const today = now.toDateString();
-  const yesterday = new Date(now.getTime() - 86400000).toDateString();
-  const groups = { new: [], today: [], earlier: [] };
-  notifications.forEach((n) => {
-    const d = new Date(n.createdAt);
-    if (d.toDateString() === today) {
-      if ((now - d) / 1000 < 3600 * 6) {
-        groups.new.push(n);
-      } else {
-        groups.today.push(n);
-      }
-    } else if (d.toDateString() === yesterday) {
-      groups.earlier.push(n);
-    } else if (d < now) {
-      groups.earlier.push(n);
-    }
-  });
-  return groups;
-}
+// Thêm function để kiểm tra loại thông báo và xử lý đồng nhất
+const getNotificationIcon = (notificationType) => {
+  switch (notificationType) {
+    case "HEALTH_INCIDENT":
+      return "⚠️";
+    case "HEALTH_EVENT":
+      return "📅";
+    case "MEDICATION_REQUEST":
+      return "💊";
+    case "REMINDER":
+      return "⏰";
+    case "ALERT":
+      return "🚨";
+    default:
+      return "🔔";
+  }
+};
 
 const NotificationBell = ({ user, show, setShow }) => {
   // Nếu truyền prop show/setShow thì dùng, nếu không thì fallback về state nội bộ (giúp tương thích)
@@ -95,23 +128,11 @@ const NotificationBell = ({ user, show, setShow }) => {
         let res;
         // Changed to use getMy for Principal instead of getAll
         if (["Parent", "Nurse", "Principal"].includes(user.role)) {
-          console.log(
-            `Fetching notifications with getMy for role: ${user.role}`
-          );
           res = await notificationApi.getMy(0, 20);
         } else {
-          console.log(
-            "Fetching notifications with getAll for role:",
-            user.role
-          );
           res = await notificationApi.getAll(0, 20);
         }
         const notifications = res.data.content || [];
-        console.log("Fetched notifications:", notifications);
-        console.log(
-          "Unread notifications:",
-          notifications.filter((n) => !n.readStatus)
-        );
         setNotifications(notifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -141,7 +162,6 @@ const NotificationBell = ({ user, show, setShow }) => {
       setNotifications((prev) =>
         prev.map((n) => {
           if (n.notificationId === id) {
-            console.log("Marking as read:", n);
             return { ...n, readStatus: true };
           }
           return n;
@@ -337,7 +357,7 @@ const NotificationBell = ({ user, show, setShow }) => {
                         onClick={() => handleViewDetail(n)}
                       >
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
-                          <span>🔔</span>
+                          <span>{getNotificationIcon(n.notificationType)}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-blue-900 truncate">
@@ -376,7 +396,7 @@ const NotificationBell = ({ user, show, setShow }) => {
                         onClick={() => handleViewDetail(n)}
                       >
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
-                          <span>🔔</span>
+                          <span>{getNotificationIcon(n.notificationType)}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-blue-900 truncate">
@@ -415,7 +435,7 @@ const NotificationBell = ({ user, show, setShow }) => {
                         onClick={() => handleViewDetail(n)}
                       >
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
-                          <span>🔔</span>
+                          <span>{getNotificationIcon(n.notificationType)}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-blue-900 truncate">
