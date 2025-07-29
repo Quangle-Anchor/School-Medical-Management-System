@@ -308,8 +308,22 @@ export const searchStudentByCode = async (studentCode) => {
   }
 };
 
+// Thêm function search student by student code
+export const searchStudentByStudentCode = async (studentCode) => {
+  try {
+    const response = await axiosInstance.get(`/api/students/search/code/${studentCode}`);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      throw new Error('Student not found with this student code');
+    }
+    throw error;
+  }
+};
+
 // Export default API object
 export default {
   students: studentAPI,
   searchStudentByCode,
+  searchStudentByStudentCode, // Thêm function mới
 };

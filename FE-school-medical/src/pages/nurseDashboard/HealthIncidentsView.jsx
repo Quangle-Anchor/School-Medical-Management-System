@@ -271,11 +271,11 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
   // Filter incidents based on search term and date
   const filteredIncidents = incidents.filter(incident => {
     const studentName = incident.studentName || '';
-    const studentId = String(incident.studentId || '');
+    const studentCode = String(incident.studentCode || incident.student?.studentCode || '');
     const description = incident.description || '';
     
     const matchesSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         studentCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          description.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesDate = dateFilter === '' || incident.incidentDate === dateFilter;
@@ -384,7 +384,7 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
                 }`}
               >
                 <div className="font-medium">{student.fullName}</div>
-                <div className="text-sm text-gray-600">ID: {student.studentId}</div>
+                <div className="text-sm text-gray-600">Code: {student.studentCode}</div>
               </button>
             ))}
           </div>
@@ -396,7 +396,7 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
           <h3 className="text-lg font-medium mb-2">Health Incidents for {selectedStudent.fullName}</h3>
           <div className="text-sm text-gray-600">
-            Student ID: {selectedStudent.studentId} | Class: {selectedStudent.className || 'N/A'}
+            Student Code: {selectedStudent.studentCode} | Class: {selectedStudent.className || 'N/A'}
           </div>
         </div>
       )}
@@ -413,7 +413,7 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <input
                     type="text"
-                    placeholder="Search by student name, ID, or description..."
+                    placeholder="Search by student name, code, or description..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -518,7 +518,7 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
                             {incident.studentName || 'Unknown Student'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            ID: {incident.studentId || 'N/A'}
+                            Code: {incident.studentCode || incident.student?.studentCode || 'N/A'}
                             {incident.className && (
                               <span> • Class: {incident.className}</span>
                             )}
@@ -613,8 +613,8 @@ const HealthIncidentsView = ({ isParentView = false, students = [], parentLoadin
                     <p className="text-sm text-gray-900">{selectedIncident.studentName || 'Unknown Student'}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-600">Student ID:</span>
-                    <p className="text-sm text-gray-900">{selectedIncident.studentId || 'N/A'}</p>
+                    <span className="text-sm font-medium text-gray-600">Student Code:</span>
+                    <p className="text-sm text-gray-900">{selectedIncident.studentCode || selectedIncident.student?.studentCode || 'N/A'}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-600">Class:</span>

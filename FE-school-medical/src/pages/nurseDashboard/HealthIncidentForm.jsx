@@ -383,7 +383,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                           value={searchTerm}
                           onChange={handleSearchChange}
                           onFocus={() => setIsDropdownOpen(true)}
-                          placeholder="Search confirmed students by name, code, or class..."
+                          placeholder="Search confirmed students by name, student code, or class..."
                           className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required={!selectedStudent}
                         />
@@ -440,7 +440,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                                   <div className="flex-1">
                                     <div className="font-medium text-gray-900">{student.fullName}</div>
                                     <div className="text-sm text-gray-600">
-                                      ID: {student.studentId} • Class: {student.className || 'No Class'}
+                                      Code: {student.studentCode} • Class: {student.className || 'No Class'}
                                     </div>
                                   </div>
                                   <div className="text-green-600 ml-2">
@@ -479,7 +479,7 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
                                'Student Name Not Available'}
                             </strong>
                             <br />
-                            Student ID: {editingIncident.student?.studentId || editingIncident.studentId}
+                            Student Code: {editingIncident.student?.studentCode || editingIncident.studentCode}
                             {editingIncident.student?.className && (
                               <>
                                 <br />
