@@ -1,5 +1,6 @@
 package com.be_source.School_Medical_Management_System_.response;
 
+import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -19,6 +20,6 @@ public class StudentResponse {
     private Integer weightKg;
     private String healthStatus;
     private LocalDateTime updatedAt;
-    private Boolean isConfirm; // ✅ Thêm trường này
+    private ConfirmationStatus confirmationStatus;
     private List<HealthInfoResponse> healthInfoList;
 }
