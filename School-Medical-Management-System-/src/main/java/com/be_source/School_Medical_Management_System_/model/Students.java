@@ -1,5 +1,6 @@
 package com.be_source.School_Medical_Management_System_.model;
 
+import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -52,7 +53,7 @@ public class Students {
     @JsonManagedReference
     private List<Health_Info> healthInfoList;
 
-    @Column(nullable = false)
-    @ColumnDefault("false")
-    private Boolean isConfirm = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "confirmation_status", nullable = false)
+    private ConfirmationStatus confirmationStatus = ConfirmationStatus.pending;
 }

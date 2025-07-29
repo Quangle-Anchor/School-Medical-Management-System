@@ -1,12 +1,13 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
+import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
 import com.be_source.School_Medical_Management_System_.model.Notification;
+import com.be_source.School_Medical_Management_System_.model.Students;
+import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.repository.NotificationRepository;
+import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
 import com.be_source.School_Medical_Management_System_.response.HealthInfoResponse;
 import com.be_source.School_Medical_Management_System_.response.StudentResponse;
-import com.be_source.School_Medical_Management_System_.model.Students;
-import com.be_source.School_Medical_Management_System_.repository.StudentRepository;
-import com.be_source.School_Medical_Management_System_.model.User;
 import com.be_source.School_Medical_Management_System_.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -22,7 +23,6 @@ public class StudentServiceImpl implements StudentService {
 
     @Autowired
     private NotificationRepository notificationRepository;
-
 
     @Autowired
     private StudentRepository studentRepository;
@@ -56,7 +56,7 @@ public class StudentServiceImpl implements StudentService {
         Students student = toEntity(dto);
         student.setStudentId(null);
         student.setParent(userUtilService.getCurrentUser());
-        student.setIsConfirm(false); // mặc định là false khi tạo
+        student.setConfirmationStatus(ConfirmationStatus.pending); // mặc định là pending
         return toDto(studentRepository.save(student));
     }
 
@@ -74,10 +74,8 @@ public class StudentServiceImpl implements StudentService {
         existing.setWeightKg(dto.getWeightKg());
         existing.setHealthStatus(dto.getHealthStatus());
 
-        // Có thể cho phép cập nhật lại confirm nếu cần
-        if (dto.getIsConfirm() != null) {
-            existing.setIsConfirm(dto.getIsConfirm());
-        }
+        // Reset trạng thái xác nhận khi có cập nhật
+        existing.setConfirmationStatus(ConfirmationStatus.pending);
 
         return toDto(studentRepository.save(existing));
     }
@@ -91,8 +89,14 @@ public class StudentServiceImpl implements StudentService {
     public StudentResponse getStudentByCode(String studentCode) {
         Students student = studentRepository.findByStudentCode(studentCode)
                 .orElseThrow(() -> new NoSuchElementException("Student not found with code: " + studentCode));
+
+        if (student.getConfirmationStatus() != ConfirmationStatus.confirmed) {
+            throw new IllegalStateException("Student has not been confirmed and cannot be used");
+        }
+
         return toDto(student);
     }
+
 
     @Override
     public List<StudentResponse> searchStudentsByCode(String keyword) {
@@ -106,18 +110,18 @@ public class StudentServiceImpl implements StudentService {
         Students student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NoSuchElementException("Student not found"));
 
-        student.setIsConfirm(true);
+        student.setConfirmationStatus(ConfirmationStatus.confirmed);
         Students savedStudent = studentRepository.save(student);
 
-        // Gửi thông báo xác nhận thông tin học sinh
-        User currentUser = userUtilService.getCurrentUser(); // Người xác nhận (y tá)
-        User parent = student.getParent();                   // Phụ huynh của học sinh
+        // Gửi thông báo xác nhận
+        User currentUser = userUtilService.getCurrentUser();
+        User parent = student.getParent();
 
         Notification notification = new Notification();
         notification.setTitle("Xác nhận thông tin học sinh");
         notification.setContent("Thông tin của học sinh '" + student.getFullName() + "' đã được xác nhận bởi y tế nhà trường.");
         notification.setCreatedBy(currentUser);
-        notification.setUser(parent); // Gửi thông báo cho phụ huynh
+        notification.setUser(parent);
         notification.setNotificationType("STUDENT_CONFIRMED");
         notification.setCreatedAt(ZonedDateTime.now());
         notification.setReadStatus(false);
@@ -128,16 +132,17 @@ public class StudentServiceImpl implements StudentService {
         return toDto(savedStudent);
     }
 
-
     @Override
     public void rejectStudentByNurse(Long studentId, String reason) {
         Students student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NoSuchElementException("Student not found"));
 
-        User currentUser = userUtilService.getCurrentUser(); // Người thực hiện (nurse)
-        User parent = student.getParent(); // Phụ huynh
+        student.setConfirmationStatus(ConfirmationStatus.unconfirmed);
+        studentRepository.save(student);
 
-        // Gửi notification cho phụ huynh
+        User currentUser = userUtilService.getCurrentUser();
+        User parent = student.getParent();
+
         Notification notification = new Notification();
         notification.setTitle("Thông tin học sinh chưa được chấp nhận");
         notification.setContent("Thông tin của học sinh '" + student.getFullName() +
@@ -152,7 +157,6 @@ public class StudentServiceImpl implements StudentService {
 
         notificationRepository.save(notification);
     }
-
 
     // ============================ Mapping ============================
 
@@ -169,7 +173,7 @@ public class StudentServiceImpl implements StudentService {
         dto.setWeightKg(s.getWeightKg());
         dto.setHealthStatus(s.getHealthStatus());
         dto.setUpdatedAt(s.getUpdatedAt());
-        dto.setIsConfirm(s.getIsConfirm());
+        dto.setConfirmationStatus(s.getConfirmationStatus());
 
         if (s.getHealthInfoList() != null) {
             List<HealthInfoResponse> healthDtos = s.getHealthInfoList().stream().map(hi -> {
@@ -198,8 +202,7 @@ public class StudentServiceImpl implements StudentService {
         s.setHeightCm(dto.getHeightCm());
         s.setWeightKg(dto.getWeightKg());
         s.setHealthStatus(dto.getHealthStatus());
-        s.setIsConfirm(dto.getIsConfirm() != null ? dto.getIsConfirm() : false);
+        s.setConfirmationStatus(dto.getConfirmationStatus() != null ? dto.getConfirmationStatus() : ConfirmationStatus.pending);
         return s;
     }
 }
-

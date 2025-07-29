@@ -1,5 +1,6 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
+import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
 import com.be_source.School_Medical_Management_System_.enums.SignupStatus;
 import com.be_source.School_Medical_Management_System_.request.EventSignupRequest;
 import com.be_source.School_Medical_Management_System_.response.EventSignupResponse;
@@ -41,7 +42,7 @@ public class EventSignupServiceImpl implements EventSignupService {
         }
 
         // ✅ Kiểm tra trạng thái xác nhận
-        if (Boolean.FALSE.equals(student.getIsConfirm())) {
+        if (student.getConfirmationStatus() != ConfirmationStatus.confirmed) {
             throw new RuntimeException("Student information is not confirmed by school. Please update before registering.");
         }
 

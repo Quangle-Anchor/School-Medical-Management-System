@@ -1,5 +1,6 @@
 package com.be_source.School_Medical_Management_System_.serviceImpl;
 
+import com.be_source.School_Medical_Management_System_.enums.ConfirmationStatus;
 import com.be_source.School_Medical_Management_System_.request.HealthIncidentRequest;
 import com.be_source.School_Medical_Management_System_.response.HealthIncidentResponse;
 import com.be_source.School_Medical_Management_System_.model.HealthIncident;
@@ -50,7 +51,7 @@ public class HealthIncidentServiceImpl implements HealthIncidentService {
         Students student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        if (Boolean.FALSE.equals(student.getIsConfirm())) {
+        if (student.getConfirmationStatus() != ConfirmationStatus.confirmed) {
             throw new RuntimeException("Student information has not been confirmed by the school. Cannot report health incident.");
         }
 
