@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { medicationAPI } from '../../api/medicationApi';
-import { CheckCircle, XCircle, Clock, Eye, User, Pill, Calendar, AlertCircle, FileText, Download, X, RefreshCw, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, User, Pill, Calendar, AlertCircle, FileText, Download, X, RefreshCw, Trash2, Search, Filter } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
 import { useConfirmation, getConfirmationConfig, handleBulkConfirmation } from '../../utils/confirmationUtils';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import Pagination from '../../components/Pagination';
 
 const NurseMedicationRequests = () => {
   const [requests, setRequests] = useState([]);
-  const [allRequests, setAllRequests] = useState([]); // For tab counts
+  const [allRequests, setAllRequests] = useState([]); // For tab counts and filtering
+  const [filteredRequests, setFilteredRequests] = useState([]); // Paginated filtered results
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -16,15 +18,24 @@ const NurseMedicationRequests = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [rejecting, setRejecting] = useState(null);
   const [deleting, setDeleting] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending'); // 'pending', 'confirmed', or 'rejected'
+  
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending', 'confirmed', 'unconfirmed'
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  
   const { showSuccess, showError, showWarning } = useToast();
 
   // Confirmation hook for medication requests
   const medicationConfirmation = useConfirmation(
     async (request) => {
       await medicationAPI.confirmMedicationRequest(request.requestId);
-      await fetchPendingRequests(); // Refresh the current list
-      await fetchAllRequestsForCounts(); // Refresh counts
+      await fetchAllRequests(); // Refresh the current list
     },
     showSuccess,
     showError
@@ -46,21 +57,16 @@ const NurseMedicationRequests = () => {
       return;
     }
     
-    fetchPendingRequests();
-
-    // Also fetch all requests for tab counts
-    fetchAllRequestsForCounts();
+    fetchAllRequests();
 
     // Set up automatic refresh every 2 minutes for nurse dashboard
     const refreshInterval = setInterval(() => {
-      fetchPendingRequests();
-      fetchAllRequestsForCounts();
+      fetchAllRequests();
     }, 120000);
 
     // Also refresh when the window regains focus
     const handleFocus = () => {
-      fetchPendingRequests();
-      fetchAllRequestsForCounts();
+      fetchAllRequests();
     };
 
     window.addEventListener('focus', handleFocus);
@@ -70,8 +76,12 @@ const NurseMedicationRequests = () => {
       clearInterval(refreshInterval);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [activeTab]); // Add activeTab as dependency
-  const fetchPendingRequests = async () => {
+  }, []);
+
+  useEffect(() => {
+    applyFiltersAndPagination();
+  }, [allRequests, filterStatus, searchTerm, currentPage, pageSize]);
+  const fetchAllRequests = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -83,11 +93,9 @@ const NurseMedicationRequests = () => {
         return;
       }
       
-      // Fetch requests based on active tab
-      const response = activeTab === 'pending' 
-        ? await medicationAPI.getPendingRequests()
-        : await medicationAPI.getAllRequests();
-      setRequests(response);
+      // Fetch all requests for filtering and pagination
+      const response = await medicationAPI.getAllRequests();
+      setAllRequests(response);
     } catch (err) {
       if (err.message.includes('401') || err.message.includes('403')) {
         setError('Access denied. Only nurses can view medication requests.');
@@ -99,17 +107,55 @@ const NurseMedicationRequests = () => {
     }
   };
 
-  const fetchAllRequestsForCounts = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      const response = await medicationAPI.getAllRequests();
-      setAllRequests(response);
-    } catch (err) {
-      // Silently fail for counts
-      console.error('Failed to fetch all requests for counts:', err);
+  const applyFiltersAndPagination = () => {
+    let filtered = [...allRequests];
+
+    // Apply status filter
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(request => request.confirmationStatus === filterStatus);
     }
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(request =>
+        request.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.studentCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.parentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.medicationName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Calculate pagination
+    const totalFilteredElements = filtered.length;
+    const totalFilteredPages = Math.ceil(totalFilteredElements / pageSize);
+    
+    // Reset to first page if current page is beyond total pages
+    const safePage = currentPage >= totalFilteredPages ? 0 : currentPage;
+    if (safePage !== currentPage) {
+      setCurrentPage(safePage);
+      return; // Let the effect run again with the new page
+    }
+
+    // Apply pagination
+    const startIndex = safePage * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedRequests = filtered.slice(startIndex, endIndex);
+
+    // Update state
+    setFilteredRequests(paginatedRequests);
+    setRequests(paginatedRequests); // Keep for backward compatibility
+    setTotalPages(totalFilteredPages);
+    setTotalElements(totalFilteredElements);
+  };
+
+  const handleSearchChange = (newSearchTerm) => {
+    setSearchTerm(newSearchTerm);
+    setCurrentPage(0); // Reset to first page when search changes
+  };
+
+  const handleFilterChange = (newFilter) => {
+    setFilterStatus(newFilter);
+    setCurrentPage(0); // Reset to first page when filter changes
   };
 
   const handleConfirmRequest = async (request) => {
@@ -141,8 +187,7 @@ const NurseMedicationRequests = () => {
       setShowRejectModal(false);
       setRejectReason('');
       setSelectedRequest(null);
-      await fetchPendingRequests(); // Refresh the current list
-      await fetchAllRequestsForCounts(); // Refresh counts
+      await fetchAllRequests(); // Refresh the list
     } catch (error) {
       setError('Failed to reject medication request. Please try again.');
     } finally {
@@ -166,8 +211,7 @@ const NurseMedicationRequests = () => {
       setError(null);
       await medicationAPI.deleteMedicationRequest(request.requestId);
       showSuccess('Medication request deleted successfully.');
-      await fetchPendingRequests(); // Refresh the current list
-      await fetchAllRequestsForCounts(); // Refresh counts
+      await fetchAllRequests(); // Refresh the list
     } catch (error) {
       console.error('Error deleting medication request:', error);
       setError('Failed to delete medication request. Please try again.');
@@ -304,7 +348,7 @@ const NurseMedicationRequests = () => {
             <p className="text-red-600 text-sm">{error}</p>
             <div className="mt-3 flex space-x-2">
               <button 
-                onClick={fetchPendingRequests}
+                onClick={fetchAllRequests}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
               >
                 Try Again
@@ -344,11 +388,11 @@ const NurseMedicationRequests = () => {
           <p className="text-gray-600">Review and confirm medication requests from parents</p>
         </div>
         <div className="flex items-center space-x-4">
+          <div className="bg-blue-50 px-4 py-2 rounded-lg">
+            <span className="text-sm font-medium text-blue-700">Total Requests: {totalElements}</span>
+          </div>
           <button
-            onClick={() => {
-              fetchPendingRequests();
-              fetchAllRequestsForCounts();
-            }}
+            onClick={fetchAllRequests}
             disabled={loading}
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
             title="Refresh to check for new requests"
@@ -359,120 +403,106 @@ const NurseMedicationRequests = () => {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8">
-            <button
-              onClick={() => setActiveTab('pending')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'pending'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+      {/* Search and Filter Bar */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          {/* Search Box */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Search by student name, code, parent, or medication..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => handleSearchChange('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          {/* Filter Dropdown */}
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-400" />
+            <select
+              value={filterStatus}
+              onChange={(e) => handleFilterChange(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              Pending Requests
-              <span className="ml-2 bg-yellow-100 text-yellow-800 py-1 px-2 rounded-full text-xs">
-                {allRequests.filter(r => r.confirmationStatus === 'pending').length}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('confirmed')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'confirmed'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Confirmed Requests
-              <span className="ml-2 bg-green-100 text-green-800 py-1 px-2 rounded-full text-xs">
-                {allRequests.filter(r => r.confirmationStatus === 'confirmed').length}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('rejected')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'rejected'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Rejected Requests
-              <span className="ml-2 bg-red-100 text-red-800 py-1 px-2 rounded-full text-xs">
-                {allRequests.filter(r => r.confirmationStatus === 'unconfirmed').length}
-              </span>
-            </button>
-          </nav>
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="unconfirmed">Rejected</option>
+            </select>
+          </div>
+
+          {/* Results Info */}
+          <div className="text-sm text-gray-600">
+            Showing {filteredRequests.length} of {totalElements} requests
+          </div>
         </div>
       </div>
 
-      {/* Quick Stats - Only show for pending tab */}
-      {activeTab === 'pending' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg border shadow-sm">
-            <div className="flex items-center">
-              <Clock className="h-8 w-8 text-yellow-600" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {allRequests.filter(r => r.confirmationStatus === 'pending').length}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg border shadow-sm">
-            <div className="flex items-center">
-              <CheckCircle className="h-8 w-8 text-green-600" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Confirmed Today</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {allRequests.filter(r => r.confirmationStatus === 'confirmed' && r.confirmedAt && 
-                    new Date(r.confirmedAt).toDateString() === new Date().toDateString()).length}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg border shadow-sm">
-            <div className="flex items-center">
-              <AlertCircle className="h-8 w-8 text-red-600" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">High Priority</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {allRequests.filter(r => r.confirmationStatus === 'pending' && getPriorityLevel(r.createdAt).level === 'high').length}
-                </p>
-              </div>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg border shadow-sm">
+          <div className="flex items-center">
+            <Clock className="h-8 w-8 text-yellow-600" />
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Pending</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {allRequests.filter(r => r.confirmationStatus === 'pending').length}
+              </p>
             </div>
           </div>
         </div>
-      )}
+        <div className="bg-white p-4 rounded-lg border shadow-sm">
+          <div className="flex items-center">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Confirmed Today</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {allRequests.filter(r => r.confirmationStatus === 'confirmed' && r.confirmedAt && 
+                  new Date(r.confirmedAt).toDateString() === new Date().toDateString()).length}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border shadow-sm">
+          <div className="flex items-center">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">High Priority</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {allRequests.filter(r => r.confirmationStatus === 'pending' && getPriorityLevel(r.createdAt).level === 'high').length}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Requests List */}
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
         {(() => {
-          const filteredRequests = activeTab === 'pending' 
-            ? requests.filter(r => r.confirmationStatus === 'pending')
-            : activeTab === 'confirmed'
-            ? requests.filter(r => r.confirmationStatus === 'confirmed')
-            : requests.filter(r => r.confirmationStatus === 'unconfirmed');
-          
           if (filteredRequests.length === 0) {
             return (
               <div className="p-12 text-center">
                 <Pill className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-lg font-medium text-gray-900 mb-2">
-                  {activeTab === 'pending' 
-                    ? 'No pending requests' 
-                    : activeTab === 'confirmed'
-                    ? 'No confirmed requests'
-                    : 'No rejected requests'
+                  {searchTerm || filterStatus !== 'all'
+                    ? 'No matching requests found'
+                    : 'No medication requests found'
                   }
                 </p>
                 <p className="text-gray-600">
-                  {activeTab === 'pending' 
-                    ? 'All medication requests have been processed.' 
-                    : activeTab === 'confirmed'
-                    ? 'No requests have been confirmed yet.'
-                    : 'No requests have been rejected yet.'
+                  {searchTerm || filterStatus !== 'all'
+                    ? 'Try adjusting your search or filter criteria.'
+                    : 'No medication requests have been submitted yet.'
                   }
                 </p>
               </div>
@@ -497,12 +527,7 @@ const NurseMedicationRequests = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {activeTab === 'pending' 
-                        ? 'Submitted' 
-                        : activeTab === 'confirmed'
-                        ? 'Confirmed'
-                        : 'Rejected'
-                      }
+                      Date Submitted
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -573,12 +598,7 @@ const NurseMedicationRequests = () => {
                         {getStatusBadge(request.confirmationStatus, request.confirmedAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {activeTab === 'pending' 
-                          ? formatDate(request.createdAt)
-                          : activeTab === 'confirmed'
-                          ? formatDate(request.confirmedAt || request.createdAt)
-                          : formatDate(request.createdAt)
-                        }
+                        {formatDate(request.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
@@ -655,6 +675,17 @@ const NurseMedicationRequests = () => {
           </div>
           );
         })()}
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          isFirst={currentPage === 0}
+          isLast={currentPage >= totalPages - 1}
+        />
       </div>
 
       {/* Detail Modal */}

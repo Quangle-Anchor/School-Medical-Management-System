@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Calendar, Edit,
-   Plus, Eye, Heart, FileText, Activity, X, Trash2, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { User, Calendar, Edit, Plus, Eye, Heart, FileText, Activity, X, Trash2, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { studentAPI } from '../../api/studentsApi';
 import AddStudentForm from './AddStudentForm';
 
@@ -8,8 +7,8 @@ import AddStudentForm from './AddStudentForm';
 
 const MyChildView = () => {
   const [students, setStudents] = useState([]);
-  const [allStudents, setAllStudents] = useState([]); // Store all students (confirmed + unconfirmed)
-  const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(true); // Toggle for filtering
+  const [allStudents, setAllStudents] = useState([]); // Store all students (confirmed + unconfirmed + pending)
+  const [filterStatus, setFilterStatus] = useState('all'); // Filter by confirmation status
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -21,7 +20,7 @@ const MyChildView = () => {
 
   useEffect(() => {
     fetchStudents();
-  }, [showOnlyConfirmed]); // Re-fetch when filter changes
+  }, [filterStatus]); // Re-fetch when filter changes
 
   const fetchStudents = async () => {
     try {
@@ -30,9 +29,16 @@ const MyChildView = () => {
       setAllStudents(studentsData);
       
       // Filter students based on confirmation status
-      const filteredStudents = showOnlyConfirmed 
-        ? studentsData.filter(student => student.isConfirm === true)
-        : studentsData;
+      let filteredStudents = studentsData;
+      if (filterStatus === 'confirmed') {
+        filteredStudents = studentsData.filter(student => student.confirmationStatus === 'confirmed');
+      } else if (filterStatus === 'pending') {
+        filteredStudents = studentsData.filter(student => student.confirmationStatus === 'pending');
+      } else if (filterStatus === 'unconfirmed') {
+        filteredStudents = studentsData.filter(student => student.confirmationStatus === 'unconfirmed');
+      }
+      // 'all' shows all students
+      
       setStudents(filteredStudents);
       
       // Fetch health info for each student
@@ -82,12 +88,20 @@ const MyChildView = () => {
     } finally {
       setLoading(false);
     }
-  };const handleStudentAdded = (newStudent) => {
+  };
+
+  const handleStudentAdded = (newStudent) => {
     // Add to all students list
     setAllStudents(prev => [...prev, newStudent]);
     
     // Add to filtered students list if it matches current filter
-    if (!showOnlyConfirmed || newStudent.isConfirm === true) {
+    const shouldInclude = 
+      filterStatus === 'all' ||
+      (filterStatus === 'confirmed' && newStudent.confirmationStatus === 'confirmed') ||
+      (filterStatus === 'pending' && newStudent.confirmationStatus === 'pending') ||
+      (filterStatus === 'unconfirmed' && newStudent.confirmationStatus === 'unconfirmed');
+      
+    if (shouldInclude) {
       setStudents(prev => [...prev, newStudent]);
     }
     
@@ -211,7 +225,7 @@ const MyChildView = () => {
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                 <span className="text-sm text-gray-600">
                   Confirmed: <span className="font-semibold text-green-600">
-                    {allStudents.filter(s => s.isConfirm === true).length}
+                    {allStudents.filter(s => s.confirmationStatus === 'confirmed').length}
                   </span>
                 </span>
               </div>
@@ -219,7 +233,15 @@ const MyChildView = () => {
                 <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
                 <span className="text-sm text-gray-600">
                   Pending: <span className="font-semibold text-yellow-600">
-                    {allStudents.filter(s => s.isConfirm !== true).length}
+                    {allStudents.filter(s => s.confirmationStatus === 'pending').length}
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">
+                  Unconfirmed: <span className="font-semibold text-red-600">
+                    {allStudents.filter(s => s.confirmationStatus === 'unconfirmed').length}
                   </span>
                 </span>
               </div>
@@ -234,12 +256,14 @@ const MyChildView = () => {
             <div className="flex items-center space-x-2">
               <label className="text-sm font-medium text-gray-700">Show:</label>
               <select 
-                value={showOnlyConfirmed ? 'confirmed' : 'all'}
-                onChange={(e) => setShowOnlyConfirmed(e.target.value === 'confirmed')}
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="confirmed">Confirmed Only</option>
                 <option value="all">All Students</option>
+                <option value="confirmed">Confirmed Only</option>
+                <option value="pending">Pending Only</option>
+                <option value="unconfirmed">Unconfirmed Only</option>
               </select>
             </div>
           </div>
@@ -280,15 +304,18 @@ const MyChildView = () => {
                   Add Your First Child
                 </button>
               </>
-            ) : showOnlyConfirmed ? (
+            ) : filterStatus === 'confirmed' ? (
               <>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No confirmed children yet</h3>
                 <p className="text-gray-600 mb-4">
-                  You have {allStudents.length} child(ren) waiting for confirmation from school staff.
+                  You have {allStudents.filter(s => s.confirmationStatus === 'pending').length} child(ren) waiting for confirmation 
+                  {allStudents.filter(s => s.confirmationStatus === 'unconfirmed').length > 0 && 
+                    ` and ${allStudents.filter(s => s.confirmationStatus === 'unconfirmed').length} unconfirmed child(ren)`
+                  } from school staff.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button
-                    onClick={() => setShowOnlyConfirmed(false)}
+                    onClick={() => setFilterStatus('all')}
                     className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
                   >
                     <Eye className="w-4 h-4 mr-2" />
@@ -303,12 +330,34 @@ const MyChildView = () => {
                   </button>
                 </div>
               </>
+            ) : filterStatus === 'pending' ? (
+              <>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No pending confirmations</h3>
+                <p className="text-gray-600 mb-4">All your children have been processed by school staff.</p>
+                <button
+                  onClick={() => setFilterStatus('all')}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  View All Children
+                </button>
+              </>
+            ) : filterStatus === 'unconfirmed' ? (
+              <>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No unconfirmed children</h3>
+                <p className="text-gray-600 mb-4">None of your children have been marked as unconfirmed.</p>
+                <button
+                  onClick={() => setFilterStatus('all')}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  View All Children
+                </button>
+              </>
             ) : (
               <>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No children match the current filter</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No children found</h3>
                 <p className="text-gray-600 mb-4">Try adjusting your filter settings</p>
                 <button
-                  onClick={() => setShowOnlyConfirmed(true)}
+                  onClick={() => setFilterStatus('confirmed')}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
                   Show Confirmed Only
@@ -319,15 +368,24 @@ const MyChildView = () => {
         ) : (          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {students.map((student) => (
               <div key={student.studentId} className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative border-l-4 ${
-                student.isConfirm ? 'border-green-500' : 'border-yellow-500'
+                student.confirmationStatus === 'confirmed' 
+                  ? 'border-green-500' 
+                  : student.confirmationStatus === 'unconfirmed'
+                  ? 'border-red-500'
+                  : 'border-yellow-500'
               }`}>
                 
                 {/* Confirmation Status Badge - Top Left */}
                 <div className="absolute top-4 left-4">
-                  {student.isConfirm ? (
+                  {student.confirmationStatus === 'confirmed' ? (
                     <div className="flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Confirmed
+                    </div>
+                  ) : student.confirmationStatus === 'unconfirmed' ? (
+                    <div className="flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                      <AlertCircle className="w-3 h-3 mr-1" />
+                      Unconfirmed
                     </div>
                   ) : (
                     <div className="flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
