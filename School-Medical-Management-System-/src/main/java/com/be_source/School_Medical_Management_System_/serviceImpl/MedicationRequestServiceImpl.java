@@ -79,13 +79,22 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
             entity.setIsSufficientStock(false);
         }
 
+        // Kiểm tra loại file hợp lệ trước khi upload
         if (file != null && !file.isEmpty()) {
+            String contentType = file.getContentType();
+            List<String> allowedTypes = List.of("application/pdf", "image/png", "image/jpeg");
+
+            if (!allowedTypes.contains(contentType)) {
+                throw new IllegalArgumentException("Loại file không được hỗ trợ. Vui lòng chỉ upload PDF hoặc ảnh PNG/JPG.");
+            }
+
             String fileUrl = cloudinaryService.uploadFile(file);
             entity.setPrescriptionFile(fileUrl);
         }
 
         medicationRequestRepository.save(entity);
     }
+
 
     @Override
     public MedicationRequestResponse update(Long id, MedicationRequestRequest request, MultipartFile file) {
@@ -119,16 +128,27 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
             existing.setIsSufficientStock(false);
         }
 
+        // Kiểm tra định dạng file trước khi upload
         if (file != null && !file.isEmpty()) {
+            String contentType = file.getContentType();
+            List<String> allowedTypes = List.of("application/pdf", "image/png", "image/jpeg");
+
+            if (!allowedTypes.contains(contentType)) {
+                throw new IllegalArgumentException("Loại file không được hỗ trợ. Vui lòng chỉ upload PDF hoặc ảnh PNG/JPG.");
+            }
+
+            // Xoá file cũ nếu có
             if (existing.getPrescriptionFile() != null) {
                 cloudinaryService.deleteFileByUrl(existing.getPrescriptionFile());
             }
+
             String fileUrl = cloudinaryService.uploadFile(file);
             existing.setPrescriptionFile(fileUrl);
         }
 
         return mapToResponse(medicationRequestRepository.save(existing));
     }
+
 
     @Override
     public void delete(Long id) {
