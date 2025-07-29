@@ -431,17 +431,6 @@ const MedicationScheduleDetail = () => {
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
           {/* Status Card */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Schedule Status</h3>
-              <div className="text-center">
-                {getStatusBadge(schedule.status || 'pending')}
-                <p className="text-sm text-gray-600 mt-2">
-                  Created on {formatDate(schedule.createdAt || schedule.scheduledDate)}
-                </p>
-              </div>
-            </div>
-          </div>
           {/* Quick Actions */}
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="p-6">
