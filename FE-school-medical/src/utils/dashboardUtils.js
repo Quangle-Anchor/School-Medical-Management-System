@@ -58,8 +58,8 @@ export const getCategoryStyle = (category) => {
     case 'vaccines':
     case 'immunization':
       return {
-        bg: 'bg-green-100',
-        text: 'text-green-800'
+        bg: 'bg-blue-100',
+        text: 'text-blue-800'
       };
     case 'checkup':
     case 'check-up':
@@ -67,15 +67,8 @@ export const getCategoryStyle = (category) => {
     case 'general checkup':
     case 'routine checkup':
       return {
-        bg: 'bg-blue-100',
-        text: 'text-blue-800'
-      };
-    case 'medication':
-    case 'medication review':
-    case 'prescription':
-      return {
-        bg: 'bg-purple-100',
-        text: 'text-purple-800'
+        bg: 'bg-green-100',
+        text: 'text-green-800'
       };
     case 'emergency':
     case 'urgent':
@@ -84,70 +77,7 @@ export const getCategoryStyle = (category) => {
         bg: 'bg-red-100',
         text: 'text-red-800'
       };
-    case 'screening':
-    case 'health screening':
-    case 'medical screening':
-      return {
-        bg: 'bg-yellow-100',
-        text: 'text-yellow-800'
-      };
-    case 'consultation':
-    case 'follow-up':
-    case 'followup':
-    case 'review':
-      return {
-        bg: 'bg-indigo-100',
-        text: 'text-indigo-800'
-      };
-    case 'dental':
-    case 'dental check':
-    case 'dental care':
-    case 'dentist':
-      return {
-        bg: 'bg-teal-100',
-        text: 'text-teal-800'
-      };
-    case 'vision':
-    case 'eye check':
-    case 'vision test':
-    case 'eye exam':
-      return {
-        bg: 'bg-orange-100',
-        text: 'text-orange-800'
-      };
-    case 'hearing':
-    case 'hearing test':
-    case 'audiology':
-      return {
-        bg: 'bg-pink-100',
-        text: 'text-pink-800'
-      };
-    case 'physical':
-    case 'physical exam':
-    case 'sports physical':
-      return {
-        bg: 'bg-red-100',
-        text: 'text-red-800'
-      };
-    case 'mental health':
-    case 'counseling':
-    case 'therapy':
-    case 'psychology':
-      return {
-        bg: 'bg-indigo-100',
-        text: 'text-indigo-800'
-      };
-    case 'lab work':
-    case 'laboratory':
-    case 'blood test':
-    case 'lab test':
-      return {
-        bg: 'bg-cyan-100',
-        text: 'text-cyan-800'
-      };
-    case 'x-ray':
-    case 'imaging':
-    case 'radiology':
+    case 'other':
       return {
         bg: 'bg-gray-100',
         text: 'text-gray-800'
