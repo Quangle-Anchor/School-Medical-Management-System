@@ -66,14 +66,7 @@ const StudentConfirmationView = () => {
     fetchAllStudents();
     fetchStatistics();
 
-    // Set up automatic refresh every 30 seconds for nurse dashboard
-    // More frequent than default to catch new student requests quickly
-    const refreshInterval = setInterval(() => {
-      fetchAllStudents();
-      fetchStatistics();
-    }, 30000);
-
-    // Also refresh when the window regains focus
+    // Only refresh when the window regains focus
     const handleFocus = () => {
       fetchAllStudents();
       fetchStatistics();
@@ -81,9 +74,8 @@ const StudentConfirmationView = () => {
 
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup interval and event listener on component unmount
+    // Cleanup event listener on component unmount
     return () => {
-      clearInterval(refreshInterval);
       window.removeEventListener("focus", handleFocus);
     };
   }, []);

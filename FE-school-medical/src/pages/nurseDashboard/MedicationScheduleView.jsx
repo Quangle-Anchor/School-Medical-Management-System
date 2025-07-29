@@ -39,22 +39,15 @@ const MedicationScheduleManagement = () => {
   useEffect(() => {
     fetchSchedules();
 
-    // Set up automatic refresh every 30 seconds for nurse medication schedules
-    // This ensures the list is updated when new schedules are created/modified
-    const refreshInterval = setInterval(() => {
-      fetchSchedules();
-    }, 30000);
-
-    // Also refresh when the window regains focus
+    // Only refresh when the window regains focus
     const handleFocus = () => {
       fetchSchedules();
     };
 
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup interval and event listener on component unmount
+    // Cleanup event listener on component unmount
     return () => {
-      clearInterval(refreshInterval);
       window.removeEventListener("focus", handleFocus);
     };
   }, []);

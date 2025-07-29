@@ -43,23 +43,27 @@ const MyMedicationRequests = ({ onRequestAdded }) => {
 
     fetchMyRequests();
 
-    // Set up automatic refresh every 30 seconds for parent dashboard
-    // More frequent than nurse dashboard to catch status updates quickly
-    const refreshInterval = setInterval(() => {
-      fetchMyRequests();
-    }, 30000);
-
-    // Also refresh when the window regains focus
+    // Only refresh when the window regains focus
     const handleFocus = () => {
       fetchMyRequests();
     };
 
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup interval and event listener on component unmount
+    // Listen for custom events from other components
+    const handleMedicationUpdate = () => {
+      fetchMyRequests();
+    };
+
+    window.addEventListener("medicationRequestUpdated", handleMedicationUpdate);
+
+    // Cleanup event listener on component unmount
     return () => {
-      clearInterval(refreshInterval);
       window.removeEventListener("focus", handleFocus);
+      window.removeEventListener(
+        "medicationRequestUpdated",
+        handleMedicationUpdate
+      );
     };
   }, []);
 

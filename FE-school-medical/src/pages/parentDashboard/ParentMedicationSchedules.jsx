@@ -17,22 +17,15 @@ const ParentMedicationSchedules = () => {
   useEffect(() => {
     fetchSchedules();
 
-    // Set up automatic refresh every 30 seconds for parent medication schedules
-    // This ensures schedules are updated when nurses create/modify them
-    const refreshInterval = setInterval(() => {
-      fetchSchedules();
-    }, 30000);
-
-    // Also refresh when the window regains focus
+    // Only refresh when the window regains focus
     const handleFocus = () => {
       fetchSchedules();
     };
 
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup interval and event listener on component unmount
+    // Cleanup event listener on component unmount
     return () => {
-      clearInterval(refreshInterval);
       window.removeEventListener("focus", handleFocus);
     };
   }, []);
