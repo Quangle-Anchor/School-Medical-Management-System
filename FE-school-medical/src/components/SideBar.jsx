@@ -158,7 +158,7 @@ const Sidebar = ({
                   }`}
                   title={isCollapsed ? item.label : ''}
                 >
-                  <div className={`mr-3 flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-200 ${
+                  <div className={`mr-3 flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-200 flex-shrink-0 ${
                     isActive
                       ? 'bg-sky-500 text-white shadow-sm'
                       : 'bg-white fill-current text-slate-700 hover:bg-slate-50'
@@ -166,7 +166,7 @@ const Sidebar = ({
                     <Icon size={16} />
                   </div>
                   {!isCollapsed && (
-                    <span className="ml-1 duration-300 pointer-events-none ease-soft">
+                    <span className="duration-300 pointer-events-none ease-soft flex-1 text-left">
                       {item.label}
                     </span>
                   )}
@@ -184,11 +184,11 @@ const Sidebar = ({
           className="py-2.7 text-sm ease-nav-brand flex items-center whitespace-nowrap rounded-lg px-4 font-medium transition-colors text-red-500 hover:text-red-600 w-full hover:bg-red-50"
           title={isCollapsed ? 'Logout' : ''}
         >
-          <div className="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 bg-center stroke-0 text-center xl:p-2.5 text-red-500">
+          <div className="shadow-soft-2xl mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 bg-center stroke-0 text-center text-red-500 flex-shrink-0">
             <LogOut size={16} />
           </div>
           {!isCollapsed && (
-            <span className="ml-1 duration-300 pointer-events-none ease-soft">
+            <span className="duration-300 pointer-events-none ease-soft flex-1 text-left">
               Logout
             </span>
           )}

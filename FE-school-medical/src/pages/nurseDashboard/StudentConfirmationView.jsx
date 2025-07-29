@@ -468,35 +468,78 @@ const StudentConfirmationView = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(student.updatedAt)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button
-                          onClick={() => setSelectedStudent(student)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        {student.confirmationStatus === 'pending' && (
-                          <>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-2">
+                          {/* View Details Button */}
+                          <div className="relative group">
                             <button
-                              onClick={() => handleConfirmStudentClick(student)}
-                              disabled={studentConfirmation.isConfirming(student.studentId)}
-                              className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                              onClick={() => setSelectedStudent(student)}
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                              title="View Details"
                             >
-                              {studentConfirmation.isConfirming(student.studentId) ? (
-                                <div className="animate-spin w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full" />
-                              ) : (
-                                <CheckCircle className="w-4 h-4" />
-                              )}
+                              <Eye className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={() => setShowRejectModal(student)}
-                              disabled={rejectingId === student.studentId}
-                              className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                            >
-                              <AlertCircle className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                              View Details
+                            </div>
+                          </div>
+
+                          {student.confirmationStatus === 'pending' && (
+                            <>
+                              {/* Confirm Button */}
+                              <div className="relative group">
+                                <button
+                                  onClick={() => handleConfirmStudentClick(student)}
+                                  disabled={studentConfirmation.isConfirming(student.studentId)}
+                                  className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                  title="Confirm Student"
+                                >
+                                  {studentConfirmation.isConfirming(student.studentId) ? (
+                                    <div className="animate-spin w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full" />
+                                  ) : (
+                                    <CheckCircle className="w-4 h-4" />
+                                  )}
+                                </button>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                                  Confirm Student
+                                </div>
+                              </div>
+
+                              {/* Reject Button */}
+                              <div className="relative group">
+                                <button
+                                  onClick={() => setShowRejectModal(student)}
+                                  disabled={rejectingId === student.studentId}
+                                  className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                  title="Mark as Unconfirmed"
+                                >
+                                  {rejectingId === student.studentId ? (
+                                    <div className="animate-spin w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full" />
+                                  ) : (
+                                    <AlertCircle className="w-4 h-4" />
+                                  )}
+                                </button>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                                  Mark as Unconfirmed
+                                </div>
+                              </div>
+                            </>
+                          )}
+
+                          {student.confirmationStatus === 'confirmed' && (
+                            <div className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Confirmed
+                            </div>
+                          )}
+
+                          {student.confirmationStatus === 'unconfirmed' && (
+                            <div className="inline-flex items-center px-2 py-1 bg-red-50 text-red-700 rounded-full text-xs font-medium">
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              Unconfirmed
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -630,8 +673,9 @@ const StudentConfirmationView = () => {
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   onClick={() => setSelectedStudent(null)}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1"
                 >
+                  <X className="w-4 h-4 mr-2" />
                   Close
                 </button>
 
@@ -642,17 +686,27 @@ const StudentConfirmationView = () => {
                         setSelectedStudent(null);
                         handleConfirmStudentClick(selectedStudent);
                       }}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+                      disabled={studentConfirmation.isConfirming(selectedStudent.studentId)}
+                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
                     >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Confirm Student
+                      {studentConfirmation.isConfirming(selectedStudent.studentId) ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Confirming...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Confirm Student
+                        </>
+                      )}
                     </button>
                     <button
                       onClick={() => {
                         setSelectedStudent(null);
                         setShowRejectModal(selectedStudent);
                       }}
-                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center"
+                      className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
                     >
                       <AlertCircle className="w-4 h-4 mr-2" />
                       Mark as Unconfirmed
@@ -702,14 +756,15 @@ const StudentConfirmationView = () => {
                     setShowRejectModal(null);
                     setRejectReason('');
                   }}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1"
                 >
+                  <X className="w-4 h-4 mr-2" />
                   Cancel
                 </button>
                 <button
                   onClick={handleRejectStudent}
                   disabled={!rejectReason.trim() || rejectingId === showRejectModal.studentId}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center"
+                  className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
                 >
                   {rejectingId === showRejectModal.studentId ? (
                     <>
