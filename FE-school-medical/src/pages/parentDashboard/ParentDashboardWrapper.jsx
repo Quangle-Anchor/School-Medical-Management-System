@@ -60,6 +60,7 @@ const ParentDashboardWrapper = () => {
     // Set up automatic refresh every 30 seconds for parent dashboard
     // This ensures the dashboard counts are updated when nurses confirm/reject requests
     const refreshInterval = setInterval(() => {
+      fetchStudents(); // Add student refresh for confirmation status updates
       fetchMedicationRequests();
       fetchMedicationSchedules();
       fetchFutureHealthEventsCount();
@@ -67,6 +68,7 @@ const ParentDashboardWrapper = () => {
 
     // Also refresh when the window regains focus
     const handleFocus = () => {
+      fetchStudents(); // Add student refresh for confirmation status updates
       fetchMedicationRequests();
       fetchMedicationSchedules();
       fetchFutureHealthEventsCount();

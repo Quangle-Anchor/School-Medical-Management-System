@@ -1,25 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { User, Calendar, Edit, Plus, Eye, Heart, FileText, Activity, X, Trash2, CheckCircle, Clock, AlertCircle } from 'lucide-react';
-import { studentAPI } from '../../api/studentsApi';
-import AddStudentForm from './AddStudentForm';
-
-
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  Calendar,
+  Edit,
+  Plus,
+  Eye,
+  Heart,
+  FileText,
+  Activity,
+  X,
+  Trash2,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
+import { studentAPI } from "../../api/studentsApi";
+import AddStudentForm from "./AddStudentForm";
 
 const MyChildView = () => {
   const [students, setStudents] = useState([]);
   const [allStudents, setAllStudents] = useState([]); // Store all students (confirmed + unconfirmed + pending)
-  const [filterStatus, setFilterStatus] = useState('all'); // Filter by confirmation status
+  const [filterStatus, setFilterStatus] = useState("all"); // Filter by confirmation status
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [editingStudent, setEditingStudent] = useState(null);
   const [healthInfo, setHealthInfo] = useState({});
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchStudents();
+
+    // Set up automatic refresh every 30 seconds for parent dashboard
+    // More frequent than default to catch status updates quickly
+    const refreshInterval = setInterval(() => {
+      fetchStudents();
+    }, 30000);
+
+    // Also refresh when the window regains focus
+    const handleFocus = () => {
+      fetchStudents();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    // Cleanup interval and event listener on component unmount
+    return () => {
+      clearInterval(refreshInterval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [filterStatus]); // Re-fetch when filter changes
 
   const fetchStudents = async () => {
@@ -27,27 +58,35 @@ const MyChildView = () => {
       // Use getMyStudents which automatically filters by parent for parent role
       const studentsData = await studentAPI.getMyStudents();
       setAllStudents(studentsData);
-      
+
       // Filter students based on confirmation status
       let filteredStudents = studentsData;
-      if (filterStatus === 'confirmed') {
-        filteredStudents = studentsData.filter(student => student.confirmationStatus === 'confirmed');
-      } else if (filterStatus === 'pending') {
-        filteredStudents = studentsData.filter(student => student.confirmationStatus === 'pending');
-      } else if (filterStatus === 'unconfirmed') {
-        filteredStudents = studentsData.filter(student => student.confirmationStatus === 'unconfirmed');
+      if (filterStatus === "confirmed") {
+        filteredStudents = studentsData.filter(
+          (student) => student.confirmationStatus === "confirmed"
+        );
+      } else if (filterStatus === "pending") {
+        filteredStudents = studentsData.filter(
+          (student) => student.confirmationStatus === "pending"
+        );
+      } else if (filterStatus === "unconfirmed") {
+        filteredStudents = studentsData.filter(
+          (student) => student.confirmationStatus === "unconfirmed"
+        );
       }
       // 'all' shows all students
-      
+
       setStudents(filteredStudents);
-      
+
       // Fetch health info for each student
       const healthData = {};
       for (const student of studentsData) {
         try {
           // Try to fetch health info from the separate health-info API
-          const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(student.studentId);
-          
+          const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(
+            student.studentId
+          );
+
           // If health info exists, use it; otherwise use default values
           if (healthInfoResponse && healthInfoResponse.length > 0) {
             const healthInfo = healthInfoResponse[0]; // Get the first/latest health info record
@@ -55,10 +94,12 @@ const MyChildView = () => {
               bloodType: student.bloodType,
               heightCm: student.heightCm,
               weightKg: student.weightKg,
-              medicalConditions: healthInfo.medicalConditions || 'None',
-              allergies: healthInfo.allergies || 'None',
-              notes: healthInfo.notes || '',
-              lastCheckup: healthInfo.updatedAt ? new Date(healthInfo.updatedAt).toLocaleDateString() : '2 weeks ago'
+              medicalConditions: healthInfo.medicalConditions || "None",
+              allergies: healthInfo.allergies || "None",
+              notes: healthInfo.notes || "",
+              lastCheckup: healthInfo.updatedAt
+                ? new Date(healthInfo.updatedAt).toLocaleDateString()
+                : "2 weeks ago",
             };
           } else {
             // No health info found, use student data and defaults
@@ -66,24 +107,27 @@ const MyChildView = () => {
               bloodType: student.bloodType,
               heightCm: student.heightCm,
               weightKg: student.weightKg,
-              medicalConditions: 'None',
-              allergies: 'None',
-              notes: '',
-              lastCheckup: 'Not available'
+              medicalConditions: "None",
+              allergies: "None",
+              notes: "",
+              lastCheckup: "Not available",
             };
-          }      
-          } catch (error) {
-          console.error(`Error fetching health info for student ${student.studentId}:`, error);
+          }
+        } catch (error) {
+          console.error(
+            `Error fetching health info for student ${student.studentId}:`,
+            error
+          );
         }
       }
       setHealthInfo(healthData);
     } catch (error) {
-      if (error.message.includes('Authentication required')) {
-        setError('Session expired. Please login again.');
-      } else if (error.message.includes('Access forbidden')) {
-        setError('You do not have permission to view student data.');
+      if (error.message.includes("Authentication required")) {
+        setError("Session expired. Please login again.");
+      } else if (error.message.includes("Access forbidden")) {
+        setError("You do not have permission to view student data.");
       } else {
-        setError('Failed to load student data. Please try again.');
+        setError("Failed to load student data. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -92,74 +136,87 @@ const MyChildView = () => {
 
   const handleStudentAdded = (newStudent) => {
     // Add to all students list
-    setAllStudents(prev => [...prev, newStudent]);
-    
+    setAllStudents((prev) => [...prev, newStudent]);
+
     // Add to filtered students list if it matches current filter
-    const shouldInclude = 
-      filterStatus === 'all' ||
-      (filterStatus === 'confirmed' && newStudent.confirmationStatus === 'confirmed') ||
-      (filterStatus === 'pending' && newStudent.confirmationStatus === 'pending') ||
-      (filterStatus === 'unconfirmed' && newStudent.confirmationStatus === 'unconfirmed');
-      
+    const shouldInclude =
+      filterStatus === "all" ||
+      (filterStatus === "confirmed" &&
+        newStudent.confirmationStatus === "confirmed") ||
+      (filterStatus === "pending" &&
+        newStudent.confirmationStatus === "pending") ||
+      (filterStatus === "unconfirmed" &&
+        newStudent.confirmationStatus === "unconfirmed");
+
     if (shouldInclude) {
-      setStudents(prev => [...prev, newStudent]);
+      setStudents((prev) => [...prev, newStudent]);
     }
-    
+
     // Add health info for new student
-    setHealthInfo(prev => ({
+    setHealthInfo((prev) => ({
       ...prev,
       [newStudent.studentId]: {
         bloodType: newStudent.bloodType,
         heightCm: newStudent.heightCm,
         weightKg: newStudent.weightKg,
-        medicalConditions: newStudent.medicalConditions || 'None',
-        allergies: newStudent.allergies || 'None',
-        notes: newStudent.notes || '',
-        lastCheckup: 'Recently added'
-      }
+        medicalConditions: newStudent.medicalConditions || "None",
+        allergies: newStudent.allergies || "None",
+        notes: newStudent.notes || "",
+        lastCheckup: "Recently added",
+      },
     }));
-  };  const handleEditStudent = (student) => {
+  };
+  const handleEditStudent = (student) => {
     setEditingStudent(student);
-  };const handleStudentUpdated = (updatedStudent) => {
-    setStudents(prev => prev.map(student => 
-      student.studentId === updatedStudent.studentId ? updatedStudent : student
-    ));
+  };
+  const handleStudentUpdated = (updatedStudent) => {
+    setStudents((prev) =>
+      prev.map((student) =>
+        student.studentId === updatedStudent.studentId
+          ? updatedStudent
+          : student
+      )
+    );
     // Update health info for the updated student
-    setHealthInfo(prev => ({
+    setHealthInfo((prev) => ({
       ...prev,
       [updatedStudent.studentId]: {
         bloodType: updatedStudent.bloodType,
         heightCm: updatedStudent.heightCm,
         weightKg: updatedStudent.weightKg,
-        medicalConditions: updatedStudent.medicalConditions || 'None',
-        allergies: updatedStudent.allergies || 'None',
-        notes: updatedStudent.notes || '',
-        lastCheckup: prev[updatedStudent.studentId]?.lastCheckup || 'Recently updated'
-      }
+        medicalConditions: updatedStudent.medicalConditions || "None",
+        allergies: updatedStudent.allergies || "None",
+        notes: updatedStudent.notes || "",
+        lastCheckup:
+          prev[updatedStudent.studentId]?.lastCheckup || "Recently updated",
+      },
     }));
     setEditingStudent(null);
-  };  const handleDeleteStudent = async (student) => {
+  };
+  const handleDeleteStudent = async (student) => {
     setDeleting(true);
     try {
       await studentAPI.deleteStudent(student.studentId);
-      
+
       // Remove student from the list
-      setStudents(prev => prev.filter(s => s.studentId !== student.studentId));
-      
+      setStudents((prev) =>
+        prev.filter((s) => s.studentId !== student.studentId)
+      );
+
       // Remove health info from state
-      setHealthInfo(prev => {
+      setHealthInfo((prev) => {
         const updated = { ...prev };
         delete updated[student.studentId];
         return updated;
       });
-        setDeleteConfirm(null);
+      setDeleteConfirm(null);
     } catch (error) {
-      if (error.message.includes('Authentication required')) {
-        setError('Session expired. Please login again.');
-      } else if (error.message.includes('Access forbidden')) {
-        setError('You do not have permission to delete student data.');
+      if (error.message.includes("Authentication required")) {
+        setError("Session expired. Please login again.");
+      } else if (error.message.includes("Access forbidden")) {
+        setError("You do not have permission to delete student data.");
       } else {
-        setError('Failed to delete student. Please try again.');
+        setError("Failed to delete student. Please try again.");
       }
     } finally {
       setDeleting(false);
@@ -167,23 +224,26 @@ const MyChildView = () => {
   };
 
   const calculateAge = (dateOfBirth) => {
-    if (!dateOfBirth) return 'N/A';
+    if (!dateOfBirth) return "N/A";
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
     return age;
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -198,13 +258,16 @@ const MyChildView = () => {
     );
   }
 
-  return (    <div className="p-6 bg-gray-100 min-h-screen">
+  return (
+    <div className="p-6 bg-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">My Children</h1>
-            <p className="text-gray-600">Manage your children's profiles and health information</p>
+            <p className="text-gray-600">
+              Manage your children's profiles and health information
+            </p>
           </div>
           <div className="flex items-center space-x-4">
             <button
@@ -216,7 +279,6 @@ const MyChildView = () => {
             </button>
           </div>
         </div>
-
         {/* Statistics and Filter */}
         <div className="mb-6 bg-white rounded-lg shadow-sm p-4">
           <div className="flex items-center justify-between">
@@ -224,38 +286,56 @@ const MyChildView = () => {
               <div className="flex items-center">
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                 <span className="text-sm text-gray-600">
-                  Confirmed: <span className="font-semibold text-green-600">
-                    {allStudents.filter(s => s.confirmationStatus === 'confirmed').length}
+                  Confirmed:{" "}
+                  <span className="font-semibold text-green-600">
+                    {
+                      allStudents.filter(
+                        (s) => s.confirmationStatus === "confirmed"
+                      ).length
+                    }
                   </span>
                 </span>
               </div>
               <div className="flex items-center">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
                 <span className="text-sm text-gray-600">
-                  Pending: <span className="font-semibold text-yellow-600">
-                    {allStudents.filter(s => s.confirmationStatus === 'pending').length}
+                  Pending:{" "}
+                  <span className="font-semibold text-yellow-600">
+                    {
+                      allStudents.filter(
+                        (s) => s.confirmationStatus === "pending"
+                      ).length
+                    }
                   </span>
                 </span>
               </div>
               <div className="flex items-center">
                 <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
                 <span className="text-sm text-gray-600">
-                  Unconfirmed: <span className="font-semibold text-red-600">
-                    {allStudents.filter(s => s.confirmationStatus === 'unconfirmed').length}
+                  Unconfirmed:{" "}
+                  <span className="font-semibold text-red-600">
+                    {
+                      allStudents.filter(
+                        (s) => s.confirmationStatus === "unconfirmed"
+                      ).length
+                    }
                   </span>
                 </span>
               </div>
               <div className="flex items-center">
                 <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
                 <span className="text-sm text-gray-600">
-                  Total: <span className="font-semibold text-blue-600">{allStudents.length}</span>
+                  Total:{" "}
+                  <span className="font-semibold text-blue-600">
+                    {allStudents.length}
+                  </span>
                 </span>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <label className="text-sm font-medium text-gray-700">Show:</label>
-              <select 
+              <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -268,7 +348,6 @@ const MyChildView = () => {
             </div>
           </div>
         </div>
-
         {/* Error Display */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
@@ -277,7 +356,7 @@ const MyChildView = () => {
               <span className="text-red-700">{error}</span>
               <button
                 onClick={() => {
-                  setError('');
+                  setError("");
                   fetchStudents();
                 }}
                 className="ml-auto px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
@@ -287,15 +366,18 @@ const MyChildView = () => {
             </div>
           </div>
         )}
-
         {/* Children List */}
         {students.length === 0 ? (
           <div className="text-center py-12">
             <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             {allStudents.length === 0 ? (
               <>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No children added yet</h3>
-                <p className="text-gray-600 mb-4">Start by adding your first child's information</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No children added yet
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Start by adding your first child's information
+                </p>
                 <button
                   onClick={() => setShowAddForm(true)}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -304,18 +386,32 @@ const MyChildView = () => {
                   Add Your First Child
                 </button>
               </>
-            ) : filterStatus === 'confirmed' ? (
+            ) : filterStatus === "confirmed" ? (
               <>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No confirmed children yet</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No confirmed children yet
+                </h3>
                 <p className="text-gray-600 mb-4">
-                  You have {allStudents.filter(s => s.confirmationStatus === 'pending').length} child(ren) waiting for confirmation 
-                  {allStudents.filter(s => s.confirmationStatus === 'unconfirmed').length > 0 && 
-                    ` and ${allStudents.filter(s => s.confirmationStatus === 'unconfirmed').length} unconfirmed child(ren)`
-                  } from school staff.
+                  You have{" "}
+                  {
+                    allStudents.filter(
+                      (s) => s.confirmationStatus === "pending"
+                    ).length
+                  }{" "}
+                  child(ren) waiting for confirmation
+                  {allStudents.filter(
+                    (s) => s.confirmationStatus === "unconfirmed"
+                  ).length > 0 &&
+                    ` and ${
+                      allStudents.filter(
+                        (s) => s.confirmationStatus === "unconfirmed"
+                      ).length
+                    } unconfirmed child(ren)`}{" "}
+                  from school staff.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button
-                    onClick={() => setFilterStatus('all')}
+                    onClick={() => setFilterStatus("all")}
                     className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
                   >
                     <Eye className="w-4 h-4 mr-2" />
@@ -330,23 +426,31 @@ const MyChildView = () => {
                   </button>
                 </div>
               </>
-            ) : filterStatus === 'pending' ? (
+            ) : filterStatus === "pending" ? (
               <>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No pending confirmations</h3>
-                <p className="text-gray-600 mb-4">All your children have been processed by school staff.</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No pending confirmations
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  All your children have been processed by school staff.
+                </p>
                 <button
-                  onClick={() => setFilterStatus('all')}
+                  onClick={() => setFilterStatus("all")}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
                   View All Children
                 </button>
               </>
-            ) : filterStatus === 'unconfirmed' ? (
+            ) : filterStatus === "unconfirmed" ? (
               <>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No unconfirmed children</h3>
-                <p className="text-gray-600 mb-4">None of your children have been marked as unconfirmed.</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No unconfirmed children
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  None of your children have been marked as unconfirmed.
+                </p>
                 <button
-                  onClick={() => setFilterStatus('all')}
+                  onClick={() => setFilterStatus("all")}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
                   View All Children
@@ -354,10 +458,14 @@ const MyChildView = () => {
               </>
             ) : (
               <>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No children found</h3>
-                <p className="text-gray-600 mb-4">Try adjusting your filter settings</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No children found
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Try adjusting your filter settings
+                </p>
                 <button
-                  onClick={() => setFilterStatus('confirmed')}
+                  onClick={() => setFilterStatus("confirmed")}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
                   Show Confirmed Only
@@ -365,24 +473,27 @@ const MyChildView = () => {
               </>
             )}
           </div>
-        ) : (          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {students.map((student) => (
-              <div key={student.studentId} className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative border-l-4 ${
-                student.confirmationStatus === 'confirmed' 
-                  ? 'border-green-500' 
-                  : student.confirmationStatus === 'unconfirmed'
-                  ? 'border-red-500'
-                  : 'border-yellow-500'
-              }`}>
-                
+              <div
+                key={student.studentId}
+                className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative border-l-4 ${
+                  student.confirmationStatus === "confirmed"
+                    ? "border-green-500"
+                    : student.confirmationStatus === "unconfirmed"
+                    ? "border-red-500"
+                    : "border-yellow-500"
+                }`}
+              >
                 {/* Confirmation Status Badge - Top Left */}
                 <div className="absolute top-4 left-4">
-                  {student.confirmationStatus === 'confirmed' ? (
+                  {student.confirmationStatus === "confirmed" ? (
                     <div className="flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Confirmed
                     </div>
-                  ) : student.confirmationStatus === 'unconfirmed' ? (
+                  ) : student.confirmationStatus === "unconfirmed" ? (
                     <div className="flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
                       <AlertCircle className="w-3 h-3 mr-1" />
                       Unconfirmed
@@ -394,7 +505,7 @@ const MyChildView = () => {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Delete Button - Top Right */}
                 <button
                   onClick={() => setDeleteConfirm(student)}
@@ -403,15 +514,19 @@ const MyChildView = () => {
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
-                
+
                 {/* Student Avatar */}
                 <div className="flex items-center mb-4 pr-8 pt-8">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <User className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-lg font-semibold text-gray-900">{student.fullName}</h3>
-                    <p className="text-sm text-gray-600">Age: {calculateAge(student.dateOfBirth)} years</p>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {student.fullName}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Age: {calculateAge(student.dateOfBirth)} years
+                    </p>
                   </div>
                 </div>
 
@@ -421,35 +536,35 @@ const MyChildView = () => {
                     <Calendar className="w-4 h-4 mr-2" />
                     <span>Born: {formatDate(student.dateOfBirth)}</span>
                   </div>
-                  
                   <div className="flex items-center text-sm text-gray-600">
                     <User className="w-4 h-4 mr-2" />
-                    <span>Gender: {student.gender || 'Not specified'}</span>
-                  </div>                  {student.className && (
+                    <span>Gender: {student.gender || "Not specified"}</span>
+                  </div>{" "}
+                  {student.className && (
                     <div className="flex items-center text-sm text-gray-600">
                       <FileText className="w-4 h-4 mr-2" />
                       <span>Class: {student.className}</span>
                     </div>
                   )}
-
                   <div className="flex items-center text-sm text-gray-600">
                     <Activity className="w-4 h-4 mr-2" />
-                    <span>Blood Type: {student.bloodType || 'Not specified'}</span>
+                    <span>
+                      Blood Type: {student.bloodType || "Not specified"}
+                    </span>
                   </div>
-
                   {(student.heightCm || student.weightKg) && (
                     <div className="flex items-center text-sm text-gray-600">
                       <Heart className="w-4 h-4 mr-2" />
                       <span>
-                        {student.heightCm ? `${student.heightCm}cm` : ''} 
-                        {student.heightCm && student.weightKg ? ', ' : ''}
-                        {student.weightKg ? `${student.weightKg}kg` : ''}
+                        {student.heightCm ? `${student.heightCm}cm` : ""}
+                        {student.heightCm && student.weightKg ? ", " : ""}
+                        {student.weightKg ? `${student.weightKg}kg` : ""}
                       </span>
                     </div>
                   )}
                 </div>
 
-               {/* Action Buttons */}
+                {/* Action Buttons */}
                 <div className="mt-4 flex space-x-2">
                   <button
                     onClick={() => setSelectedStudent(student)}
@@ -457,7 +572,8 @@ const MyChildView = () => {
                   >
                     <Eye className="w-4 h-4 mr-1" />
                     View Details
-                  </button>                  <button 
+                  </button>{" "}
+                  <button
                     onClick={() => handleEditStudent(student)}
                     className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
                   >
@@ -468,12 +584,15 @@ const MyChildView = () => {
               </div>
             ))}
           </div>
-        )}        {/* Student Detail Modal */}
+        )}{" "}
+        {/* Student Detail Modal */}
         {selectedStudent && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">{selectedStudent.fullName}</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {selectedStudent.fullName}
+                </h2>
                 <button
                   onClick={() => setSelectedStudent(null)}
                   className="p-2 hover:bg-gray-100 rounded-md transition-colors"
@@ -481,7 +600,6 @@ const MyChildView = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Personal Information */}
                 <div className="space-y-4">
@@ -491,24 +609,38 @@ const MyChildView = () => {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Full Name:</span>
-                      <span className="text-gray-900">{selectedStudent.fullName}</span>
+                      <span className="font-medium text-gray-600">
+                        Full Name:
+                      </span>
+                      <span className="text-gray-900">
+                        {selectedStudent.fullName}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Date of Birth:</span>
-                      <span className="text-gray-900">{formatDate(selectedStudent.dateOfBirth)}</span>
+                      <span className="font-medium text-gray-600">
+                        Date of Birth:
+                      </span>
+                      <span className="text-gray-900">
+                        {formatDate(selectedStudent.dateOfBirth)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Age:</span>
-                      <span className="text-gray-900">{calculateAge(selectedStudent.dateOfBirth)} years</span>
+                      <span className="text-gray-900">
+                        {calculateAge(selectedStudent.dateOfBirth)} years
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Gender:</span>
-                      <span className="text-gray-900">{selectedStudent.gender || 'Not specified'}</span>
+                      <span className="text-gray-900">
+                        {selectedStudent.gender || "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Class:</span>
-                      <span className="text-gray-900">{selectedStudent.className || 'Not assigned'}</span>
+                      <span className="text-gray-900">
+                        {selectedStudent.className || "Not assigned"}
+                      </span>
                     </div>
                   </div>
 
@@ -520,11 +652,17 @@ const MyChildView = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Class:</span>
-                      <span className="text-gray-900">{selectedStudent.className || 'Not assigned'}</span>
+                      <span className="text-gray-900">
+                        {selectedStudent.className || "Not assigned"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Student Code:</span>
-                      <span className="text-gray-900">{selectedStudent.studentCode || 'Not assigned'}</span>
+                      <span className="font-medium text-gray-600">
+                        Student Code:
+                      </span>
+                      <span className="text-gray-900">
+                        {selectedStudent.studentCode || "Not assigned"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -537,34 +675,64 @@ const MyChildView = () => {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Blood Type:</span>
-                      <span className="text-gray-900">{selectedStudent.bloodType || 'Not specified'}</span>
+                      <span className="font-medium text-gray-600">
+                        Blood Type:
+                      </span>
+                      <span className="text-gray-900">
+                        {selectedStudent.bloodType || "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Height:</span>
-                      <span className="text-gray-900">{selectedStudent.heightCm ? `${selectedStudent.heightCm} cm` : 'Not specified'}</span>
+                      <span className="text-gray-900">
+                        {selectedStudent.heightCm
+                          ? `${selectedStudent.heightCm} cm`
+                          : "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Weight:</span>
-                      <span className="text-gray-900">{selectedStudent.weightKg ? `${selectedStudent.weightKg} kg` : 'Not specified'}</span>
+                      <span className="text-gray-900">
+                        {selectedStudent.weightKg
+                          ? `${selectedStudent.weightKg} kg`
+                          : "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Medical Conditions:</span>
-                      <span className="text-gray-900">{healthInfo[selectedStudent.studentId]?.medicalConditions || 'None'}</span>
+                      <span className="font-medium text-gray-600">
+                        Medical Conditions:
+                      </span>
+                      <span className="text-gray-900">
+                        {healthInfo[selectedStudent.studentId]
+                          ?.medicalConditions || "None"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Allergies:</span>
-                      <span className="text-gray-900">{healthInfo[selectedStudent.studentId]?.allergies || 'None'}</span>
-                    </div>                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Last Checkup:</span>
-                      <span className="text-gray-900">{healthInfo[selectedStudent.studentId]?.lastCheckup || 'Not available'}</span>
+                      <span className="font-medium text-gray-600">
+                        Allergies:
+                      </span>
+                      <span className="text-gray-900">
+                        {healthInfo[selectedStudent.studentId]?.allergies ||
+                          "None"}
+                      </span>
+                    </div>{" "}
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">
+                        Last Checkup:
+                      </span>
+                      <span className="text-gray-900">
+                        {healthInfo[selectedStudent.studentId]?.lastCheckup ||
+                          "Not available"}
+                      </span>
                     </div>
                   </div>
 
                   {/* Additional Notes Section */}
                   {healthInfo[selectedStudent.studentId]?.notes && (
                     <div className="mt-4">
-                      <h4 className="font-medium text-gray-700 mb-2">Additional Notes:</h4>
+                      <h4 className="font-medium text-gray-700 mb-2">
+                        Additional Notes:
+                      </h4>
                       <div className="p-3 bg-gray-50 rounded-md border">
                         <p className="text-sm text-gray-800 whitespace-pre-wrap">
                           {healthInfo[selectedStudent.studentId].notes}
@@ -585,13 +753,15 @@ const MyChildView = () => {
                     </p>
                   </div> */}
                 </div>
-              </div>              <div className="mt-6 flex justify-end space-x-3">
+              </div>{" "}
+              <div className="mt-6 flex justify-end space-x-3">
                 <button
                   onClick={() => setSelectedStudent(null)}
                   className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   Close
-                </button>                <button 
+                </button>{" "}
+                <button
                   onClick={() => {
                     setSelectedStudent(null);
                     handleEditStudent(selectedStudent);
@@ -601,16 +771,18 @@ const MyChildView = () => {
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Information
                 </button>
-              </div></div>
+              </div>
+            </div>
           </div>
         )}
-
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Delete Student</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Delete Student
+                </h3>
                 <button
                   onClick={() => setDeleteConfirm(null)}
                   className="p-2 hover:bg-gray-100 rounded-md transition-colors"
@@ -619,22 +791,28 @@ const MyChildView = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <div className="mb-6">
                 <div className="flex items-center mb-3">
                   <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                     <Trash2 className="w-6 h-6 text-red-600" />
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm text-gray-600">You are about to delete:</p>
-                    <p className="font-semibold text-gray-900">{deleteConfirm.fullName}</p>
+                    <p className="text-sm text-gray-600">
+                      You are about to delete:
+                    </p>
+                    <p className="font-semibold text-gray-900">
+                      {deleteConfirm.fullName}
+                    </p>
                   </div>
                 </div>
                 <p className="text-sm text-gray-600">
-                  This action cannot be undone. All health information and records associated with this student will be permanently deleted.
+                  This action cannot be undone. All health information and
+                  records associated with this student will be permanently
+                  deleted.
                 </p>
               </div>
-              
+
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setDeleteConfirm(null)}
@@ -664,14 +842,12 @@ const MyChildView = () => {
             </div>
           </div>
         )}
-
         {/* Add Student Form */}
         <AddStudentForm
           isOpen={showAddForm}
           onClose={() => setShowAddForm(false)}
           onStudentAdded={handleStudentAdded}
         />
-
         {/* Edit Student Form */}
         {editingStudent && (
           <AddStudentForm
