@@ -33,22 +33,15 @@ const MyChildView = () => {
   useEffect(() => {
     fetchStudents();
 
-    // Set up automatic refresh every 30 seconds for parent dashboard
-    // More frequent than default to catch status updates quickly
-    const refreshInterval = setInterval(() => {
-      fetchStudents();
-    }, 30000);
-
-    // Also refresh when the window regains focus
+    // Only refresh when the window regains focus
     const handleFocus = () => {
       fetchStudents();
     };
 
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup interval and event listener on component unmount
+    // Cleanup event listener on component unmount
     return () => {
-      clearInterval(refreshInterval);
       window.removeEventListener("focus", handleFocus);
     };
   }, [filterStatus]); // Re-fetch when filter changes

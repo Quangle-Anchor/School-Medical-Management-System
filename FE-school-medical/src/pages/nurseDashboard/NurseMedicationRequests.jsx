@@ -79,22 +79,15 @@ const NurseMedicationRequests = () => {
 
     fetchAllRequests();
 
-    // Set up automatic refresh every 30 seconds for nurse dashboard
-    // More frequent refresh to ensure real-time updates
-    const refreshInterval = setInterval(() => {
-      fetchAllRequests();
-    }, 30000);
-
-    // Also refresh when the window regains focus
+    // Only refresh when the window regains focus
     const handleFocus = () => {
       fetchAllRequests();
     };
 
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup interval and event listener on component unmount
+    // Cleanup event listener on component unmount
     return () => {
-      clearInterval(refreshInterval);
       window.removeEventListener("focus", handleFocus);
     };
   }, []);

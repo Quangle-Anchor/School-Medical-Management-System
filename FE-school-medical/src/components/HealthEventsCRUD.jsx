@@ -35,22 +35,15 @@ const HealthEventsCRUD = ({ title, description }) => {
   useEffect(() => {
     fetchEvents();
 
-    // Set up automatic refresh every 30 seconds for health events management
-    // This ensures the list is updated when events are created/modified
-    const refreshInterval = setInterval(() => {
-      fetchEvents();
-    }, 30000);
-
-    // Also refresh when the window regains focus
+    // Refresh when the window regains focus
     const handleFocus = () => {
       fetchEvents();
     };
 
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup interval and event listener on component unmount
+    // Cleanup event listener on component unmount
     return () => {
-      clearInterval(refreshInterval);
       window.removeEventListener("focus", handleFocus);
     };
   }, []);

@@ -78,16 +78,7 @@ const NurseHealthEventsView = ({ title, description }) => {
       fetchAllSignups();
     }
 
-    // Set up automatic refresh every 30 seconds for nurse health events view
-    // This ensures events and signups are updated when principals create events or parents sign up
-    const refreshInterval = setInterval(() => {
-      fetchHealthEvents();
-      if (activeTab === "signups") {
-        fetchAllSignups();
-      }
-    }, 30000);
-
-    // Also refresh when the window regains focus
+    // Refresh when the window regains focus
     const handleFocus = () => {
       fetchHealthEvents();
       if (activeTab === "signups") {
@@ -97,9 +88,8 @@ const NurseHealthEventsView = ({ title, description }) => {
 
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup interval and event listener on component unmount
+    // Cleanup event listener on component unmount
     return () => {
-      clearInterval(refreshInterval);
       window.removeEventListener("focus", handleFocus);
     };
   }, [activeTab]);

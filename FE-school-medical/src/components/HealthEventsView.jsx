@@ -19,22 +19,15 @@ const HealthEventsView = ({ userRole = "parent", title, description }) => {
   useEffect(() => {
     fetchHealthEvents();
 
-    // Set up automatic refresh every 30 seconds for health events
-    // This ensures events are updated when principals create them and parents sign up
-    const refreshInterval = setInterval(() => {
-      fetchHealthEvents();
-    }, 30000);
-
-    // Also refresh when the window regains focus
+    // Refresh when the window regains focus
     const handleFocus = () => {
       fetchHealthEvents();
     };
 
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup interval and event listener on component unmount
+    // Cleanup event listener on component unmount
     return () => {
-      clearInterval(refreshInterval);
       window.removeEventListener("focus", handleFocus);
     };
   }, [userRole]);
