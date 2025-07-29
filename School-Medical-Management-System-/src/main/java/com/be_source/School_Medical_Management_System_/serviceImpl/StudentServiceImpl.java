@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -123,7 +124,7 @@ public class StudentServiceImpl implements StudentService {
         notification.setCreatedBy(currentUser);
         notification.setUser(parent);
         notification.setNotificationType("STUDENT_CONFIRMED");
-        notification.setCreatedAt(ZonedDateTime.now());
+        notification.setCreatedAt(ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         notification.setReadStatus(false);
         notification.setEmailSent(false);
 
@@ -151,7 +152,7 @@ public class StudentServiceImpl implements StudentService {
         notification.setCreatedBy(currentUser);
         notification.setUser(parent);
         notification.setNotificationType("STUDENT_UNCONFIRMED");
-        notification.setCreatedAt(ZonedDateTime.now());
+        notification.setCreatedAt(ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         notification.setReadStatus(false);
         notification.setEmailSent(false);
 
