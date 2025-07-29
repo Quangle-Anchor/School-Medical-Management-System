@@ -38,7 +38,11 @@ const NurseDashboard = () => {
     const path = location.pathname;
 
     // More precise matching to avoid conflicts
-    if (path === "/nurseDashboard/students" || path === "/nurseDashboard/student-confirmations") return "student-confirmations";
+    if (
+      path === "/nurseDashboard/students" ||
+      path === "/nurseDashboard/student-confirmations"
+    )
+      return "student-confirmations";
     if (path === "/nurseDashboard/health-events") return "health-events";
     if (path === "/nurseDashboard/health-incidents") return "health-incidents";
     if (path === "/nurseDashboard/medication-requests")
@@ -83,6 +87,29 @@ const NurseDashboard = () => {
     };
 
     fetchAllData();
+
+    // Set up automatic refresh every 30 seconds for nurse dashboard
+    // This ensures the dashboard counts are updated when changes occur
+    const refreshInterval = setInterval(() => {
+      fetchMedicationRequests();
+      fetchHealthIncidents();
+      fetchHealthEvents();
+    }, 30000);
+
+    // Also refresh when the window regains focus
+    const handleFocus = () => {
+      fetchMedicationRequests();
+      fetchHealthIncidents();
+      fetchHealthEvents();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    // Cleanup interval and event listener on component unmount
+    return () => {
+      clearInterval(refreshInterval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);

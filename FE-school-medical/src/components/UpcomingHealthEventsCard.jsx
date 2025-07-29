@@ -1,19 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
-import { healthEventAPI } from '../api/healthEventApi';
-import { formatEventDate, getCategoryStyle, safeDisplay } from '../utils/dashboardUtils';
+import React, { useState, useEffect } from "react";
+import { Calendar } from "lucide-react";
+import { healthEventAPI } from "../api/healthEventApi";
+import {
+  formatEventDate,
+  getCategoryStyle,
+  safeDisplay,
+} from "../utils/dashboardUtils";
 
-const UpcomingHealthEventsCard = ({ 
-  userRole = 'parent', 
+const UpcomingHealthEventsCard = ({
+  userRole = "parent",
   maxEvents = 4,
   onViewAll,
-  className = ''
+  className = "",
 }) => {
   const [futureHealthEvents, setFutureHealthEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchHealthEvents();
+
+    // Set up automatic refresh every 30 seconds for upcoming health events card
+    // This ensures the card is updated when new events are created
+    const refreshInterval = setInterval(() => {
+      fetchHealthEvents();
+    }, 30000);
+
+    // Also refresh when the window regains focus
+    const handleFocus = () => {
+      fetchHealthEvents();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    // Cleanup interval and event listener on component unmount
+    return () => {
+      clearInterval(refreshInterval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [userRole]);
 
   const fetchHealthEvents = async () => {
@@ -23,7 +46,7 @@ const UpcomingHealthEventsCard = ({
       events = await healthEventAPI.getFutureEvents();
       setFutureHealthEvents(events || []);
     } catch (error) {
-      console.error('Error fetching health events:', error);
+      console.error("Error fetching health events:", error);
       setFutureHealthEvents([]);
     } finally {
       setLoading(false);
@@ -32,26 +55,27 @@ const UpcomingHealthEventsCard = ({
 
   const getTitleByRole = () => {
     switch (userRole) {
-      case 'parent':
+      case "parent":
         return {
-          title: 'Upcoming Health Events',
-          subtitle: 'Scheduled health events for your child'
+          title: "Upcoming Health Events",
+          subtitle: "Scheduled health events for your child",
         };
-      case 'nurse':
+      case "nurse":
         return {
-          title: 'Upcoming Health Events',
-          subtitle: 'Scheduled health events and medical appointments'
+          title: "Upcoming Health Events",
+          subtitle: "Scheduled health events and medical appointments",
         };
-      case 'principal':
+      case "principal":
         return {
-          title: 'Upcoming Health Events',
-          subtitle: 'Scheduled health events for the school'
+          title: "Upcoming Health Events",
+          subtitle: "Scheduled health events for the school",
         };
-      case 'admin':
+      case "admin":
         return {
-          title: 'Upcoming Health Events',
-          subtitle: 'Scheduled health events for the school and administrative purposes'
-        };  
+          title: "Upcoming Health Events",
+          subtitle:
+            "Scheduled health events for the school and administrative purposes",
+        };
     }
   };
 
@@ -61,7 +85,9 @@ const UpcomingHealthEventsCard = ({
     return (
       <div className={`bg-white shadow-md rounded-xl ${className}`}>
         <div className="p-6 border-b border-slate-100">
-          <h6 className="text-base font-semibold text-slate-700">{texts.title}</h6>
+          <h6 className="text-base font-semibold text-slate-700">
+            {texts.title}
+          </h6>
           <p className="mt-1 text-sm text-slate-400">{texts.subtitle}</p>
         </div>
         <div className="p-6 text-center">
@@ -72,9 +98,13 @@ const UpcomingHealthEventsCard = ({
   }
 
   return (
-    <div className={`bg-white shadow-md rounded-xl transition-all duration-200 ${className}`}>
+    <div
+      className={`bg-white shadow-md rounded-xl transition-all duration-200 ${className}`}
+    >
       <div className="p-6 border-b border-slate-100">
-        <h6 className="text-base font-semibold text-slate-700">{texts.title}</h6>
+        <h6 className="text-base font-semibold text-slate-700">
+          {texts.title}
+        </h6>
         <p className="mt-1 text-sm text-slate-400">{texts.subtitle}</p>
       </div>
       <div className="p-6">
@@ -83,7 +113,10 @@ const UpcomingHealthEventsCard = ({
             {futureHealthEvents.slice(0, maxEvents).map((event, index) => {
               const categoryStyle = getCategoryStyle(event.category);
               return (
-                <div key={index} className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
+                <div
+                  key={index}
+                  className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200"
+                >
                   <div className="flex items-center justify-center w-8 h-8 text-center bg-sky-500 shadow-sm rounded-xl">
                     <Calendar className="w-4 h-4 text-white" />
                   </div>
@@ -91,10 +124,14 @@ const UpcomingHealthEventsCard = ({
                     <h6 className="mb-1 text-sm font-semibold leading-normal text-slate-700">
                       {safeDisplay(event.title || event.eventName)}
                     </h6>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${categoryStyle.bg} ${categoryStyle.text} mb-1`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${categoryStyle.bg} ${categoryStyle.text} mb-1`}
+                    >
                       {safeDisplay(event.category)}
                     </span>
-                    <p className="mb-0 text-xs leading-tight text-slate-400">{formatEventDate(event.scheduleDate)}</p>
+                    <p className="mb-0 text-xs leading-tight text-slate-400">
+                      {formatEventDate(event.scheduleDate)}
+                    </p>
                   </div>
                 </div>
               );
@@ -105,13 +142,17 @@ const UpcomingHealthEventsCard = ({
             <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-center bg-gray-500 shadow-sm rounded-xl">
               <Calendar className="w-8 h-8 text-white" />
             </div>
-            <p className="text-sm text-slate-400 mb-1">No upcoming health events</p>
-            <p className="text-xs text-slate-300">Health events will appear here when scheduled</p>
+            <p className="text-sm text-slate-400 mb-1">
+              No upcoming health events
+            </p>
+            <p className="text-xs text-slate-300">
+              Health events will appear here when scheduled
+            </p>
           </div>
         )}
         {futureHealthEvents.length > maxEvents && onViewAll && (
           <div className="text-center pt-4 border-t border-gray-100">
-            <button 
+            <button
               onClick={onViewAll}
               className="inline-block px-6 py-2 mb-0 text-xs font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-sm bg-sky-500 leading-pro text-white ease-soft-in tracking-tight-soft shadow-sm"
             >

@@ -1,9 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { medicationScheduleAPI } from '../../api/medicationScheduleApi';
-import { Calendar, Clock, User, Plus, Edit, Trash2, AlertCircle, CheckCircle, Eye, Search, Filter } from 'lucide-react';
-import { useToast } from '../../hooks/useToast';
-import Pagination from '../../components/Pagination';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { medicationScheduleAPI } from "../../api/medicationScheduleApi";
+import {
+  Calendar,
+  Clock,
+  User,
+  Plus,
+  Edit,
+  Trash2,
+  AlertCircle,
+  CheckCircle,
+  Eye,
+  Search,
+  Filter,
+} from "lucide-react";
+import { useToast } from "../../hooks/useToast";
+import Pagination from "../../components/Pagination";
 
 const MedicationScheduleManagement = () => {
   const navigate = useNavigate();
@@ -15,9 +27,9 @@ const MedicationScheduleManagement = () => {
   const { showSuccess } = useToast();
 
   // Search and filter states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'upcoming', 'completed'
-  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all"); // 'all', 'upcoming', 'completed'
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -26,6 +38,25 @@ const MedicationScheduleManagement = () => {
 
   useEffect(() => {
     fetchSchedules();
+
+    // Set up automatic refresh every 30 seconds for nurse medication schedules
+    // This ensures the list is updated when new schedules are created/modified
+    const refreshInterval = setInterval(() => {
+      fetchSchedules();
+    }, 30000);
+
+    // Also refresh when the window regains focus
+    const handleFocus = () => {
+      fetchSchedules();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    // Cleanup interval and event listener on component unmount
+    return () => {
+      clearInterval(refreshInterval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   useEffect(() => {
@@ -39,8 +70,8 @@ const MedicationScheduleManagement = () => {
       setAllSchedules(schedulesArray);
       setSchedules(schedulesArray);
     } catch (error) {
-      console.error('Error fetching schedules:', error);
-      setError('Failed to fetch medication schedules');
+      console.error("Error fetching schedules:", error);
+      setError("Failed to fetch medication schedules");
       setAllSchedules([]);
       setSchedules([]);
     } finally {
@@ -53,31 +84,40 @@ const MedicationScheduleManagement = () => {
 
     // Apply status filter
     const now = new Date();
-    if (filterStatus === 'upcoming') {
-      filtered = filtered.filter(schedule => {
-        const scheduleDateTime = new Date(`${schedule.scheduledDate}T${schedule.scheduledTime}`);
+    if (filterStatus === "upcoming") {
+      filtered = filtered.filter((schedule) => {
+        const scheduleDateTime = new Date(
+          `${schedule.scheduledDate}T${schedule.scheduledTime}`
+        );
         return scheduleDateTime > now;
       });
-    } else if (filterStatus === 'completed') {
-      filtered = filtered.filter(schedule => {
-        const scheduleDateTime = new Date(`${schedule.scheduledDate}T${schedule.scheduledTime}`);
+    } else if (filterStatus === "completed") {
+      filtered = filtered.filter((schedule) => {
+        const scheduleDateTime = new Date(
+          `${schedule.scheduledDate}T${schedule.scheduledTime}`
+        );
         return scheduleDateTime <= now;
       });
     }
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(schedule =>
-        schedule.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        schedule.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        schedule.administeredBy?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (schedule) =>
+          schedule.studentName
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          schedule.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          schedule.administeredBy
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
     }
 
     // Calculate pagination
     const totalFilteredElements = filtered.length;
     const totalFilteredPages = Math.ceil(totalFilteredElements / pageSize);
-    
+
     // Reset to first page if current page is beyond total pages
     const safePage = currentPage >= totalFilteredPages ? 0 : currentPage;
     if (safePage !== currentPage) {
@@ -108,44 +148,52 @@ const MedicationScheduleManagement = () => {
   };
 
   const handleCreateSchedule = () => {
-    navigate('/nurseDashboard/medication-schedules/create');
+    navigate("/nurseDashboard/medication-schedules/create");
   };
 
   const handleEditSchedule = (schedule) => {
-    navigate(`/nurseDashboard/medication-schedules/edit/${schedule.scheduleId}`);
+    navigate(
+      `/nurseDashboard/medication-schedules/edit/${schedule.scheduleId}`
+    );
   };
 
   const handleViewSchedule = (schedule) => {
-    navigate(`/nurseDashboard/medication-schedules/view/${schedule.scheduleId}`);
+    navigate(
+      `/nurseDashboard/medication-schedules/view/${schedule.scheduleId}`
+    );
   };
 
   const handleDeleteSchedule = async (scheduleId) => {
-    if (!window.confirm('Are you sure you want to delete this medication schedule?')) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this medication schedule?"
+      )
+    ) {
       return;
     }
 
     try {
       await medicationScheduleAPI.deleteSchedule(scheduleId);
-      showSuccess('Medication schedule deleted successfully');
+      showSuccess("Medication schedule deleted successfully");
       await fetchSchedules();
     } catch (error) {
-      console.error('Error deleting schedule:', error);
-      setError('Failed to delete medication schedule');
+      console.error("Error deleting schedule:", error);
+      setError("Failed to delete medication schedule");
     }
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const formatTime = (timeString) => {
-    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -161,7 +209,9 @@ const MedicationScheduleManagement = () => {
     return (
       <div className="p-6 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Loading medication schedules...</span>
+        <span className="ml-2 text-gray-600">
+          Loading medication schedules...
+        </span>
       </div>
     );
   }
@@ -172,12 +222,18 @@ const MedicationScheduleManagement = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Medication Schedule Management</h1>
-            <p className="text-gray-600 mt-2">Schedule and manage medication administration for students</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Medication Schedule Management
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Schedule and manage medication administration for students
+            </p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="bg-blue-50 px-4 py-2 rounded-lg">
-              <span className="text-sm font-medium text-blue-700">Total Schedules: {totalElements}</span>
+              <span className="text-sm font-medium text-blue-700">
+                Total Schedules: {totalElements}
+              </span>
             </div>
             <button
               onClick={handleCreateSchedule}
@@ -205,7 +261,7 @@ const MedicationScheduleManagement = () => {
             />
             {searchTerm && (
               <button
-                onClick={() => handleSearchChange('')}
+                onClick={() => handleSearchChange("")}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 ×
@@ -248,16 +304,14 @@ const MedicationScheduleManagement = () => {
           <div className="p-8 text-center">
             <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchTerm || filterStatus !== 'all'
-                ? 'No matching schedules found'
-                : 'No Medication Schedules'
-              }
+              {searchTerm || filterStatus !== "all"
+                ? "No matching schedules found"
+                : "No Medication Schedules"}
             </h3>
             <p className="text-gray-600">
-              {searchTerm || filterStatus !== 'all'
-                ? 'Try adjusting your search or filter criteria.'
-                : 'Create your first medication schedule to get started.'
-              }
+              {searchTerm || filterStatus !== "all"
+                ? "Try adjusting your search or filter criteria."
+                : "Create your first medication schedule to get started."}
             </p>
           </div>
         ) : (
@@ -290,44 +344,56 @@ const MedicationScheduleManagement = () => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredSchedules.map((schedule) => {
-                  const scheduleDateTime = new Date(`${schedule.scheduledDate}T${schedule.scheduledTime}`);
+                  const scheduleDateTime = new Date(
+                    `${schedule.scheduledDate}T${schedule.scheduledTime}`
+                  );
                   const isUpcoming = scheduleDateTime > new Date();
-                  
+
                   return (
                     <tr key={schedule.scheduleId} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <User className="w-4 h-4 text-gray-400 mr-2" />
-                          <span className="font-medium text-gray-900">{schedule.studentName}</span>
+                          <span className="font-medium text-gray-900">
+                            {schedule.studentName}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                          <span className="text-gray-900">{formatDate(schedule.scheduledDate)}</span>
+                          <span className="text-gray-900">
+                            {formatDate(schedule.scheduledDate)}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <Clock className="w-4 h-4 text-gray-400 mr-2" />
-                          <span className="text-gray-900">{formatTime(schedule.scheduledTime)}</span>
+                          <span className="text-gray-900">
+                            {formatTime(schedule.scheduledTime)}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-gray-600 text-sm">
-                          {schedule.notes || 'No notes'}
+                          {schedule.notes || "No notes"}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-gray-900">{schedule.administeredBy}</span>
+                        <span className="text-gray-900">
+                          {schedule.administeredBy}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
-                          isUpcoming 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {isUpcoming ? 'Upcoming' : 'Completed'}
+                        <span
+                          className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
+                            isUpcoming
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {isUpcoming ? "Upcoming" : "Completed"}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -347,7 +413,9 @@ const MedicationScheduleManagement = () => {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDeleteSchedule(schedule.scheduleId)}
+                            onClick={() =>
+                              handleDeleteSchedule(schedule.scheduleId)
+                            }
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete schedule"
                           >

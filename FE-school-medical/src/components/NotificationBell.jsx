@@ -58,7 +58,7 @@ function formatTime(dateString) {
     const diff = Math.floor((vietnamNow - vietnamDate) / 1000); // seconds
 
     // Áp dụng cùng threshold cho tất cả loại thông báo
-    if (diff < 300) return "Just now";  
+    if (diff < 300) return "Just now";
 
     // Minutes
     const minutes = Math.floor(diff / 60);
@@ -114,6 +114,7 @@ const NotificationBell = ({ user, show, setShow }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(null);
+  const [showAll, setShowAll] = useState(false); // State để quản lý hiển thị tất cả hoặc chỉ 5 cái
   const navigate = useNavigate();
   const bellRef = useRef();
   const popupRef = useRef();
@@ -143,6 +144,13 @@ const NotificationBell = ({ user, show, setShow }) => {
     };
     fetchData();
   }, [user]);
+
+  // Reset showAll when notification bell closes
+  useEffect(() => {
+    if (!showList) {
+      setShowAll(false);
+    }
+  }, [showList]);
 
   // Lọc notification theo quyền - sửa lại logic
   let filteredNotifications = notifications;
@@ -197,9 +205,50 @@ const NotificationBell = ({ user, show, setShow }) => {
   // Group notifications
   const groups = groupNotifications(filteredNotifications);
 
+  // Function to limit notifications display (5 total)
+  const getLimitedGroups = (groups, showAll) => {
+    if (showAll) return groups;
+
+    const limitedGroups = { new: [], today: [], earlier: [] };
+    let count = 0;
+    const maxCount = 5;
+
+    // Prioritize new notifications first
+    for (const notification of groups.new) {
+      if (count < maxCount) {
+        limitedGroups.new.push(notification);
+        count++;
+      } else break;
+    }
+
+    // Then today notifications
+    for (const notification of groups.today) {
+      if (count < maxCount) {
+        limitedGroups.today.push(notification);
+        count++;
+      } else break;
+    }
+
+    // Finally earlier notifications
+    for (const notification of groups.earlier) {
+      if (count < maxCount) {
+        limitedGroups.earlier.push(notification);
+        count++;
+      } else break;
+    }
+
+    return limitedGroups;
+  };
+
+  const displayGroups = getLimitedGroups(groups, showAll);
+  const totalNotifications =
+    groups.new.length + groups.today.length + groups.earlier.length;
+  const hasMoreNotifications = totalNotifications > 5;
+
   // Xem chi tiết thông báo (vừa hiện popup vừa link tới trang tương ứng nếu có notificationType)
   const handleViewDetail = async (n) => {
     setShowList(false);
+    setShowAll(false); // Reset show all when closing
     try {
       if (!n.readStatus) {
         await handleMarkRead(n.notificationId);
@@ -345,12 +394,12 @@ const NotificationBell = ({ user, show, setShow }) => {
               <div className="p-4 text-gray-500 text-sm">Loading...</div>
             ) : (
               <>
-                {groups.new.length > 0 && (
+                {displayGroups.new.length > 0 && (
                   <div>
                     <div className="px-4 py-2 text-xs font-semibold text-blue-600 flex justify-between items-center">
                       New
                     </div>
-                    {groups.new.map((n) => (
+                    {displayGroups.new.map((n) => (
                       <div
                         key={n.notificationId}
                         className="flex items-start gap-3 px-4 py-3 border-b last:border-0 bg-white group hover:bg-blue-50 transition relative cursor-pointer"
@@ -384,12 +433,12 @@ const NotificationBell = ({ user, show, setShow }) => {
                     ))}
                   </div>
                 )}
-                {groups.today.length > 0 && (
+                {displayGroups.today.length > 0 && (
                   <div>
                     <div className="px-4 py-2 text-xs font-semibold text-gray-700">
                       Today
                     </div>
-                    {groups.today.map((n) => (
+                    {displayGroups.today.map((n) => (
                       <div
                         key={n.notificationId}
                         className="flex items-start gap-3 px-4 py-3 border-b last:border-0 bg-white group hover:bg-blue-50 transition relative cursor-pointer"
@@ -423,12 +472,12 @@ const NotificationBell = ({ user, show, setShow }) => {
                     ))}
                   </div>
                 )}
-                {groups.earlier.length > 0 && (
+                {displayGroups.earlier.length > 0 && (
                   <div>
                     <div className="px-4 py-2 text-xs font-semibold text-gray-500">
                       Earlier
                     </div>
-                    {groups.earlier.map((n) => (
+                    {displayGroups.earlier.map((n) => (
                       <div
                         key={n.notificationId}
                         className="flex items-start gap-3 px-4 py-3 border-b last:border-0 bg-white group hover:bg-blue-50 transition relative cursor-pointer"
@@ -462,9 +511,34 @@ const NotificationBell = ({ user, show, setShow }) => {
                     ))}
                   </div>
                 )}
-                {groups.new.length === 0 &&
-                  groups.today.length === 0 &&
-                  groups.earlier.length === 0 && (
+
+                {/* Show "View more" button if there are more notifications */}
+                {!showAll && hasMoreNotifications && (
+                  <div className="px-4 py-3 border-t">
+                    <button
+                      onClick={() => setShowAll(true)}
+                      className="w-full text-center text-blue-500 hover:text-blue-700 text-sm font-medium py-2 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      View more ({totalNotifications - 5} more notifications)
+                    </button>
+                  </div>
+                )}
+
+                {/* Show "Show less" button when showing all */}
+                {showAll && hasMoreNotifications && (
+                  <div className="px-4 py-3 border-t">
+                    <button
+                      onClick={() => setShowAll(false)}
+                      className="w-full text-center text-gray-500 hover:text-gray-700 text-sm font-medium py-2 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      Show less
+                    </button>
+                  </div>
+                )}
+
+                {displayGroups.new.length === 0 &&
+                  displayGroups.today.length === 0 &&
+                  displayGroups.earlier.length === 0 && (
                     <div className="p-4 text-gray-500 text-sm">
                       No notifications.
                     </div>
