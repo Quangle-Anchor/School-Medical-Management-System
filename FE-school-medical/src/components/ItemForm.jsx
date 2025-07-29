@@ -23,7 +23,7 @@ const ItemForm = ({
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Name</label>
+              <label className="block text-sm font-medium text-gray-700">Name <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={formData.name}
@@ -33,11 +33,12 @@ const ItemForm = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <label className="block text-sm font-medium text-gray-700">Category <span className="text-red-500">*</span></label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({...formData, category: e.target.value})}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                required
               >
                 <option value="medications">Medications</option>
                 <option value="equipment">Equipment</option>
@@ -46,7 +47,7 @@ const ItemForm = ({
             </div>
             {isEditMode && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">Quantity</label>
+                <label className="block text-sm font-medium text-gray-700">Quantity <span className="text-red-500">*</span></label>
                 <input
                   type="number"
                   value={formData.quantity || ''}
@@ -57,27 +58,29 @@ const ItemForm = ({
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Unit</label>
+              <label className="block text-sm font-medium text-gray-700">Unit <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={formData.unit}
                 onChange={(e) => setFormData({...formData, unit: e.target.value})}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 placeholder="e.g., boxes, units, ml"
+                required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Manufacturer</label>
+              <label className="block text-sm font-medium text-gray-700">Manufacturer <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={formData.manufacturer}
                 onChange={(e) => setFormData({...formData, manufacturer: e.target.value})}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 placeholder="e.g., MediCorp, PharmaCo"
+                required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
+              <label className="block text-sm font-medium text-gray-700">Expiry Date <span className="text-red-500">*</span></label>
               <input
                 type="date"
                 value={formData.expiryDate}
@@ -86,6 +89,7 @@ const ItemForm = ({
                 max={getMaxExpiryDate()}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 title="Expiry date must be within 6 months from today (past or future)"
+                required
               />
             </div>
             <div>
