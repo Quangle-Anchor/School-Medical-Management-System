@@ -1,38 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { User, Calendar, CheckCircle, Clock, AlertCircle, Eye, X, MessageSquare, Search, Filter, Heart, FileText } from 'lucide-react';
-import { studentAPI } from '../../api/studentsApi';
-import { useToast } from '../../hooks/useToast';
-import { useConfirmation, getConfirmationConfig } from '../../utils/confirmationUtils';
-import ConfirmationModal from '../../components/ConfirmationModal';
-import Pagination from '../../components/Pagination';
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  Calendar,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Eye,
+  X,
+  MessageSquare,
+  Search,
+  Filter,
+  Heart,
+  FileText,
+} from "lucide-react";
+import { studentAPI } from "../../api/studentsApi";
+import { useToast } from "../../hooks/useToast";
+import {
+  useConfirmation,
+  getConfirmationConfig,
+} from "../../utils/confirmationUtils";
+import ConfirmationModal from "../../components/ConfirmationModal";
+import Pagination from "../../components/Pagination";
 
 const StudentConfirmationView = () => {
   const [students, setStudents] = useState([]);
   const [allStudents, setAllStudents] = useState([]); // Store all students for filtering
   const [filteredStudents, setFilteredStudents] = useState([]);
-  const [filterStatus, setFilterStatus] = useState('pending');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState("pending");
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
-  const [rejectReason, setRejectReason] = useState('');
+  const [rejectReason, setRejectReason] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(null);
   const [healthInfo, setHealthInfo] = useState({}); // Store health information for students
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  
+
   // Statistics states
   const [statistics, setStatistics] = useState({
     pending: 0,
     confirmed: 0,
     unconfirmed: 0,
-    total: 0
+    total: 0,
   });
-  
+
   const { showSuccess, showError } = useToast();
 
   // Student confirmation hook
@@ -49,6 +65,27 @@ const StudentConfirmationView = () => {
   useEffect(() => {
     fetchAllStudents();
     fetchStatistics();
+
+    // Set up automatic refresh every 30 seconds for nurse dashboard
+    // More frequent than default to catch new student requests quickly
+    const refreshInterval = setInterval(() => {
+      fetchAllStudents();
+      fetchStatistics();
+    }, 30000);
+
+    // Also refresh when the window regains focus
+    const handleFocus = () => {
+      fetchAllStudents();
+      fetchStatistics();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    // Cleanup interval and event listener on component unmount
+    return () => {
+      clearInterval(refreshInterval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   useEffect(() => {
@@ -59,10 +96,15 @@ const StudentConfirmationView = () => {
     // Update statistics when allStudents data changes
     if (allStudents.length > 0) {
       const stats = {
-        pending: allStudents.filter(s => s.confirmationStatus === 'pending').length,
-        confirmed: allStudents.filter(s => s.confirmationStatus === 'confirmed').length,
-        unconfirmed: allStudents.filter(s => s.confirmationStatus === 'unconfirmed').length,
-        total: allStudents.length
+        pending: allStudents.filter((s) => s.confirmationStatus === "pending")
+          .length,
+        confirmed: allStudents.filter(
+          (s) => s.confirmationStatus === "confirmed"
+        ).length,
+        unconfirmed: allStudents.filter(
+          (s) => s.confirmationStatus === "unconfirmed"
+        ).length,
+        total: allStudents.length,
       };
       setStatistics(stats);
     }
@@ -72,24 +114,32 @@ const StudentConfirmationView = () => {
     try {
       // Use allStudents if available, otherwise fetch fresh data
       let studentsForStats = allStudents;
-      
+
       if (allStudents.length === 0) {
         const allStudentsResponse = await studentAPI.getAllStudents(0, 10000);
-        studentsForStats = Array.isArray(allStudentsResponse.content) 
-          ? allStudentsResponse.content 
-          : (Array.isArray(allStudentsResponse) ? allStudentsResponse : []);
+        studentsForStats = Array.isArray(allStudentsResponse.content)
+          ? allStudentsResponse.content
+          : Array.isArray(allStudentsResponse)
+          ? allStudentsResponse
+          : [];
       }
-      
+
       const stats = {
-        pending: studentsForStats.filter(s => s.confirmationStatus === 'pending').length,
-        confirmed: studentsForStats.filter(s => s.confirmationStatus === 'confirmed').length,
-        unconfirmed: studentsForStats.filter(s => s.confirmationStatus === 'unconfirmed').length,
-        total: studentsForStats.length
+        pending: studentsForStats.filter(
+          (s) => s.confirmationStatus === "pending"
+        ).length,
+        confirmed: studentsForStats.filter(
+          (s) => s.confirmationStatus === "confirmed"
+        ).length,
+        unconfirmed: studentsForStats.filter(
+          (s) => s.confirmationStatus === "unconfirmed"
+        ).length,
+        total: studentsForStats.length,
       };
-      
+
       setStatistics(stats);
     } catch (error) {
-      console.error('Error fetching statistics:', error);
+      console.error("Error fetching statistics:", error);
     }
   };
 
@@ -98,7 +148,7 @@ const StudentConfirmationView = () => {
       setLoading(true);
       // Fetch all students at once for client-side filtering and pagination
       const response = await studentAPI.getAllStudents(0, 10000);
-      
+
       let studentsData = [];
       if (response.content) {
         // Paginated response
@@ -107,16 +157,18 @@ const StudentConfirmationView = () => {
         // Non-paginated response
         studentsData = Array.isArray(response) ? response : [];
       }
-      
+
       setAllStudents(studentsData);
-      
+
       // Fetch health info for each student
       const healthData = {};
       for (const student of studentsData) {
         try {
           // Try to fetch health info from the separate health-info API
-          const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(student.studentId);
-          
+          const healthInfoResponse = await studentAPI.getHealthInfoByStudentId(
+            student.studentId
+          );
+
           // If health info exists, use it; otherwise use default values
           if (healthInfoResponse && healthInfoResponse.length > 0) {
             const healthInfo = healthInfoResponse[0]; // Get the first/latest health info record
@@ -124,10 +176,12 @@ const StudentConfirmationView = () => {
               bloodType: student.bloodType,
               heightCm: student.heightCm,
               weightKg: student.weightKg,
-              medicalConditions: healthInfo.medicalConditions || 'None',
-              allergies: healthInfo.allergies || 'None',
-              notes: healthInfo.notes || '',
-              lastCheckup: healthInfo.updatedAt ? new Date(healthInfo.updatedAt).toLocaleDateString() : 'Not available'
+              medicalConditions: healthInfo.medicalConditions || "None",
+              allergies: healthInfo.allergies || "None",
+              notes: healthInfo.notes || "",
+              lastCheckup: healthInfo.updatedAt
+                ? new Date(healthInfo.updatedAt).toLocaleDateString()
+                : "Not available",
             };
           } else {
             // No health info found, use student data and defaults
@@ -135,30 +189,33 @@ const StudentConfirmationView = () => {
               bloodType: student.bloodType,
               heightCm: student.heightCm,
               weightKg: student.weightKg,
-              medicalConditions: 'None',
-              allergies: 'None',
-              notes: '',
-              lastCheckup: 'Not available'
+              medicalConditions: "None",
+              allergies: "None",
+              notes: "",
+              lastCheckup: "Not available",
             };
-          }      
+          }
         } catch (error) {
-          console.error(`Error fetching health info for student ${student.studentId}:`, error);
+          console.error(
+            `Error fetching health info for student ${student.studentId}:`,
+            error
+          );
           // Use defaults if health info fetch fails
           healthData[student.studentId] = {
             bloodType: student.bloodType,
             heightCm: student.heightCm,
             weightKg: student.weightKg,
-            medicalConditions: 'None',
-            allergies: 'None',
-            notes: '',
-            lastCheckup: 'Not available'
+            medicalConditions: "None",
+            allergies: "None",
+            notes: "",
+            lastCheckup: "Not available",
           };
         }
       }
       setHealthInfo(healthData);
     } catch (error) {
-      showError('Failed to load students');
-      console.error('Error fetching students:', error);
+      showError("Failed to load students");
+      console.error("Error fetching students:", error);
       setAllStudents([]);
     } finally {
       setLoading(false);
@@ -169,23 +226,28 @@ const StudentConfirmationView = () => {
     let filtered = [...allStudents];
 
     // Apply status filter
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(student => student.confirmationStatus === filterStatus);
+    if (filterStatus !== "all") {
+      filtered = filtered.filter(
+        (student) => student.confirmationStatus === filterStatus
+      );
     }
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(student =>
-        student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.studentCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.className?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (student) =>
+          student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          student.studentCode
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          student.className?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Calculate pagination
     const totalFilteredElements = filtered.length;
     const totalFilteredPages = Math.ceil(totalFilteredElements / pageSize);
-    
+
     // Reset to first page if current page is beyond total pages
     const safePage = currentPage >= totalFilteredPages ? 0 : currentPage;
     if (safePage !== currentPage) {
@@ -206,13 +268,13 @@ const StudentConfirmationView = () => {
   };
 
   const handleConfirmStudent = async (student) => {
-    const config = getConfirmationConfig('student', student);
+    const config = getConfirmationConfig("student", student);
     await studentConfirmation.handleConfirm(student, {
       getItemId: config.getItemId,
       getItemName: config.getItemName,
       successMessage: `Student ${student.fullName} has been confirmed successfully!`,
-      errorMessage: 'Failed to confirm student. Please try again.',
-      invalidIdMessage: 'Cannot confirm student: Invalid student ID'
+      errorMessage: "Failed to confirm student. Please try again.",
+      invalidIdMessage: "Cannot confirm student: Invalid student ID",
     });
   };
 
@@ -232,57 +294,60 @@ const StudentConfirmationView = () => {
 
   const handleRejectStudent = async () => {
     if (!showRejectModal || !rejectReason.trim()) {
-      showError('Please provide a reason for rejection');
+      showError("Please provide a reason for rejection");
       return;
     }
 
     try {
       setRejectingId(showRejectModal.studentId);
       await studentAPI.rejectStudent(showRejectModal.studentId, rejectReason);
-      showSuccess('Student marked as unconfirmed and parent notified');
+      showSuccess("Student marked as unconfirmed and parent notified");
       setShowRejectModal(null);
-      setRejectReason('');
+      setRejectReason("");
       fetchAllStudents(); // Refresh all students data
       fetchStatistics(); // Refresh statistics
     } catch (error) {
-      showError('Failed to reject student');
-      console.error('Error rejecting student:', error);
+      showError("Failed to reject student");
+      console.error("Error rejecting student:", error);
     } finally {
       setRejectingId(null);
     }
   };
 
   const calculateAge = (dateOfBirth) => {
-    if (!dateOfBirth) return 'N/A';
+    if (!dateOfBirth) return "N/A";
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
     return age;
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'confirmed':
+      case "confirmed":
         return (
           <div className="flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
             <CheckCircle className="w-3 h-3 mr-1" />
             Confirmed
           </div>
         );
-      case 'unconfirmed':
+      case "unconfirmed":
         return (
           <div className="flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
             <AlertCircle className="w-3 h-3 mr-1" />
@@ -315,8 +380,12 @@ const StudentConfirmationView = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Student Confirmations</h1>
-          <p className="text-gray-600">Review and confirm student registrations</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Student Confirmations
+          </h1>
+          <p className="text-gray-600">
+            Review and confirm student registrations
+          </p>
         </div>
 
         {/* Filters and Search */}
@@ -398,7 +467,9 @@ const StudentConfirmationView = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-600">Total</p>
-                <p className="text-lg font-bold text-blue-600">{statistics.total}</p>
+                <p className="text-lg font-bold text-blue-600">
+                  {statistics.total}
+                </p>
               </div>
             </div>
           </div>
@@ -408,12 +479,13 @@ const StudentConfirmationView = () => {
         {filteredStudents.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm">
             <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No students found</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No students found
+            </h3>
             <p className="text-gray-600">
-              {searchTerm || filterStatus !== 'all' 
-                ? 'Try adjusting your search or filter criteria'
-                : 'No students registered yet'
-              }
+              {searchTerm || filterStatus !== "all"
+                ? "Try adjusting your search or filter criteria"
+                : "No students registered yet"}
             </p>
           </div>
         ) : (
@@ -451,13 +523,17 @@ const StudentConfirmationView = () => {
                             <User className="w-5 h-5 text-blue-600" />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{student.fullName}</div>
-                            <div className="text-sm text-gray-500">{student.studentCode || 'No code assigned'}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {student.fullName}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {student.studentCode || "No code assigned"}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {student.className || 'Not assigned'}
+                        {student.className || "Not assigned"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {calculateAge(student.dateOfBirth)} years
@@ -484,17 +560,23 @@ const StudentConfirmationView = () => {
                             </div>
                           </div>
 
-                          {student.confirmationStatus === 'pending' && (
+                          {student.confirmationStatus === "pending" && (
                             <>
                               {/* Confirm Button */}
                               <div className="relative group">
                                 <button
-                                  onClick={() => handleConfirmStudentClick(student)}
-                                  disabled={studentConfirmation.isConfirming(student.studentId)}
+                                  onClick={() =>
+                                    handleConfirmStudentClick(student)
+                                  }
+                                  disabled={studentConfirmation.isConfirming(
+                                    student.studentId
+                                  )}
                                   className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                                   title="Confirm Student"
                                 >
-                                  {studentConfirmation.isConfirming(student.studentId) ? (
+                                  {studentConfirmation.isConfirming(
+                                    student.studentId
+                                  ) ? (
                                     <div className="animate-spin w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full" />
                                   ) : (
                                     <CheckCircle className="w-4 h-4" />
@@ -526,14 +608,14 @@ const StudentConfirmationView = () => {
                             </>
                           )}
 
-                          {student.confirmationStatus === 'confirmed' && (
+                          {student.confirmationStatus === "confirmed" && (
                             <div className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
                               <CheckCircle className="w-3 h-3 mr-1" />
                               Confirmed
                             </div>
                           )}
 
-                          {student.confirmationStatus === 'unconfirmed' && (
+                          {student.confirmationStatus === "unconfirmed" && (
                             <div className="inline-flex items-center px-2 py-1 bg-red-50 text-red-700 rounded-full text-xs font-medium">
                               <AlertCircle className="w-3 h-3 mr-1" />
                               Unconfirmed
@@ -546,7 +628,7 @@ const StudentConfirmationView = () => {
                 </tbody>
               </table>
             </div>
-            
+
             {/* Pagination */}
             {totalPages > 1 && (
               <Pagination
@@ -567,7 +649,9 @@ const StudentConfirmationView = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">{selectedStudent.fullName}</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {selectedStudent.fullName}
+                </h2>
                 <button
                   onClick={() => setSelectedStudent(null)}
                   className="p-2 hover:bg-gray-100 rounded-md transition-colors"
@@ -585,24 +669,40 @@ const StudentConfirmationView = () => {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Full Name:</span>
-                      <span className="text-gray-900">{selectedStudent.fullName}</span>
+                      <span className="font-medium text-gray-600">
+                        Full Name:
+                      </span>
+                      <span className="text-gray-900">
+                        {selectedStudent.fullName}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Date of Birth:</span>
-                      <span className="text-gray-900">{formatDate(selectedStudent.dateOfBirth)}</span>
+                      <span className="font-medium text-gray-600">
+                        Date of Birth:
+                      </span>
+                      <span className="text-gray-900">
+                        {formatDate(selectedStudent.dateOfBirth)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Age:</span>
-                      <span className="text-gray-900">{calculateAge(selectedStudent.dateOfBirth)} years</span>
+                      <span className="text-gray-900">
+                        {calculateAge(selectedStudent.dateOfBirth)} years
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Gender:</span>
-                      <span className="text-gray-900">{selectedStudent.gender || 'Not specified'}</span>
+                      <span className="text-gray-900">
+                        {selectedStudent.gender || "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Confirmation Status:</span>
-                      <div>{getStatusBadge(selectedStudent.confirmationStatus)}</div>
+                      <span className="font-medium text-gray-600">
+                        Confirmation Status:
+                      </span>
+                      <div>
+                        {getStatusBadge(selectedStudent.confirmationStatus)}
+                      </div>
                     </div>
                   </div>
 
@@ -614,11 +714,17 @@ const StudentConfirmationView = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Class:</span>
-                      <span className="text-gray-900">{selectedStudent.className || 'Not assigned'}</span>
+                      <span className="text-gray-900">
+                        {selectedStudent.className || "Not assigned"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Student Code:</span>
-                      <span className="text-gray-900">{selectedStudent.studentCode || 'Not assigned'}</span>
+                      <span className="font-medium text-gray-600">
+                        Student Code:
+                      </span>
+                      <span className="text-gray-900">
+                        {selectedStudent.studentCode || "Not assigned"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -631,35 +737,64 @@ const StudentConfirmationView = () => {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Blood Type:</span>
-                      <span className="text-gray-900">{selectedStudent.bloodType || 'Not specified'}</span>
+                      <span className="font-medium text-gray-600">
+                        Blood Type:
+                      </span>
+                      <span className="text-gray-900">
+                        {selectedStudent.bloodType || "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Height:</span>
-                      <span className="text-gray-900">{selectedStudent.heightCm ? `${selectedStudent.heightCm} cm` : 'Not specified'}</span>
+                      <span className="text-gray-900">
+                        {selectedStudent.heightCm
+                          ? `${selectedStudent.heightCm} cm`
+                          : "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">Weight:</span>
-                      <span className="text-gray-900">{selectedStudent.weightKg ? `${selectedStudent.weightKg} kg` : 'Not specified'}</span>
+                      <span className="text-gray-900">
+                        {selectedStudent.weightKg
+                          ? `${selectedStudent.weightKg} kg`
+                          : "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Medical Conditions:</span>
-                      <span className="text-gray-900">{healthInfo[selectedStudent.studentId]?.medicalConditions || 'None'}</span>
+                      <span className="font-medium text-gray-600">
+                        Medical Conditions:
+                      </span>
+                      <span className="text-gray-900">
+                        {healthInfo[selectedStudent.studentId]
+                          ?.medicalConditions || "None"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Allergies:</span>
-                      <span className="text-gray-900">{healthInfo[selectedStudent.studentId]?.allergies || 'None'}</span>
+                      <span className="font-medium text-gray-600">
+                        Allergies:
+                      </span>
+                      <span className="text-gray-900">
+                        {healthInfo[selectedStudent.studentId]?.allergies ||
+                          "None"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Last Checkup:</span>
-                      <span className="text-gray-900">{healthInfo[selectedStudent.studentId]?.lastCheckup || 'Not available'}</span>
+                      <span className="font-medium text-gray-600">
+                        Last Checkup:
+                      </span>
+                      <span className="text-gray-900">
+                        {healthInfo[selectedStudent.studentId]?.lastCheckup ||
+                          "Not available"}
+                      </span>
                     </div>
                   </div>
 
                   {/* Additional Notes Section */}
                   {healthInfo[selectedStudent.studentId]?.notes && (
                     <div className="mt-4">
-                      <h4 className="font-medium text-gray-700 mb-2">Additional Notes:</h4>
+                      <h4 className="font-medium text-gray-700 mb-2">
+                        Additional Notes:
+                      </h4>
                       <div className="p-3 bg-gray-50 rounded-md border">
                         <p className="text-sm text-gray-800 whitespace-pre-wrap">
                           {healthInfo[selectedStudent.studentId].notes}
@@ -679,17 +814,21 @@ const StudentConfirmationView = () => {
                   Close
                 </button>
 
-                {selectedStudent.confirmationStatus === 'pending' && (
+                {selectedStudent.confirmationStatus === "pending" && (
                   <>
                     <button
                       onClick={() => {
                         setSelectedStudent(null);
                         handleConfirmStudentClick(selectedStudent);
                       }}
-                      disabled={studentConfirmation.isConfirming(selectedStudent.studentId)}
+                      disabled={studentConfirmation.isConfirming(
+                        selectedStudent.studentId
+                      )}
                       className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
                     >
-                      {studentConfirmation.isConfirming(selectedStudent.studentId) ? (
+                      {studentConfirmation.isConfirming(
+                        selectedStudent.studentId
+                      ) ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                           Confirming...
@@ -723,11 +862,13 @@ const StudentConfirmationView = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Mark as Unconfirmed</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Mark as Unconfirmed
+                </h3>
                 <button
                   onClick={() => {
                     setShowRejectModal(null);
-                    setRejectReason('');
+                    setRejectReason("");
                   }}
                   className="p-2 hover:bg-gray-100 rounded-md transition-colors"
                 >
@@ -737,8 +878,10 @@ const StudentConfirmationView = () => {
 
               <div className="mb-6">
                 <p className="text-sm text-gray-600 mb-4">
-                  You are about to mark <strong>{showRejectModal.fullName}</strong> as unconfirmed. 
-                  Please provide a reason that will be sent to the parent via email.
+                  You are about to mark{" "}
+                  <strong>{showRejectModal.fullName}</strong> as unconfirmed.
+                  Please provide a reason that will be sent to the parent via
+                  email.
                 </p>
                 <textarea
                   value={rejectReason}
@@ -754,7 +897,7 @@ const StudentConfirmationView = () => {
                 <button
                   onClick={() => {
                     setShowRejectModal(null);
-                    setRejectReason('');
+                    setRejectReason("");
                   }}
                   className="inline-flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1"
                 >
@@ -763,7 +906,10 @@ const StudentConfirmationView = () => {
                 </button>
                 <button
                   onClick={handleRejectStudent}
-                  disabled={!rejectReason.trim() || rejectingId === showRejectModal.studentId}
+                  disabled={
+                    !rejectReason.trim() ||
+                    rejectingId === showRejectModal.studentId
+                  }
                   className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
                 >
                   {rejectingId === showRejectModal.studentId ? (
@@ -790,10 +936,19 @@ const StudentConfirmationView = () => {
           onCancel={studentConfirmation.cancelConfirm}
           item={studentConfirmation.itemToConfirm}
           config={{
-            ...getConfirmationConfig('student', studentConfirmation.itemToConfirm || {}),
-            type: 'student'
+            ...getConfirmationConfig(
+              "student",
+              studentConfirmation.itemToConfirm || {}
+            ),
+            type: "student",
           }}
-          isConfirming={studentConfirmation.itemToConfirm ? studentConfirmation.isConfirming(studentConfirmation.itemToConfirm.studentId) : false}
+          isConfirming={
+            studentConfirmation.itemToConfirm
+              ? studentConfirmation.isConfirming(
+                  studentConfirmation.itemToConfirm.studentId
+                )
+              : false
+          }
         />
       </div>
     </div>
