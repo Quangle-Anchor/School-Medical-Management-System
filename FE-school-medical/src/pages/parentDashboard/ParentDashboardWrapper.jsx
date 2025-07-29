@@ -16,6 +16,7 @@ import { User, Calendar, FileText, Heart, Plus } from "lucide-react";
 import { studentAPI } from "../../api/studentsApi";
 import { healthIncidentAPI } from "../../api/healthIncidentApi";
 import { medicationAPI } from "../../api/medicationApi";
+import { medicationScheduleAPI } from "../../api/medicationScheduleApi";
 import { healthEventAPI } from "../../api/healthEventApi";
 
 const ParentDashboardWrapper = () => {
@@ -27,6 +28,7 @@ const ParentDashboardWrapper = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [healthIncidentsCount, setHealthIncidentsCount] = useState(0);
   const [medicationRequestsCount, setMedicationRequestsCount] = useState(0);
+  const [medicationSchedulesCount, setMedicationSchedulesCount] = useState(0);
   const [futureHealthEventsCount, setFutureHealthEventsCount] = useState(0);
 
   // Get current view from URL
@@ -52,7 +54,31 @@ const ParentDashboardWrapper = () => {
   useEffect(() => {
     fetchStudents();
     fetchMedicationRequests();
+    fetchMedicationSchedules();
     fetchFutureHealthEventsCount();
+
+    // Set up automatic refresh every 30 seconds for parent dashboard
+    // This ensures the dashboard counts are updated when nurses confirm/reject requests
+    const refreshInterval = setInterval(() => {
+      fetchMedicationRequests();
+      fetchMedicationSchedules();
+      fetchFutureHealthEventsCount();
+    }, 30000);
+
+    // Also refresh when the window regains focus
+    const handleFocus = () => {
+      fetchMedicationRequests();
+      fetchMedicationSchedules();
+      fetchFutureHealthEventsCount();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    // Cleanup interval and event listener on component unmount
+    return () => {
+      clearInterval(refreshInterval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   // Fetch health incidents after students are loaded
@@ -115,6 +141,19 @@ const ParentDashboardWrapper = () => {
     }
   };
 
+  const fetchMedicationSchedules = async () => {
+    try {
+      const medicationSchedules =
+        await medicationScheduleAPI.getSchedulesForMyStudents();
+      setMedicationSchedulesCount(
+        medicationSchedules ? medicationSchedules.length : 0
+      );
+    } catch (error) {
+      console.error("Error fetching medication schedules:", error);
+      setMedicationSchedulesCount(0);
+    }
+  };
+
   const fetchFutureHealthEventsCount = async () => {
     try {
       const events = await healthEventAPI.getUpcomingEvents(); // Get all upcoming events
@@ -172,7 +211,7 @@ const ParentDashboardWrapper = () => {
       change: "Active students",
       changeType: "neutral",
       icon: User,
-      priority: "normal"
+      priority: "normal",
     },
     {
       title: "Upcoming Health Events",
@@ -180,7 +219,7 @@ const ParentDashboardWrapper = () => {
       change: "Scheduled events",
       changeType: "positive",
       icon: Calendar,
-      priority: "normal"
+      priority: "normal",
     },
     {
       title: "Health Incidents",
@@ -188,7 +227,7 @@ const ParentDashboardWrapper = () => {
       change: "Health incidents",
       changeType: "neutral",
       icon: FileText,
-      priority: healthIncidentsCount > 0 ? "high" : "normal"
+      priority: healthIncidentsCount > 0 ? "high" : "normal",
     },
     {
       title: "Medication Requests",
@@ -196,7 +235,15 @@ const ParentDashboardWrapper = () => {
       change: "Total requests sent",
       changeType: "neutral",
       icon: Heart,
-      priority: medicationRequestsCount > 5 ? "high" : "normal"
+      priority: medicationRequestsCount > 5 ? "high" : "normal",
+    },
+    {
+      title: "Medication Schedules",
+      value: loading ? "..." : medicationSchedulesCount.toString(),
+      change: "Scheduled medications",
+      changeType: "positive",
+      icon: Calendar,
+      priority: "normal",
     },
   ];
 
@@ -289,18 +336,22 @@ const ParentDashboardWrapper = () => {
         activeMenu={activeView}
         onMenuClick={handleMenuClick}
       />
-      
-      <main className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${sidebarCollapsed ? 'xl:ml-20' : ''}`}>
-        <TopNavbar 
+
+      <main
+        className={`ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen transition-all duration-200 ${
+          sidebarCollapsed ? "xl:ml-20" : ""
+        }`}
+      >
+        <TopNavbar
           title="Parent Dashboard"
           breadcrumb={["Parent", "Dashboard"]}
           userInfo={{ name: localStorage.getItem("fullname") || "Parent User" }}
           user={parentUser}
         />
-        
+
         {renderContent()}
       </main>
-      
+
       <AddStudentForm
         isOpen={showAddForm}
         onClose={() => setShowAddForm(false)}
