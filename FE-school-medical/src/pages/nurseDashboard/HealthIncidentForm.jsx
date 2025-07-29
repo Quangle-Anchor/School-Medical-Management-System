@@ -116,11 +116,21 @@ const HealthIncidentForm = ({ isOpen, onClose, onIncidentSaved, editingIncident 
       }
       
       console.log('Fetching confirmed students...');
-      // Use getConfirmedStudents to get only confirmed students
-      const response = await studentAPI.getConfirmedStudents();
       
-      // getConfirmedStudents returns an array directly
-      const studentsData = Array.isArray(response) ? response : [];
+      const role = localStorage.getItem('role');
+      let studentsData = [];
+      
+      if (role === 'Parent') {
+        // For parents, use the existing getMyConfirmedStudents
+        const response = await studentAPI.getMyConfirmedStudents();
+        studentsData = Array.isArray(response) ? response : [];
+      } else {
+        // For nurses/admins, get all students and filter confirmed ones
+        const response = await studentAPI.getAllStudents(0, 1000);
+        const allStudents = response.content || [];
+        // Filter only confirmed students using confirmationStatus
+        studentsData = allStudents.filter(student => student.confirmationStatus === 'confirmed');
+      }
       
       setStudents(studentsData);
       

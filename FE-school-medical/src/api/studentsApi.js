@@ -53,8 +53,8 @@ export const studentAPI = {
       const response = await axiosInstance.get('/api/students/my');
       console.log('getMyConfirmedStudents response:', response.data);
       const allStudents = Array.isArray(response.data) ? response.data : [];
-      // Filter only confirmed students
-      return allStudents.filter(student => student.isConfirm === true);
+      // Filter only confirmed students using confirmationStatus
+      return allStudents.filter(student => student.confirmationStatus === 'confirmed');
     } catch (error) {
       console.error('Error in getMyConfirmedStudents:', error);
       if (error.response?.status === 401) {
@@ -248,8 +248,8 @@ export const studentAPI = {
         console.log('getConfirmedStudents response:', response.data);
         
         const allStudents = response.data?.content || [];
-        // Filter only confirmed students
-        return allStudents.filter(student => student.isConfirm === true);
+        // Filter only confirmed students using confirmationStatus
+        return allStudents.filter(student => student.confirmationStatus === 'confirmed');
       }
     } catch (error) {
       console.error('Error in getConfirmedStudents:', error);
