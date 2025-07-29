@@ -193,8 +193,6 @@ const HealthEventsCRUD = ({ title, description }) => {
               >
                 <option value="Checkup">Checkup</option>
                 <option value="Vaccination">Vaccination</option>
-                <option value="Dental">Dental</option>
-                <option value="Vision">Vision</option>
                 <option value="Emergency">Emergency</option>
                 <option value="Other">Other</option>
               </select>

@@ -96,13 +96,8 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
     const primaryEvent = events[0];
     const colors = {
       'vaccination': 'bg-blue-50 border border-blue-200',
-      'general checkup': 'bg-green-50 border border-green-200', 
-      'dental': 'bg-sky-50 border border-sky-200',
-      'vision': 'bg-orange-50 border border-orange-200',
-      'physical': 'bg-red-50 border border-red-200',
-      'mental health': 'bg-indigo-50 border border-indigo-200',
       'checkup': 'bg-green-50 border border-green-200',
-      'treatment': 'bg-orange-50 border border-orange-200',
+      'general checkup': 'bg-green-50 border border-green-200', 
       'emergency': 'bg-red-50 border border-red-200',
       'other': 'bg-gray-50 border border-gray-200',
       'default': 'bg-gray-50 border border-gray-200'
@@ -242,16 +237,20 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
           {/* Event Legend */}
           <div className="flex justify-center space-x-6 text-sm mb-4">
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-gradient-to-tl from-green-600 to-lime-400 rounded-full mr-2"></div>
-              <span className="text-slate-700">Health Checkups</span>
+              <div className="w-3 h-3 bg-green-200 border border-green-300 rounded-full mr-2"></div>
+              <span className="text-slate-700">Checkups</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-full mr-2"></div>
+              <div className="w-3 h-3 bg-blue-200 border border-blue-300 rounded-full mr-2"></div>
               <span className="text-slate-700">Vaccinations</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-gradient-to-tl from-orange-500 to-yellow-400 rounded-full mr-2"></div>
-              <span className="text-slate-700">Treatments</span>
+              <div className="w-3 h-3 bg-red-200 border border-red-300 rounded-full mr-2"></div>
+              <span className="text-slate-700">Emergency</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-gray-200 border border-gray-300 rounded-full mr-2"></div>
+              <span className="text-slate-700">Other</span>
             </div>
           </div>
 
@@ -325,10 +324,11 @@ const ChartCard = ({ userRole = 'parent', onCreateEvent }) => {
                 <div className="space-y-2">
                   {getDateEvents(selectedDate.getDate()).map((event, idx) => (
                     <div key={idx} className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        event.type === 'checkup' ? 'bg-gradient-to-tl from-green-600 to-lime-400' :
-                        event.type === 'vaccination' ? 'bg-gradient-to-tl from-blue-600 to-cyan-400' :
-                        'bg-gradient-to-tl from-orange-500 to-yellow-400'
+                      <div className={`w-2 h-2 rounded-full border ${
+                        event.type === 'checkup' || event.type === 'general checkup' ? 'bg-green-200 border-green-300' :
+                        event.type === 'vaccination' ? 'bg-blue-200 border-blue-300' :
+                        event.type === 'emergency' ? 'bg-red-200 border-red-300' :
+                        'bg-gray-200 border-gray-300'
                       }`} />
                       <span className="text-sm text-slate-700">{event.title}</span>
                     </div>
