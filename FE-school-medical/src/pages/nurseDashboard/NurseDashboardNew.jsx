@@ -2,6 +2,7 @@ import NotificationsView from "./NotificationsView";
 import MedicationScheduleManagement from "./MedicationScheduleView";
 import MedicationScheduleForm from "./MedicationScheduleForm";
 import MedicationScheduleDetail from "./MedicationScheduleDetail";
+import StudentConfirmationView from "./StudentConfirmationView";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,10 +10,9 @@ import Sidebar from "../../components/SideBar";
 import TopNavbar from "../../components/Navbar";
 import DashboardCard from "../../components/DashboardCard";
 import ChartCard from "../../components/ChartCard";
-import HealthEventsView from "../../components/HealthEventsView";
+
 import NurseHealthEventsView from "./NurseHealthEventsView";
 import UpcomingHealthEventsCard from "../../components/UpcomingHealthEventsCard";
-import StudentsView from "./StudentsView";
 import NurseMedicationRequests from "./NurseMedicationRequests";
 import HealthIncidentsView from "./HealthIncidentsView";
 import InventoryView from "./InventoryView";
@@ -38,7 +38,7 @@ const NurseDashboard = () => {
     const path = location.pathname;
 
     // More precise matching to avoid conflicts
-    if (path === "/nurseDashboard/students") return "students";
+    if (path === "/nurseDashboard/students" || path === "/nurseDashboard/student-confirmations") return "student-confirmations";
     if (path === "/nurseDashboard/health-events") return "health-events";
     if (path === "/nurseDashboard/health-incidents") return "health-incidents";
     if (path === "/nurseDashboard/medication-requests")
@@ -211,8 +211,8 @@ const NurseDashboard = () => {
 
   const renderContent = () => {
     switch (activeView) {
-      case "students":
-        return <StudentsView />;
+      case "student-confirmations":
+        return <StudentConfirmationView />;
 
       case "health-events":
         return <NurseHealthEventsView />;

@@ -19,6 +19,7 @@ import {
   Syringe,
   AlertTriangle,
   Clock,
+  UserCheck,
 } from "lucide-react";
 
 const Sidebar = ({
@@ -51,7 +52,7 @@ const Sidebar = ({
     if (userRole === "nurse") {
       return [
         { id: "dashboard", icon: Activity, label: "Dashboard" },
-        { id: "students", icon: Users, label: "Students" },
+        { id: "student-confirmations", icon: UserCheck, label: "Student Confirmations" },
         { id: "health-events", icon: Calendar, label: "Health Events" },
         {
           id: "health-incidents",
