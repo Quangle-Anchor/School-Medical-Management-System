@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 public class MedicationRequestResponse {
     private Long requestId;
     private Long studentId;
+    private String studentCode;
     private String studentName;
     private String studentClass;
     private String parentName;

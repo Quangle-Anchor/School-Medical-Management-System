@@ -217,6 +217,7 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
         return MedicationRequestResponse.builder()
                 .requestId(entity.getRequestId())
                 .studentId(entity.getStudent().getStudentId())
+                .studentCode(entity.getStudent().getStudentCode())
                 .studentName(entity.getStudent().getFullName())
                 .studentClass(entity.getStudent().getClassName())
                 .parentName(entity.getRequestedBy().getFullName())
@@ -236,4 +237,5 @@ public class MedicationRequestServiceImpl implements MedicationRequestService {
                 .isSufficientStock(entity.getIsSufficientStock())
                 .build();
     }
+
 }
