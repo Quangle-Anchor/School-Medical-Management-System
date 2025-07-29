@@ -32,7 +32,11 @@ axiosInstance.interceptors.response.use(
       // Token is invalid or expired
       localStorage.removeItem('token');
       localStorage.removeItem('role');
-      window.location.href = '/login';
+      
+      // Only redirect if we're NOT already on the login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
