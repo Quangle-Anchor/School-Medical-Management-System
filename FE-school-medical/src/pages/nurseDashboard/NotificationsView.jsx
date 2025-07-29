@@ -17,27 +17,22 @@ const NotificationsView = ({ user }) => {
     // If parent or nurse, only get notifications for that user
     if (user && (user.role === "Parent" || user.role === "Nurse")) {
       notificationApi
-        .getMy(0, 30)
-        .then((res) => setNotifications(res.data.content || []))
+        .getMy(0, 30) 
+        .then((res) => {
+          setNotifications(res.data.content || []);
+        })
         .catch(() => setError("Unable to load notifications"))
         .finally(() => setLoading(false));
     } else {
       notificationApi
         .getAll(0, 30)
-        .then((res) => setNotifications(res.data.content || []))
+        .then((res) => {
+          setNotifications(res.data.content || []);
+        })
         .catch(() => setError("Unable to load notifications"))
         .finally(() => setLoading(false));
     }
   }, [formOpen, user]);
-
-  useEffect(() => {
-    // Update timestamps every minute
-    const timer = setInterval(() => {
-      setNotifications((prev) => [...prev]); // Force re-render to update timestamps
-    }, 60000); // Every minute
-
-    return () => clearInterval(timer);
-  }, []);
 
   const handleAdd = () => {
     setFormOpen(true);
@@ -92,46 +87,22 @@ const NotificationsView = ({ user }) => {
     return "text-blue-600 bg-blue-100";
   };
 
-  const formatTimeAgo = (timestamp) => {
-    if (!timestamp) return "N/A";
-
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return "N/A";
     try {
-      const date = new Date(timestamp);
-      const now = new Date();
-      const diffInSeconds = Math.floor((now - date) / 1000);
+      const date = new Date(dateTimeString);
 
-      // Just now
-      if (diffInSeconds < 30) return "Just now";
-
-      // Less than 1 minute
-      if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
-
-      // Less than 1 hour
-      const diffInMinutes = Math.floor(diffInSeconds / 60);
-      if (diffInMinutes < 60)
-        return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
-
-      // Less than 24 hours
-      const diffInHours = Math.floor(diffInMinutes / 60);
-      if (diffInHours < 24)
-        return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-
-      // Less than 7 days
-      const diffInDays = Math.floor(diffInHours / 24);
-      if (diffInDays < 7)
-        return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-
-      // Format date for older notifications
-      return date.toLocaleDateString("en-US", {
+      return date.toLocaleString("vi-VN", {
+        timeZone: "Asia/Ho_Chi_Minh",
         year: "numeric",
-        month: "short",
-        day: "numeric",
+        month: "2-digit",
+        day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       });
-    } catch (error) {
-      console.error("Date formatting error:", error);
-      return "Invalid date";
+    } catch {
+      return "N/A";
     }
   };
 
@@ -218,7 +189,7 @@ const NotificationsView = ({ user }) => {
                       {n.content}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                      {formatTimeAgo(n.createdAt)}
+                      {formatDateTime(n.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex space-x-2">
@@ -307,9 +278,7 @@ const NotificationsView = ({ user }) => {
                     {viewing.title}
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    {viewing.createdAt
-                      ? new Date(viewing.createdAt).toLocaleString()
-                      : ""}
+                    {formatDateTime(viewing.createdAt)}
                   </p>
                   <span className="inline-block px-2 py-1 text-xs rounded-full mt-1 bg-blue-100 text-blue-800">
                     Notification
@@ -335,25 +304,10 @@ const NotificationsView = ({ user }) => {
                   Details
                 </h4>
                 <div className="grid grid-cols-2 gap-6">
-                  <div>
+                  <div className="md:col-span-2">
                     <p className="text-sm text-gray-500 mb-2">Created</p>
                     <p className="text-gray-900 text-lg">
-                      {formatTimeAgo(viewing.createdAt)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-2">Exact Time</p>
-                    <p className="text-gray-900 text-lg">
-                      {viewing.createdAt
-                        ? new Date(viewing.createdAt).toLocaleString("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
-                        : "N/A"}
+                      {formatDateTime(viewing.createdAt)}
                     </p>
                   </div>
                   <div className="md:col-span-2">
