@@ -28,7 +28,12 @@ const HealthLookup = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col px-2 py-8" style={{ background: 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)' }}>
+    <div
+      className="min-h-[80vh] flex flex-col px-2 py-8"
+      style={{
+        background: "linear-gradient(135deg, #1976d2 0%, #2196f3 100%)",
+      }}
+    >
       {!student ? (
         // Centered search form when no student is found
         <div className="flex flex-col items-center justify-center flex-1">
@@ -77,7 +82,7 @@ const HealthLookup = () => {
           </h1>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 max-w-7xl mx-auto">
             {/* Left side - Search form */}
-            <div className="flex flex-col justify-center">  
+            <div className="flex flex-col justify-center">
               <form
                 className="bg-white rounded-xl shadow p-6 flex flex-col gap-2"
                 onSubmit={handleSearch}
@@ -102,12 +107,14 @@ const HealthLookup = () => {
                   </button>
                 </div>
                 <span className="text-gray-500 text-sm mt-1">
-                  After entering the student code, you can view personal and health
-                  history information
+                  After entering the student code, you can view personal and
+                  health history information
                 </span>
                 {error && <div className="text-red-600 mt-2">{error}</div>}
               </form>
-              {loading && <div className="mt-6 text-blue-600">Searching...</div>}
+              {loading && (
+                <div className="mt-6 text-blue-600">Searching...</div>
+              )}
             </div>
 
             {/* Right side - Student information */}
@@ -144,10 +151,41 @@ const HealthLookup = () => {
                   <b>Weight:</b> {student.weightKg} kg
                 </div>
                 <div>
+                  <b>Health Status:</b>
+                  <span
+                    className={`ml-2 px-2 py-1 rounded text-sm font-medium ${
+                      student.healthStatus === "HEALTHY"
+                        ? "bg-green-100 text-green-800"
+                        : student.healthStatus === "SICK"
+                        ? "bg-red-100 text-red-800"
+                        : student.healthStatus === "RECOVERING"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {student.healthStatus || "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <b>Confirmation Status:</b>
+                  <span
+                    className={`ml-2 px-2 py-1 rounded text-sm font-medium ${
+                      student.confirmationStatus === "confirmed"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {student.confirmationStatus === "confirmed"
+                      ? "Confirmed"
+                      : "Not Confirmed"}
+                  </span>
+                </div>
+                <div>
                   <b>Last Updated:</b>{" "}
                   {student.updatedAt ? student.updatedAt.slice(0, 10) : ""}
                 </div>
               </div>
+
               <h3 className="text-xl font-semibold mt-6 mb-2">
                 Health & Vaccination History
               </h3>
@@ -165,11 +203,15 @@ const HealthLookup = () => {
                   <tbody>
                     {student.healthInfoList.map((info, idx) => (
                       <tr key={idx}>
-                        <td className="border px-2 py-1">{info.healthInfoId}</td>
+                        <td className="border px-2 py-1">
+                          {info.healthInfoId}
+                        </td>
                         <td className="border px-2 py-1">
                           {info.medicalConditions || ""}
                         </td>
-                        <td className="border px-2 py-1">{info.allergies || ""}</td>
+                        <td className="border px-2 py-1">
+                          {info.allergies || ""}
+                        </td>
                         <td className="border px-2 py-1">{info.notes || ""}</td>
                         <td className="border px-2 py-1">
                           {info.updatedAt ? info.updatedAt.slice(0, 10) : ""}
