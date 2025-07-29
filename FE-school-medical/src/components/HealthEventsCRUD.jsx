@@ -235,7 +235,7 @@ const HealthEventsCRUD = ({ title, description }) => {
               >
                 <option value="Checkup">Checkup</option>
                 <option value="Vaccination">Vaccination</option>
-                <option value="Emergency">Emergency</option>
+                <option value="Emergency">Emergency Training</option>
                 <option value="Other">Other</option>
               </select>
             </div>

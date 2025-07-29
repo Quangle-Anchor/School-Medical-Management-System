@@ -230,14 +230,6 @@ const ParentDashboardWrapper = () => {
       priority: healthIncidentsCount > 0 ? "high" : "normal",
     },
     {
-      title: "Medication Requests",
-      value: loading ? "..." : medicationRequestsCount.toString(),
-      change: "Total requests sent",
-      changeType: "neutral",
-      icon: Heart,
-      priority: medicationRequestsCount > 5 ? "high" : "normal",
-    },
-    {
       title: "Medication Schedules",
       value: loading ? "..." : medicationSchedulesCount.toString(),
       change: "Scheduled medications",
