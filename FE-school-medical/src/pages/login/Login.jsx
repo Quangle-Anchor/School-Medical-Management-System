@@ -13,7 +13,6 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
@@ -24,7 +23,7 @@ const LoginPage = () => {
       const data = await authApi.googleLogin(credentialResponse.credential);
       
       if (!data?.token) {
-        setError('Invalid response from server. Please try again.');
+        showError('Invalid response from server. Please try again.');
         return;
       }
       
@@ -57,14 +56,16 @@ const LoginPage = () => {
       const dashboardPath = roleDashboardMap[data.role] || '/';
       navigate(dashboardPath, { replace: true });
     } catch (err) {
+      console.error('Google login error:', err);
+      // Show error toast for Google login
       if (err.response?.data?.error) {
-        setError(err.response.data.error);
+        showError(err.response.data.error);
       } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
+        showError(err.response.data.message);
       } else if (err.message) {
-        setError(err.message);
+        showError(err.message);
       } else {
-        setError('Google login failed. Please try again.');
+        showError('Google login failed. Please try again.');
       }
     } finally {
       setIsLoggingIn(false);
@@ -72,27 +73,34 @@ const LoginPage = () => {
   };
 
   const handleGoogleLoginError = () => {
-    setError('Google login failed. Please try again or use regular login.');
+    showError('Google login failed. Please try again or use regular login.');
   };
   
   // Completely separate function from form submission
   const handleLogin = async (e) => {
-    if (e) e.preventDefault(); // Always prevent default form submission
+    // ALWAYS prevent default behavior first
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     setIsLoggingIn(true);
     
     // Form validation
     if (!email || !password) {
-      setError('Please enter both email and password');
+      showError('Please enter both email and password');
       setIsLoggingIn(false);
-      return;
+      return false; // Explicitly return false
     }
     
     try {
       const data = await authApi.login(email, password);
       
       if (!data?.token) {
-        setError('Invalid response from server. Please try again.');
-        return;
+        showError('Invalid response from server. Please try again.');
+        setPassword(''); // Clear password on error
+        setIsLoggingIn(false);
+        return false;
       }
       
       localStorage.setItem('token', data.token);
@@ -123,28 +131,29 @@ const LoginPage = () => {
       };
       const dashboardPath = roleDashboardMap[data.role] || '/';
       navigate(dashboardPath, { replace: true }); // Use replace to avoid back button issue
+      return true;
     } catch (err) {
       console.error('Login error:', err);
-      // Better error handling
+      // Clear password on error but keep email
+      setPassword('');
+      
+      // Show appropriate error message via toast
       if (err.response?.data?.error) {
-        setError(err.response.data.error);
+        showError(err.response.data.error);
       } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
+        showError(err.response.data.message);
+      } else if (err.response?.status === 401) {
+        showError('Invalid email or password. Please try again.');
+      } else if (err.response?.status === 400) {
+        showError('Invalid credentials. Please check your email and password.');
       } else if (err.message) {
-        setError(err.message);
+        showError(err.message);
       } else {
-        setError('Login failed. Please check your credentials and try again.');
+        showError('Login failed. Please check your credentials and try again.');
       }
+      return false;
     } finally {
       setIsLoggingIn(false);
-    }
-  };
-  
-  // Prevent form submission on Enter key
-  const preventEnterSubmit = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleLogin();
     }
   };
   
@@ -177,16 +186,6 @@ const LoginPage = () => {
             <p className="text-white/80">Sign in to your account</p>
           </div>
 
-          {/* Error Alert */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/30 border border-red-500/50 rounded-xl backdrop-blur-sm animate-pulse">
-              <div className="flex items-center">
-                <div className="text-red-300 mr-2 font-bold">⚠️</div>
-                <span className="text-red-100 text-sm font-medium">{error}</span>
-              </div>
-            </div>
-          )}
-
           {/* Form */}
           <div className="space-y-6">
             <div>
@@ -204,7 +203,12 @@ const LoginPage = () => {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={preventEnterSubmit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleLogin(e);
+                  }
+                }}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
                 placeholder="Enter your email"
               />
@@ -226,7 +230,12 @@ const LoginPage = () => {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={preventEnterSubmit}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleLogin(e);
+                    }
+                  }}
                   className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all duration-300"
                   placeholder="Enter your password"
                 />
@@ -271,35 +280,39 @@ const LoginPage = () => {
 
             <button
               type="button"
-              onClick={handleLogin}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleLogin(e);
+              }}
               disabled={isLoggingIn}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 backdrop-blur-sm"
+              className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoggingIn ? 'Signing in...' : 'Sign In'}
             </button>
+          </div>
 
-            {/* Divider */}
-            <div className="flex items-center justify-center">
-              <div className="border-t border-white/20 flex-grow"></div>
-              <span className="px-3 text-white/60 text-sm">or</span>
-              <div className="border-t border-white/20 flex-grow"></div>
-            </div>
+          {/* Divider */}
+          <div className="flex items-center justify-center mt-6">
+            <div className="border-t border-white/20 flex-grow"></div>
+            <span className="px-3 text-white/60 text-sm">or</span>
+            <div className="border-t border-white/20 flex-grow"></div>
+          </div>
 
-            {/* Google OAuth Button */}
-            <div className="w-full">
-              <GoogleLogin
-                onSuccess={handleGoogleLoginSuccess}
-                onError={handleGoogleLoginError}
-                theme="filled_black"
-                shape="rectangular"
-                size="large"
-                text="signin_with"
-                width="100%"
-                style={{
-                  width: '100%',
-                }}
-              />
-            </div>
+          {/* Google OAuth Button */}
+          <div className="w-full mt-6">
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginError}
+              theme="filled_black"
+              shape="rectangular"
+              size="large"
+              text="signin_with"
+              width="100%"
+              style={{
+                width: '100%',
+              }}
+            />
           </div>
 
           <div className="mt-8 text-center">
